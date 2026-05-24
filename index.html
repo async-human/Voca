@@ -1107,8 +1107,16 @@ footer{
   transition:opacity .25s cubic-bezier(.16,1,.3,1),
              transform .25s cubic-bezier(.16,1,.3,1),
              visibility .25s;
-  z-index:200;
+  z-index:10000;
   overflow:hidden;
+}
+.custom-select.drop-up .custom-select-menu{
+  top:auto;bottom:calc(100% + 10px);
+  transform:translateY(6px) scale(.98);
+  transform-origin:bottom center;
+}
+.custom-select.open.drop-up .custom-select-menu{
+  transform:translateY(0) scale(1);
 }
 .custom-select-menu::before{
   content:'';position:absolute;inset:0;border-radius:18px;
@@ -1487,7 +1495,7 @@ footer{
     <p class="final-sub">Join the waitlist for early access. We'll reach out personally as we onboard new users — with direct feedback sessions.</p>
     <div class="final-form" id="finalForm">
       <input class="final-input" type="email" placeholder="your@email.com" id="finalEmail" autocomplete="email">
-      <div class="custom-select" id="finalUseCaseWrap">
+      <div class="custom-select" id="finalUseCaseWrap" data-prefer-up="true">
         <input type="hidden" id="finalUseCase" value="">
         <button type="button" class="custom-select-trigger" id="finalUseCaseTrigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="finalUseCaseLabel">
           <span class="custom-select-label placeholder" id="finalUseCaseLabel">What do you write most?</span>
@@ -1964,20 +1972,98 @@ function initCustomSelect(wrapId) {
   const options = [...menu.querySelectorAll('.custom-select-option')];
   let focusIdx = -1;
 
+  function resetMenuPosition() {
+    menu.style.position = '';
+    menu.style.top = '';
+    menu.style.bottom = '';
+    menu.style.left = '';
+    menu.style.right = '';
+    menu.style.width = '';
+    menu.style.maxHeight = '';
+    menu.style.overflowY = '';
+  }
+
+  function positionMenu() {
+    const gap = 10;
+    const padding = 16;
+    const triggerRect = trigger.getBoundingClientRect();
+    const menuWidth = Math.max(triggerRect.width, 260);
+    const footerEl = document.querySelector('footer');
+    const boundaryBottom = footerEl
+      ? footerEl.getBoundingClientRect().top - gap
+      : window.innerHeight - padding;
+
+    menu.style.position = 'fixed';
+    menu.style.visibility = 'hidden';
+    menu.style.pointerEvents = 'none';
+    menu.style.left = '-9999px';
+    menu.style.width = menuWidth + 'px';
+    menu.style.maxHeight = '';
+    menu.style.overflowY = 'hidden';
+
+    const menuHeight = menu.offsetHeight;
+    const spaceBelow = boundaryBottom - triggerRect.bottom - gap;
+    const spaceAbove = triggerRect.top - padding - gap;
+    const preferUp = wrap.dataset.preferUp === 'true';
+    let openUp = preferUp || spaceBelow < menuHeight;
+
+    if (openUp && spaceAbove < menuHeight && spaceBelow > spaceAbove) {
+      openUp = false;
+    }
+
+    wrap.classList.toggle('drop-up', openUp);
+
+    let left = triggerRect.left;
+    left = Math.max(padding, Math.min(left, window.innerWidth - menuWidth - padding));
+    menu.style.left = left + 'px';
+    menu.style.right = 'auto';
+    menu.style.width = menuWidth + 'px';
+
+    if (openUp) {
+      menu.style.top = 'auto';
+      menu.style.bottom = (window.innerHeight - triggerRect.top + gap) + 'px';
+      const maxH = triggerRect.top - padding - gap;
+      if (menuHeight > maxH) {
+        menu.style.maxHeight = maxH + 'px';
+        menu.style.overflowY = 'auto';
+      }
+    } else {
+      menu.style.bottom = 'auto';
+      menu.style.top = (triggerRect.bottom + gap) + 'px';
+      const maxH = boundaryBottom - triggerRect.bottom - gap;
+      if (menuHeight > maxH) {
+        menu.style.maxHeight = Math.max(maxH, 120) + 'px';
+        menu.style.overflowY = 'auto';
+      }
+    }
+
+    menu.style.visibility = '';
+    menu.style.pointerEvents = '';
+  }
+
   function close() {
-    wrap.classList.remove('open');
+    wrap.classList.remove('open', 'drop-up');
     trigger.setAttribute('aria-expanded', 'false');
     options.forEach(o => o.classList.remove('focused'));
     focusIdx = -1;
+    resetMenuPosition();
   }
 
   function open() {
     wrap.classList.add('open');
     trigger.setAttribute('aria-expanded', 'true');
+    positionMenu();
     const selectedIdx = options.findIndex(o => o.classList.contains('selected'));
     focusIdx = selectedIdx >= 0 ? selectedIdx : 0;
     options.forEach((o, i) => o.classList.toggle('focused', i === focusIdx));
   }
+
+  function onScrollOrResize() {
+    if (wrap.classList.contains('open')) positionMenu();
+  }
+
+  window.addEventListener('scroll', onScrollOrResize, true);
+  window.addEventListener('resize', onScrollOrResize);
 
   function selectOption(option) {
     options.forEach(o => {
