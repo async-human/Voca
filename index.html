@@ -121,10 +121,12 @@ nav.scrolled{
 
 /* ─── HERO ─── */
 .hero{
-  min-height:auto;
+  min-height:100vh;
+  min-height:100dvh;
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;
-  padding:108px 24px 72px;
+  padding:88px 24px 48px;
+  box-sizing:border-box;
   position:relative;overflow:hidden;
   background:var(--paper);
 }
@@ -960,7 +962,11 @@ footer{
 }
 @media(max-width:480px){
   section{padding:72px 20px;}
-  .hero{padding:100px 20px 56px;}
+  .hero{
+    min-height:100vh;
+    min-height:100dvh;
+    padding:80px 20px 40px;
+  }
   .foot-grid{grid-template-columns:1fr;}
   .foot-col,.foot-col:nth-child(odd){border-right:none!important;}
   .foot-col:nth-child(3){border-bottom:1px solid var(--faint2);}
