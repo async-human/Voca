@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Vokal turns your spoken thoughts into polished professional communication — instantly, in your voice. Join the waitlist.">
+<meta name="description" content="Vokal is not ChatGPT or Grammarly. Speak for 60 seconds — get a polished email, Slack, or LinkedIn post in your voice, with AI that explains every change. Join the waitlist.">
 <meta property="og:title" content="Vokal — Your voice. Perfectly expressed.">
-<meta property="og:description" content="Speak for 60 seconds. Get a perfect email, report, or LinkedIn post — written in your voice, explained by AI.">
+<meta property="og:description" content="Not transcription. Not generic AI. Speak for 60 seconds and get professional writing in your exact voice — with AI that explains every change.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://vokal.work">
 <title>Vokal — Your voice. Perfectly expressed.</title>
@@ -193,6 +193,27 @@ nav.scrolled{
   opacity:0;animation:riseIn .9s .22s ease both;
 }
 .hero-sub strong{color:var(--ink);font-weight:600;}
+
+.hero-nots{
+  display:flex;flex-wrap:wrap;gap:8px;
+  margin:0 0 22px;
+  opacity:0;animation:riseIn .9s .26s ease both;
+}
+.hero-not{
+  font-family:'DM Mono',monospace;
+  font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+  padding:6px 13px;border-radius:100px;
+}
+.hero-not.no{
+  background:rgba(28,24,20,.04);
+  border:1px solid var(--faint2);
+  color:var(--muted);
+}
+.hero-not.yes{
+  background:var(--accentbg);
+  border:1px solid rgba(191,59,42,.22);
+  color:var(--accent);font-weight:500;
+}
 
 .hero-chips{
   display:flex;flex-wrap:wrap;gap:8px;
@@ -411,6 +432,106 @@ nav.scrolled{
 }
 .ticker-sep{color:var(--accent);font-size:14px;}
 @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ─── PH LAUNCH BAR ─── */
+.ph-bar{
+  background:var(--ink);
+  color:rgba(255,255,255,.75);
+  text-align:center;
+  padding:10px 48px;
+  font-size:13px;
+  position:relative;z-index:999;
+  display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.ph-bar strong{color:var(--paper);font-weight:600;}
+.ph-bar a{
+  color:var(--accent2);font-weight:600;text-decoration:none;
+  border-bottom:1px solid rgba(217,79,60,.35);
+  transition:color .2s,border-color .2s;
+}
+.ph-bar a:hover{color:var(--paper);border-color:rgba(255,255,255,.4);}
+body.has-ph-bar nav{top:42px;}
+body.has-ph-bar .hero{padding-top:130px;}
+
+/* ─── DIFFERENTIATION ─── */
+.different{
+  background:var(--paper2);
+  padding:88px 24px 100px;
+  border-bottom:1px solid var(--faint2);
+}
+.different .section-sub{max-width:560px;}
+.compare-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr) 1.18fr;
+  gap:12px;
+  margin-top:48px;
+  align-items:stretch;
+}
+.compare-card{
+  background:var(--paper);
+  border:1px solid var(--faint2);
+  border-radius:var(--r);
+  padding:26px 22px;
+  opacity:0;transform:translateY(20px);
+  transition:all .55s cubic-bezier(.16,1,.3,1);
+}
+.compare-card.visible{opacity:1;transform:translateY(0);}
+.compare-card.them:hover{
+  transform:translateY(-3px);
+  box-shadow:0 12px 36px rgba(28,24,20,.07);
+}
+.compare-label{
+  font-family:'DM Mono',monospace;
+  font-size:9px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:10px;
+}
+.compare-tool{
+  font-size:15px;font-weight:600;color:var(--ink);
+  margin-bottom:14px;line-height:1.35;
+}
+.compare-list{
+  list-style:none;
+  display:flex;flex-direction:column;gap:9px;
+}
+.compare-list li{
+  font-size:13px;line-height:1.55;color:var(--muted);
+  padding-left:16px;position:relative;
+}
+.compare-list li::before{
+  content:'→';
+  position:absolute;left:0;color:var(--faint);
+  font-size:11px;top:1px;
+}
+.compare-card.vokal{
+  background:var(--ink);
+  border-color:rgba(255,255,255,.1);
+  box-shadow:0 24px 64px rgba(28,24,20,.22);
+  position:relative;overflow:hidden;
+}
+.compare-card.vokal::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:var(--accent);
+}
+.compare-card.vokal .compare-label{color:var(--accent2);}
+.compare-card.vokal .compare-tool{color:rgba(255,255,255,.92);}
+.compare-card.vokal .compare-list li{color:rgba(255,255,255,.45);}
+.compare-card.vokal .compare-list li::before{color:var(--accent2);}
+.compare-card.vokal .compare-list li strong{color:rgba(255,255,255,.82);font-weight:600;}
+.compare-tag{
+  display:inline-flex;align-items:center;gap:6px;
+  margin-top:16px;padding:7px 12px;border-radius:100px;
+  background:rgba(191,59,42,.14);
+  border:1px solid rgba(191,59,42,.28);
+  font-family:'DM Mono',monospace;
+  font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--accent2);
+}
+.compare-tag-dot{
+  width:5px;height:5px;border-radius:50%;
+  background:var(--accent2);
+  box-shadow:0 0 8px rgba(217,79,60,.7);
+}
 
 /* ─── SECTION COMMONS ─── */
 section{padding:100px 24px;}
@@ -1199,6 +1320,10 @@ footer{
 }
 
 /* ─── RESPONSIVE ─── */
+@media(max-width:1024px){
+  .compare-grid{grid-template-columns:1fr 1fr;}
+  .compare-card.vokal{grid-column:1/-1;}
+}
 @media(max-width:768px){
   nav{padding:16px 20px;}
   nav.scrolled{padding:12px 20px;}
@@ -1211,6 +1336,7 @@ footer{
   .hero-cycle{font-size:clamp(22px,6vw,38px);--hero-cycle-size:clamp(22px,6vw,38px);}
   .hero-cycle-inner{left:0;right:0;width:100%;text-align:center;}
   .hero-sub{margin-left:auto;margin-right:auto;}
+  .hero-nots{justify-content:center;}
   .hero-chips{justify-content:center;}
   .hero-cta-row{justify-content:center;}
   footer .foot-inner{padding:0 20px;}
@@ -1226,6 +1352,11 @@ footer{
   .final-perks{gap:6px 14px;}
   body{cursor:auto;}
   .cursor,.cursor-ring{display:none;}
+  .compare-grid{grid-template-columns:1fr;}
+  .compare-card.vokal{order:-1;}
+  body.has-ph-bar nav{top:0;}
+  body.has-ph-bar .hero{padding-top:88px;}
+  .ph-bar{font-size:12px;padding:10px 20px;}
 }
 @media(max-width:480px){
   section{padding:72px 20px;}
@@ -1241,7 +1372,12 @@ footer{
 }
 </style>
 </head>
-<body>
+<body class="has-ph-bar">
+
+<div class="ph-bar">
+  <span>🚀 <strong>Launching on Product Hunt</strong> — voice in, polished writing out, in your voice</span>
+  <a href="#waitlist">Join the waitlist →</a>
+</div>
 
 <!-- Custom cursor -->
 <div class="cursor" id="cursor"></div>
@@ -1254,9 +1390,9 @@ footer{
     <div class="nav-logo-dot"></div>
   </a>
   <div class="nav-links">
+    <a href="#different">What's different</a>
     <a href="#how">How it works</a>
     <a href="#examples">Examples</a>
-    <a href="#why">Why Vokal</a>
     <a href="#waitlist" class="nav-cta">Join Waitlist</a>
   </div>
 </nav>
@@ -1265,12 +1401,17 @@ footer{
 <section class="hero" id="home">
   <div class="hero-inner">
     <div class="hero-copy">
-      <div class="hero-eyebrow">Early access · Vokal</div>
+      <div class="hero-eyebrow">Product Hunt launch · Early access</div>
       <h1 class="hero-h">Your voice.</h1>
       <span class="hero-cycle"><span class="hero-cycle-inner" id="cycleText"></span></span>
       <p class="hero-sub">
-        Speak for 60 seconds — get a polished email, Slack message, or LinkedIn post in <strong>your voice</strong>.
+        Not transcription. Not ChatGPT. <strong>Speak for 60 seconds</strong> — get a polished email, Slack message, or report that sounds like <strong>you</strong>, with AI that explains every change.
       </p>
+      <div class="hero-nots">
+        <span class="hero-not no">Not a transcript</span>
+        <span class="hero-not no">Not generic AI</span>
+        <span class="hero-not yes">Your voice, explained</span>
+      </div>
       <div class="hero-chips" id="heroChips">
         <button type="button" class="hero-chip active" data-scene="0">Email</button>
         <button type="button" class="hero-chip" data-scene="1">Slack</button>
@@ -1278,7 +1419,7 @@ footer{
         <button type="button" class="hero-chip" data-scene="3">Report</button>
       </div>
       <div class="hero-cta-row">
-        <a href="#waitlist" class="hero-cta">Get early access →</a>
+        <a href="#waitlist" class="hero-cta">Join the waitlist →</a>
         <span class="hero-count-note"><strong id="heroCountNum">847</strong>+ on the waitlist</span>
       </div>
     </div>
@@ -1318,6 +1459,56 @@ footer{
     <!-- duplicated for seamless loop -->
   </div>
 </div>
+
+<!-- ─── DIFFERENTIATION ─── -->
+<section class="different" id="different">
+  <div class="section-inner">
+    <div class="section-eyebrow scroll-reveal">What makes Vokal different</div>
+    <h2 class="section-h scroll-reveal">You've tried AI writing.<br><em>You haven't tried this.</em></h2>
+    <p class="section-sub scroll-reveal">Product Hunt visitors know ChatGPT, Grammarly, and Otter. Vokal isn't any of them — it's the missing step between thinking out loud and sending something brilliant.</p>
+
+    <div class="compare-grid">
+      <div class="compare-card them scroll-reveal">
+        <div class="compare-label">Transcription</div>
+        <div class="compare-tool">Otter · Whisper · Apple Dictation</div>
+        <ul class="compare-list">
+          <li>Turns speech into a wall of text</li>
+          <li>You still edit, format, and rewrite</li>
+          <li>Zero help with tone or structure</li>
+        </ul>
+      </div>
+      <div class="compare-card them scroll-reveal" style="transition-delay:.08s">
+        <div class="compare-label">AI writers</div>
+        <div class="compare-tool">ChatGPT · Jasper · Copilot</div>
+        <ul class="compare-list">
+          <li>Needs prompts and blank-page setup</li>
+          <li>Outputs sound like AI, not you</li>
+          <li>No idea why it wrote what it wrote</li>
+        </ul>
+      </div>
+      <div class="compare-card them scroll-reveal" style="transition-delay:.16s">
+        <div class="compare-label">Grammar tools</div>
+        <div class="compare-tool">Grammarly · Hemingway</div>
+        <ul class="compare-list">
+          <li>Fixes mistakes after you already wrote</li>
+          <li>Same effort — you still do the writing</li>
+          <li>Corrects you, doesn't teach you</li>
+        </ul>
+      </div>
+      <div class="compare-card vokal scroll-reveal" style="transition-delay:.24s">
+        <div class="compare-label">Voice → format → you</div>
+        <div class="compare-tool">Vokal</div>
+        <ul class="compare-list">
+          <li><strong>Speak messy for 60 seconds</strong> — ramble, pause, repeat yourself</li>
+          <li><strong>Get the right format</strong> — email, Slack, report, LinkedIn, journal</li>
+          <li><strong>Sounds like you</strong> — learns your voice over time</li>
+          <li><strong>Explains every change</strong> — so you get sharper, not dependent</li>
+        </ul>
+        <div class="compare-tag"><span class="compare-tag-dot"></span>The missing step</div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- ─── PROBLEM ─── -->
 <section class="problem" id="problem">
@@ -1373,7 +1564,7 @@ footer{
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
         </div>
         <div class="step-title">AI understands intent</div>
-        <div class="step-body">Vokal doesn't just transcribe — it extracts your intent, identifies your audience, and maps your communication goal before writing a single word.</div>
+        <div class="step-body">Vokal doesn't transcribe and hand you a wall of text. It extracts intent, picks the format, and writes — then shows you exactly why every change was made.</div>
       </div>
       <div class="step scroll-reveal" style="transition-delay:.2s">
         <div class="step-n">03</div>
@@ -1517,7 +1708,7 @@ footer{
   </div>
   <div class="final-cta-inner">
     <h2 class="final-h">Your voice.<br><em>Perfectly expressed.</em></h2>
-    <p class="final-sub">Join the waitlist for early access. We'll reach out personally as we onboard new users — with direct feedback sessions.</p>
+    <p class="final-sub">Join from Product Hunt for early access. We're onboarding personally — your feedback shapes what we build next.</p>
     <div class="final-form" id="finalForm">
       <input class="final-input" type="email" placeholder="your@email.com" id="finalEmail" autocomplete="email">
       <div class="custom-select" id="finalUseCaseWrap" data-prefer-up="true">
@@ -1586,9 +1777,9 @@ footer{
       </div>
       <div class="foot-col">
         <div class="foot-col-title">Product</div>
+        <a href="#different">What's different</a>
         <a href="#how">How it works</a>
         <a href="#examples">Examples</a>
-        <a href="#why">Why Vokal</a>
         <a href="#waitlist" class="foot-highlight">Early access open</a>
       </div>
       <div class="foot-col">
@@ -1925,10 +2116,14 @@ initStatCounters();
 
 // ─── TICKER ───
 const TICKS=[
-  'Think out loud','Send something brilliant',
-  'Voice → Email in 30s','Your voice · Perfected',
-  'AI that explains itself','1.1B professionals · Underserved',
-  'Early access now open','Built for thinkers',
+  'Not ChatGPT · Not Grammarly · Not Otter',
+  'Speak messy · Send polished',
+  'Your voice · Not AI slop',
+  'AI that explains every change',
+  'Voice → Email in 60 seconds',
+  'Launching on Product Hunt',
+  'Early access open · Free to join',
+  'Built for how you actually think',
 ];
 const ticker=document.getElementById('ticker');
 const all=[...TICKS,...TICKS,...TICKS];
@@ -1938,7 +2133,7 @@ ticker.innerHTML=all.map(t=>`<div class="ticker-item">${t}<span class="ticker-se
 const observer=new IntersectionObserver(entries=>{
   entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');}});
 },{threshold:.12});
-document.querySelectorAll('.scroll-reveal').forEach(el=>observer.observe(el));
+document.querySelectorAll('.scroll-reveal,.compare-card').forEach(el=>observer.observe(el));
 
 // ─── COUNT UP ───
 const countEl = document.getElementById('countNum');
