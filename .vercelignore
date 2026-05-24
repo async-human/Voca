@@ -1,6 +1,5 @@
 api/
 supabase/
-scripts/
 .env.example
 config.example.js
 .gitignore

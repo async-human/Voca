@@ -1,4 +1,4 @@
-import { writeFileSync } from 'fs';
+const { writeFileSync } = require('fs');
 
 const apiUrl = process.env.VOCA_API_URL || 'http://localhost:3001';
 
