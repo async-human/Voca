@@ -819,7 +819,7 @@ section{padding:100px 24px;}
   padding:0 24px 120px;
   text-align:center;
   position:relative;
-  overflow:hidden;
+  overflow:visible;
 }
 .final-cta::before{
   content:'';
@@ -1057,34 +1057,106 @@ footer{
 }
 .error-msg.show{display:flex;}
 
-.form-select{
+.custom-select{
+  position:relative;
+  min-width:220px;
+}
+.custom-select-trigger{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  width:100%;min-width:220px;
   padding:14px 20px;border-radius:100px;
-  border:1.5px solid var(--faint2);
-  background:rgba(255,255,255,.5);
+  border:1.5px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.07);
   font-family:'Instrument Sans',sans-serif;
-  font-size:14px;color:var(--ink);
+  font-size:15px;color:var(--paper);
   outline:none;cursor:none;
   transition:all .25s;
   backdrop-filter:blur(8px);
-  appearance:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23897D72' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;
-  background-position:right 18px center;
-  padding-right:42px;
 }
-.form-select:focus{
-  border-color:var(--accent);
-  background-color:rgba(255,255,255,.75);
-  box-shadow:0 0 0 4px rgba(191,59,42,.08);
+.custom-select-trigger:hover{
+  border-color:rgba(255,255,255,.2);
+  background:rgba(255,255,255,.1);
 }
-.final-form .form-select{
-  border-color:rgba(255,255,255,.12);
-  background-color:rgba(255,255,255,.07);
-  color:var(--paper);
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(255,255,255,.35)' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+.custom-select.open .custom-select-trigger,
+.custom-select-trigger:focus-visible{
+  border-color:rgba(191,59,42,.6);
+  background:rgba(255,255,255,.1);
+  box-shadow:0 0 0 4px rgba(191,59,42,.1);
 }
-.final-form .form-select:focus{border-color:rgba(191,59,42,.6);background-color:rgba(255,255,255,.1);}
-.final-form .form-select option{color:var(--ink);}
+.custom-select-label.placeholder{color:rgba(255,255,255,.28);}
+.custom-select-chevron{
+  flex-shrink:0;
+  opacity:.45;
+  transition:transform .25s cubic-bezier(.16,1,.3,1),opacity .2s;
+}
+.custom-select.open .custom-select-chevron{
+  transform:rotate(180deg);
+  opacity:.75;
+}
+.custom-select-menu{
+  position:absolute;top:calc(100% + 10px);left:0;right:0;
+  min-width:260px;
+  margin:0;padding:8px;list-style:none;
+  background:var(--paper);
+  border:1px solid var(--faint2);
+  border-radius:18px;
+  box-shadow:0 24px 64px rgba(28,24,20,.28),0 0 0 1px rgba(28,24,20,.03);
+  opacity:0;visibility:hidden;
+  transform:translateY(-6px) scale(.98);
+  transform-origin:top center;
+  transition:opacity .25s cubic-bezier(.16,1,.3,1),
+             transform .25s cubic-bezier(.16,1,.3,1),
+             visibility .25s;
+  z-index:200;
+  overflow:hidden;
+}
+.custom-select-menu::before{
+  content:'';position:absolute;inset:0;border-radius:18px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  pointer-events:none;
+}
+.custom-select.open .custom-select-menu{
+  opacity:1;visibility:visible;
+  transform:translateY(0) scale(1);
+}
+.custom-select-option{
+  position:relative;z-index:1;
+  display:flex;align-items:center;gap:12px;
+  padding:11px 14px;border-radius:12px;
+  font-size:14px;font-weight:500;color:var(--ink2);
+  cursor:none;
+  transition:background .18s ease,color .18s ease;
+}
+.custom-select-option:hover,
+.custom-select-option.focused{
+  background:var(--accentbg);
+  color:var(--ink);
+}
+.custom-select-option.selected{
+  background:rgba(191,59,42,.1);
+  color:var(--accent);
+}
+.custom-select-option.selected:hover{background:rgba(191,59,42,.14);}
+.custom-select-option-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--faint);flex-shrink:0;
+  transition:background .18s ease,box-shadow .18s ease;
+}
+.custom-select-option:hover .custom-select-option-dot,
+.custom-select-option.focused .custom-select-option-dot{background:var(--accent);opacity:.6;}
+.custom-select-option.selected .custom-select-option-dot{
+  background:var(--accent);
+  box-shadow:0 0 0 3px rgba(191,59,42,.12);
+}
+.custom-select-option-text{flex:1;line-height:1.3;}
+.custom-select-option-tag{
+  font-family:'DM Mono',monospace;
+  font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);opacity:.7;
+  transition:color .18s ease;
+}
+.custom-select-option.selected .custom-select-option-tag{color:var(--accent);opacity:.85;}
+.custom-select-option:hover .custom-select-option-tag{color:var(--ink);}
 
 .hero-btn:disabled,.final-btn:disabled{
   opacity:.65;cursor:not-allowed;
@@ -1415,15 +1487,45 @@ footer{
     <p class="final-sub">Join the waitlist for early access. We'll reach out personally as we onboard new users — with direct feedback sessions.</p>
     <div class="final-form" id="finalForm">
       <input class="final-input" type="email" placeholder="your@email.com" id="finalEmail" autocomplete="email">
-      <select class="form-select" id="finalUseCase" aria-label="What do you write most?">
-        <option value="">What do you write most?</option>
-        <option value="email">Emails</option>
-        <option value="reports">Reports & docs</option>
-        <option value="linkedin">LinkedIn posts</option>
-        <option value="slack">Slack messages</option>
-        <option value="journal">Personal journal</option>
-        <option value="other">Something else</option>
-      </select>
+      <div class="custom-select" id="finalUseCaseWrap">
+        <input type="hidden" id="finalUseCase" value="">
+        <button type="button" class="custom-select-trigger" id="finalUseCaseTrigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="finalUseCaseLabel">
+          <span class="custom-select-label placeholder" id="finalUseCaseLabel">What do you write most?</span>
+          <svg class="custom-select-chevron" width="12" height="8" viewBox="0 0 12 8" fill="none" aria-hidden="true"><path d="M1 1l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+        <ul class="custom-select-menu" role="listbox" id="finalUseCaseMenu" aria-label="What do you write most?">
+          <li class="custom-select-option" role="option" data-value="email" tabindex="-1">
+            <span class="custom-select-option-dot"></span>
+            <span class="custom-select-option-text">Emails</span>
+            <span class="custom-select-option-tag">Daily</span>
+          </li>
+          <li class="custom-select-option" role="option" data-value="reports" tabindex="-1">
+            <span class="custom-select-option-dot"></span>
+            <span class="custom-select-option-text">Reports &amp; docs</span>
+            <span class="custom-select-option-tag">Work</span>
+          </li>
+          <li class="custom-select-option" role="option" data-value="linkedin" tabindex="-1">
+            <span class="custom-select-option-dot"></span>
+            <span class="custom-select-option-text">LinkedIn posts</span>
+            <span class="custom-select-option-tag">Social</span>
+          </li>
+          <li class="custom-select-option" role="option" data-value="slack" tabindex="-1">
+            <span class="custom-select-option-dot"></span>
+            <span class="custom-select-option-text">Slack messages</span>
+            <span class="custom-select-option-tag">Team</span>
+          </li>
+          <li class="custom-select-option" role="option" data-value="journal" tabindex="-1">
+            <span class="custom-select-option-dot"></span>
+            <span class="custom-select-option-text">Personal journal</span>
+            <span class="custom-select-option-tag">Reflect</span>
+          </li>
+          <li class="custom-select-option" role="option" data-value="other" tabindex="-1">
+            <span class="custom-select-option-dot"></span>
+            <span class="custom-select-option-text">Something else</span>
+            <span class="custom-select-option-tag">Other</span>
+          </li>
+        </ul>
+      </div>
       <button class="final-btn" id="finalBtn" type="button" onclick="handleSignup('final')">Get early access →</button>
       <input class="hp-field" type="text" name="website" id="finalWebsite" tabindex="-1" autocomplete="off">
     </div>
@@ -1677,7 +1779,7 @@ function animRing(){
   requestAnimationFrame(animRing);
 }
 animRing();
-document.querySelectorAll('a,button,.fpill,.mode-btn,.hero-chip').forEach(el=>{
+document.querySelectorAll('a,button,.fpill,.mode-btn,.hero-chip,.custom-select-trigger,.custom-select-option').forEach(el=>{
   el.addEventListener('mouseenter',()=>{cur.classList.add('hover');ring.classList.add('hover');});
   el.addEventListener('mouseleave',()=>{cur.classList.remove('hover');ring.classList.remove('hover');});
 });
@@ -1849,6 +1951,88 @@ function loadFmt(idx) {
 }
 
 loadFmt(0);
+
+// ─── CUSTOM SELECT ───
+function initCustomSelect(wrapId) {
+  const wrap = document.getElementById(wrapId);
+  if (!wrap) return;
+
+  const hidden = wrap.querySelector('input[type="hidden"]');
+  const trigger = wrap.querySelector('.custom-select-trigger');
+  const label = wrap.querySelector('.custom-select-label');
+  const menu = wrap.querySelector('.custom-select-menu');
+  const options = [...menu.querySelectorAll('.custom-select-option')];
+  let focusIdx = -1;
+
+  function close() {
+    wrap.classList.remove('open');
+    trigger.setAttribute('aria-expanded', 'false');
+    options.forEach(o => o.classList.remove('focused'));
+    focusIdx = -1;
+  }
+
+  function open() {
+    wrap.classList.add('open');
+    trigger.setAttribute('aria-expanded', 'true');
+    const selectedIdx = options.findIndex(o => o.classList.contains('selected'));
+    focusIdx = selectedIdx >= 0 ? selectedIdx : 0;
+    options.forEach((o, i) => o.classList.toggle('focused', i === focusIdx));
+  }
+
+  function selectOption(option) {
+    options.forEach(o => {
+      o.classList.remove('selected');
+      o.setAttribute('aria-selected', 'false');
+    });
+    option.classList.add('selected');
+    option.setAttribute('aria-selected', 'true');
+    hidden.value = option.dataset.value;
+    label.textContent = option.querySelector('.custom-select-option-text').textContent;
+    label.classList.remove('placeholder');
+    close();
+    trigger.focus();
+  }
+
+  trigger.addEventListener('click', () => {
+    wrap.classList.contains('open') ? close() : open();
+  });
+
+  options.forEach((option, i) => {
+    option.addEventListener('click', () => selectOption(option));
+    option.addEventListener('mouseenter', () => {
+      focusIdx = i;
+      options.forEach((o, j) => o.classList.toggle('focused', j === i));
+    });
+  });
+
+  trigger.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+    }
+    if (!wrap.classList.contains('open')) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') open();
+      return;
+    }
+    if (e.key === 'Escape') { close(); return; }
+    if (e.key === 'ArrowDown') {
+      focusIdx = Math.min(focusIdx + 1, options.length - 1);
+      options.forEach((o, j) => o.classList.toggle('focused', j === focusIdx));
+    }
+    if (e.key === 'ArrowUp') {
+      focusIdx = Math.max(focusIdx - 1, 0);
+      options.forEach((o, j) => o.classList.toggle('focused', j === focusIdx));
+    }
+    if (e.key === 'Enter' || e.key === ' ') {
+      if (focusIdx >= 0) selectOption(options[focusIdx]);
+    }
+  });
+
+  document.addEventListener('click', e => {
+    if (!wrap.contains(e.target)) close();
+  });
+}
+
+initCustomSelect('finalUseCaseWrap');
 
 // ─── WAITLIST SIGNUP ───
 async function handleSignup(form){
