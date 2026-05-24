@@ -1099,24 +1099,24 @@ footer{
 
     <div class="problem-grid">
       <div class="prob-card scroll-reveal">
-        <div class="prob-num"><span class="stat-val" data-target="40">0</span></div>
-        <div class="prob-title">Minutes lost per day</div>
-        <div class="prob-body">The average knowledge worker spends 40 minutes daily drafting professional emails and messages — time they could spend actually thinking.</div>
+        <div class="prob-num"><span class="stat-val" data-target="2.6" data-suffix="hrs">0</span></div>
+        <div class="prob-title">Spent on email daily</div>
+        <div class="prob-body">The average professional spends roughly 2.6 hours per day on email alone — about 28% of the working week lost to the inbox instead of real work.</div>
       </div>
       <div class="prob-card scroll-reveal" style="transition-delay:.1s">
-        <div class="prob-num"><span class="stat-val" data-target="3" data-suffix="×">0</span></div>
+        <div class="prob-num"><span class="stat-val" data-target="3.75" data-suffix="×" data-decimals="2">0</span></div>
         <div class="prob-title">Faster spoken than typed</div>
-        <div class="prob-body">You speak 150 words per minute. You type 40. The gap between your thinking speed and your writing speed is your biggest productivity leak.</div>
+        <div class="prob-body">You speak ~150 words per minute. The average person types ~40. That 3.75× gap is your biggest productivity leak — ideas move at voice speed, fingers can't keep up.</div>
       </div>
       <div class="prob-card scroll-reveal" style="transition-delay:.15s">
-        <div class="prob-num"><span class="stat-val" data-target="1.5" data-suffix="B">0</span></div>
+        <div class="prob-num"><span class="stat-val" data-target="1.1" data-suffix="B">0</span></div>
         <div class="prob-title">Non-native English speakers</div>
-        <div class="prob-body">1.5 billion professionals communicate in English as a second language. Writing polished professional English is exhausting, even for fluent speakers.</div>
+        <div class="prob-body">Over 1.1 billion people speak English as a second language. Writing polished professional English is exhausting, even for fluent speakers.</div>
       </div>
       <div class="prob-card scroll-reveal" style="transition-delay:.2s">
-        <div class="prob-num"><span class="stat-val" data-target="68" data-suffix="%">0</span></div>
-        <div class="prob-title">Of people hate writing</div>
-        <div class="prob-body">Most tools fix your writing after the fact. None of them make you a better communicator over time. Grammarly doesn't teach — it just corrects.</div>
+        <div class="prob-num"><span class="stat-val" data-target="55" data-suffix="%">0</span></div>
+        <div class="prob-title">Say writing takes too long</div>
+        <div class="prob-body">More than half of workers say they spend too much time crafting and deciphering messages. Most tools correct after the fact — none make you a better communicator over time.</div>
       </div>
     </div>
   </div>
@@ -1400,7 +1400,7 @@ footer{
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
         </div>
         <div class="why-title">Speaks your language</div>
-        <div class="why-body">Built for the 1.5 billion professionals who communicate in English as a second language. Your ideas deserve to sound as sharp as they are.</div>
+        <div class="why-body">Built for the 1.1 billion professionals who communicate in English as a second language. Your ideas deserve to sound as sharp as they are.</div>
       </div>
       <div class="why-card scroll-reveal" style="transition-delay:.24s">
         <div class="why-icon">
@@ -1426,7 +1426,7 @@ footer{
     <div class="final-count"><span id="countNum">847</span>+</div>
     <p class="final-count-label">professionals already waiting</p>
     <div class="final-perks">
-      <span>500 founding spots</span>
+      <span>Early access open</span>
       <span>·</span>
       <span>Personal onboarding</span>
       <span>·</span>
@@ -1435,7 +1435,7 @@ footer{
   </div>
   <div class="final-cta-inner">
     <h2 class="final-h">Your voice.<br><em>Perfectly expressed.</em></h2>
-    <p class="final-sub">Join the waitlist for early access. We're onboarding the first 500 users personally — with direct feedback sessions.</p>
+    <p class="final-sub">Join the waitlist for early access. We'll reach out personally as we onboard new users — with direct feedback sessions.</p>
     <div class="final-form" id="finalForm">
       <input class="final-input" type="email" placeholder="your@email.com" id="finalEmail" autocomplete="email">
       <select class="form-select" id="finalUseCase" aria-label="What do you write most?">
@@ -1667,13 +1667,15 @@ function initStatCounters(){
       el.dataset.done = '1';
       const target = parseFloat(el.dataset.target);
       const suffix = el.dataset.suffix || '';
-      const isFloat = String(target).includes('.') || target % 1 !== 0;
+      const decimals = el.dataset.decimals !== undefined
+        ? parseInt(el.dataset.decimals, 10)
+        : (target % 1 !== 0 ? 1 : 0);
       let current = 0;
       const steps = 50;
       const inc = target / steps;
       const timer = setInterval(()=>{
         current = Math.min(current + inc, target);
-        el.textContent = (isFloat ? current.toFixed(1) : Math.round(current)) + suffix;
+        el.textContent = (decimals > 0 ? current.toFixed(decimals) : Math.round(current)) + suffix;
         if(current >= target) clearInterval(timer);
       }, 20);
       statObs.unobserve(el);
@@ -1736,7 +1738,7 @@ initStatCounters();
 const TICKS=[
   'Think out loud','Send something brilliant',
   'Voice → Email in 30s','Your voice · Perfected',
-  'AI that explains itself','1.5B professionals · Underserved',
+  'AI that explains itself','1.1B professionals · Underserved',
   'Early access now open','Built for thinkers',
 ];
 const ticker=document.getElementById('ticker');

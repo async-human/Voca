@@ -21,7 +21,7 @@ export function welcomeEmailHtml({ email }) {
                 <em style="color:#BF3B2A;font-style:italic;">Send something brilliant.</em>
               </h1>
               <p style="margin:0 0 24px;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.65;color:#44392E;">
-                You're on the waitlist. We'll email <strong style="color:#1C1814;">${email}</strong> when early access opens — we're onboarding the first 500 users personally.
+                You're on the waitlist. We'll email <strong style="color:#1C1814;">${email}</strong> when early access opens — and reach out personally as we onboard new users.
               </p>
               <div style="padding:18px 20px;border-radius:16px;background:#F0EAE1;border:1px solid #DDD5CA;">
                 <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#897D72;margin-bottom:8px;">
