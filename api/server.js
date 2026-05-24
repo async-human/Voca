@@ -4,8 +4,18 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
-import { welcomeEmailHtml } from './emails/welcome.js';
+import { welcomeEmailHtml, welcomeEmailText } from './emails/welcome.js';
 import { notifyAdminEmailHtml } from './emails/notify-admin.js';
+
+async function sendResendEmail(resendClient, payload, label) {
+  const { data, error } = await resendClient.emails.send(payload);
+  if (error) {
+    console.error(`Resend ${label} failed:`, error);
+    return { ok: false, error };
+  }
+  console.log(`Resend ${label} sent:`, data?.id);
+  return { ok: true, id: data?.id };
+}
 
 const app = express();
 const port = Number(process.env.PORT) || 3001;
@@ -130,39 +140,36 @@ app.post('/api/waitlist', waitlistLimiter, async (req, res) => {
         timeZone: 'UTC',
       }) + ' UTC';
 
-      const emailPayloads = [
-        {
-          from: process.env.RESEND_FROM_EMAIL,
-          to: normalizedEmail,
-          subject: "You're on the Vokal waitlist",
-          html: welcomeEmailHtml({ email: normalizedEmail }),
-        },
-        {
-          from: process.env.RESEND_FROM_EMAIL,
-          to: notifyEmail,
-          subject: `New waitlist signup: ${normalizedEmail}`,
-          html: notifyAdminEmailHtml({
-            email: normalizedEmail,
-            useCase: normalizedUseCase,
-            source: String(source).slice(0, 64),
-            referrer: referrer ? String(referrer).slice(0, 512) : null,
-            utm_source: utm_source ? String(utm_source).slice(0, 128) : null,
-            utm_medium: utm_medium ? String(utm_medium).slice(0, 128) : null,
-            utm_campaign: utm_campaign ? String(utm_campaign).slice(0, 128) : null,
-            createdAt: signupTime,
-          }),
-        },
-      ];
+      const welcomePayload = {
+        from: process.env.RESEND_FROM_EMAIL,
+        to: normalizedEmail,
+        replyTo: notifyEmail,
+        subject: "You're on the Vokal waitlist",
+        html: welcomeEmailHtml({ email: normalizedEmail }),
+        text: welcomeEmailText({ email: normalizedEmail }),
+      };
 
-      Promise.allSettled(emailPayloads.map((payload) => resend.emails.send(payload))).then(
-        (results) => {
-          results.forEach((result, index) => {
-            if (result.status === 'rejected') {
-              console.error(`Resend error (${index === 0 ? 'welcome' : 'notify'}):`, result.reason);
-            }
-          });
-        }
-      );
+      const notifyPayload = {
+        from: process.env.RESEND_FROM_EMAIL,
+        to: notifyEmail,
+        replyTo: normalizedEmail,
+        subject: `New waitlist signup: ${normalizedEmail}`,
+        html: notifyAdminEmailHtml({
+          email: normalizedEmail,
+          useCase: normalizedUseCase,
+          source: String(source).slice(0, 64),
+          referrer: referrer ? String(referrer).slice(0, 512) : null,
+          utm_source: utm_source ? String(utm_source).slice(0, 128) : null,
+          utm_medium: utm_medium ? String(utm_medium).slice(0, 128) : null,
+          utm_campaign: utm_campaign ? String(utm_campaign).slice(0, 128) : null,
+          createdAt: signupTime,
+        }),
+      };
+
+      void (async () => {
+        await sendResendEmail(resend, welcomePayload, `welcome → ${normalizedEmail}`);
+        await sendResendEmail(resend, notifyPayload, `notify → ${notifyEmail}`);
+      })();
     }
 
     res.status(201).json({

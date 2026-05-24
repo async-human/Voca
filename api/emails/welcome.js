@@ -1,4 +1,26 @@
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+export function welcomeEmailText({ email }) {
+  return `You're on the Vokal waitlist.
+
+We'll email ${email} when early access opens — and reach out personally as we onboard new users.
+
+Speak for 60 seconds. Get a polished email, report, or LinkedIn post — written in your voice, explained by AI.
+
+https://vokal.work
+
+— Vokal
+No spam · Free to join`;
+}
+
 export function welcomeEmailHtml({ email }) {
+  const safeEmail = escapeHtml(email);
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -21,7 +43,7 @@ export function welcomeEmailHtml({ email }) {
                 <em style="color:#BF3B2A;font-style:italic;">Perfectly expressed.</em>
               </h1>
               <p style="margin:0 0 24px;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.65;color:#44392E;">
-                You're on the waitlist. We'll email <strong style="color:#1C1814;">${email}</strong> when early access opens — and reach out personally as we onboard new users.
+                You're on the waitlist. We'll email <strong style="color:#1C1814;">${safeEmail}</strong> when early access opens — and reach out personally as we onboard new users.
               </p>
               <div style="padding:18px 20px;border-radius:16px;background:#F0EAE1;border:1px solid #DDD5CA;">
                 <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#897D72;margin-bottom:8px;">
