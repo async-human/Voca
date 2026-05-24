@@ -835,51 +835,103 @@ section{padding:100px 24px;}
 
 /* ─── FOOTER ─── */
 footer{
-  background:var(--ink);
-  border-top:1px solid rgba(255,255,255,.06);
-  padding:0 24px 36px;
+  background:var(--paper);
+  border-top:1px solid var(--faint2);
+  position:relative;
   overflow:hidden;
 }
-.foot-inner{
-  max-width:1080px;margin:0 auto;
-  display:flex;flex-direction:column;align-items:center;
-}
-.foot-wordmark{
+.foot-watermark{
+  position:absolute;
+  left:50%;bottom:0;
+  transform:translateX(-50%) translateY(38%);
   font-family:'Libre Baskerville',serif;
-  font-size:clamp(88px,18vw,196px);
+  font-size:clamp(140px,28vw,320px);
   font-weight:700;font-style:italic;
-  letter-spacing:-.04em;line-height:.9;
-  color:var(--paper);
-  text-align:center;
-  padding:48px 0 36px;
-  width:100%;
-  position:relative;
+  letter-spacing:-.04em;line-height:1;
+  color:rgba(191,59,42,.07);
+  white-space:nowrap;
+  pointer-events:none;user-select:none;
+  z-index:0;
 }
-.foot-wordmark::after{
-  content:'.';
-  font-style:normal;
-  color:var(--accent2);
-  margin-left:-.08em;
+.foot-inner{
+  max-width:1120px;margin:0 auto;
+  position:relative;z-index:1;
+  padding:0 24px;
+}
+.foot-grid{
+  display:grid;
+  grid-template-columns:1.35fr 1fr 1fr 1fr;
+  border-bottom:1px solid var(--faint2);
+}
+.foot-col{
+  padding:40px 28px 36px;
+  border-right:1px solid var(--faint2);
+}
+.foot-col:last-child{border-right:none;}
+.foot-brand{padding-left:0;}
+.foot-logo{
+  display:inline-flex;align-items:baseline;gap:2px;
+  font-family:'Libre Baskerville',serif;
+  font-size:22px;font-weight:700;color:var(--ink);
+  text-decoration:none;margin-bottom:14px;
+}
+.foot-logo-dot{
+  width:5px;height:5px;border-radius:50%;
+  background:var(--accent);margin-bottom:2px;
+}
+.foot-tagline{
+  font-size:13px;line-height:1.65;
+  color:var(--muted);max-width:220px;
+  margin-bottom:20px;
+}
+.foot-pill{
+  display:inline-flex;align-items:center;
+  padding:8px 16px;border-radius:100px;
+  border:1px solid var(--faint2);
+  background:rgba(255,255,255,.5);
+  font-family:'Instrument Sans',sans-serif;
+  font-size:12px;font-weight:600;color:var(--ink);
+  text-decoration:none;transition:all .2s;cursor:none;
+}
+.foot-pill:hover{
+  border-color:var(--ink);
+  background:var(--ink);color:var(--paper);
+}
+.foot-col-title{
+  font-size:13px;font-weight:600;color:var(--ink);
+  margin-bottom:16px;
+}
+.foot-col a{
+  display:block;
+  font-size:13px;line-height:1.5;
+  color:var(--muted);text-decoration:none;
+  margin-bottom:10px;transition:color .2s;cursor:none;
+}
+.foot-col a:last-child{margin-bottom:0;}
+.foot-col a:hover{color:var(--ink);}
+.foot-col a.foot-highlight{
+  display:inline-flex;align-items:center;gap:6px;
+  color:var(--teal);font-weight:500;
+}
+.foot-col a.foot-highlight::before{
+  content:'';width:5px;height:5px;border-radius:50%;
+  background:var(--teal);flex-shrink:0;
 }
 .foot-bar{
-  width:100%;
   display:flex;align-items:center;justify-content:space-between;
-  gap:24px;padding-top:24px;
-  border-top:1px solid rgba(255,255,255,.08);
+  gap:24px;padding:20px 0 28px;
+  position:relative;z-index:1;
 }
 .foot-note{
-  font-family:'DM Mono',monospace;
-  font-size:11px;letter-spacing:.08em;
-  color:rgba(255,255,255,.28);
+  font-size:12px;color:var(--muted);
 }
-.foot-links{display:flex;gap:28px;flex-wrap:wrap;}
-.foot-links a{
-  font-family:'DM Mono',monospace;
-  font-size:10px;letter-spacing:.1em;text-transform:uppercase;
-  color:rgba(255,255,255,.32);text-decoration:none;
+.foot-legal{display:flex;gap:20px;flex-wrap:wrap;}
+.foot-legal a{
+  font-size:12px;color:var(--muted);
+  text-decoration:underline;text-underline-offset:3px;
   transition:color .2s;cursor:none;
 }
-.foot-links a:hover{color:rgba(255,255,255,.65);}
+.foot-legal a:hover{color:var(--ink);}
 
 /* Success state */
 .success-msg{
@@ -952,10 +1004,15 @@ footer{
   .problem-grid,.steps,.why-grid{grid-template-columns:1fr;}
   .opane.active{grid-template-columns:1fr;}
   .hero-input{width:100%;}
-  footer{padding:0 20px 28px;}
-  .foot-bar{flex-direction:column;text-align:center;justify-content:center;}
-  .foot-links{justify-content:center;}
-  .foot-wordmark{padding:36px 0 28px;}
+  footer .foot-inner{padding:0 20px;}
+  .foot-grid{grid-template-columns:1fr 1fr;}
+  .foot-col{border-right:none;border-bottom:1px solid var(--faint2);padding:28px 20px;}
+  .foot-col:nth-child(odd){border-right:1px solid var(--faint2);}
+  .foot-col:nth-child(3),
+  .foot-col:nth-child(4){border-bottom:none;}
+  .foot-brand{grid-column:1/-1;border-right:none!important;}
+  .foot-bar{flex-direction:column;align-items:flex-start;padding-bottom:48px;}
+  .foot-watermark{font-size:clamp(100px,22vw,200px);}
   body{cursor:auto;}
   .cursor,.cursor-ring{display:none;}
 }
@@ -963,6 +1020,10 @@ footer{
   section{padding:72px 20px;}
   .hero{padding:120px 20px 64px;}
   .live-pill{font-size:12px;padding:9px 16px;}
+  .foot-grid{grid-template-columns:1fr;}
+  .foot-col,.foot-col:nth-child(odd){border-right:none!important;}
+  .foot-col:nth-child(3){border-bottom:1px solid var(--faint2);}
+  .foot-col:nth-child(4){border-bottom:none;}
 }
 </style>
 </head>
@@ -1426,11 +1487,42 @@ footer{
 
 <!-- ─── FOOTER ─── -->
 <footer>
+  <div class="foot-watermark" aria-hidden="true">Vokal</div>
   <div class="foot-inner">
-    <div class="foot-wordmark" aria-label="Vokal">Vokal</div>
+    <div class="foot-grid">
+      <div class="foot-col foot-brand">
+        <a class="foot-logo" href="#">
+          <span>Vokal</span>
+          <span class="foot-logo-dot"></span>
+        </a>
+        <p class="foot-tagline">Think out loud. Send something brilliant — voice to polished professional writing, in your voice.</p>
+        <a href="#waitlist" class="foot-pill">Join the waitlist</a>
+      </div>
+      <div class="foot-col">
+        <div class="foot-col-title">Product</div>
+        <a href="#how">How it works</a>
+        <a href="#examples">Examples</a>
+        <a href="#why">Why Vokal</a>
+        <a href="#waitlist" class="foot-highlight">Early access open</a>
+      </div>
+      <div class="foot-col">
+        <div class="foot-col-title">Formats</div>
+        <a href="#examples">Email</a>
+        <a href="#examples">Slack</a>
+        <a href="#examples">Reports</a>
+        <a href="#examples">LinkedIn</a>
+        <a href="#examples">Journal</a>
+      </div>
+      <div class="foot-col">
+        <div class="foot-col-title">Company</div>
+        <a href="mailto:hello@vokal.work">Contact</a>
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+      </div>
+    </div>
     <div class="foot-bar">
-      <div class="foot-note">© 2026 Vokal. All rights reserved.</div>
-      <div class="foot-links">
+      <div class="foot-note">© 2026 Vokal.</div>
+      <div class="foot-legal">
         <a href="#">Privacy</a>
         <a href="#">Terms</a>
         <a href="mailto:hello@vokal.work">Contact</a>
