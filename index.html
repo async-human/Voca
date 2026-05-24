@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Vokal turns your spoken thoughts into polished professional communication — instantly, in your voice. Join the waitlist.">
-<meta property="og:title" content="Vokal — Think out loud. Send something brilliant.">
+<meta property="og:title" content="Vokal — Your voice. Perfectly expressed.">
 <meta property="og:description" content="Speak for 60 seconds. Get a perfect email, report, or LinkedIn post — written in your voice, explained by AI.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://vokal.work">
-<title>Vokal — Think out loud. Send something brilliant.</title>
+<title>Vokal — Your voice. Perfectly expressed.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
 <style>
@@ -160,10 +160,28 @@ nav.scrolled{
   font-weight:700;line-height:1.08;
   letter-spacing:-.025em;
   color:var(--ink);
-  margin-bottom:18px;opacity:0;
+  margin-bottom:4px;opacity:0;
   animation:riseIn .9s .12s ease both;
 }
 .hero-h em{font-style:italic;color:var(--accent);}
+.hero-cycle{
+  font-family:'Libre Baskerville',serif;
+  font-size:clamp(36px,4.5vw,62px);
+  font-weight:700;line-height:1.08;
+  letter-spacing:-.025em;
+  color:var(--accent);font-style:italic;
+  display:block;
+  margin-bottom:18px;
+  min-height:1.1em;
+  opacity:0;animation:riseIn .9s .18s ease both;
+}
+.hero-cycle-inner{
+  display:inline-block;
+  border-right:3px solid var(--accent);
+  padding-right:4px;
+  animation:heroBlink .8s step-end infinite;
+}
+@keyframes heroBlink{0%,100%{border-color:var(--accent);}50%{border-color:transparent;}}
 .hero-sub{
   font-size:clamp(15px,1.8vw,18px);
   line-height:1.65;color:var(--muted);
@@ -1240,9 +1258,8 @@ footer{
   <div class="hero-inner">
     <div class="hero-copy">
       <div class="hero-eyebrow">Early access · Vokal</div>
-      <h1 class="hero-h">
-        Think out loud.<br><em>Send something brilliant.</em>
-      </h1>
+      <h1 class="hero-h">Your voice.</h1>
+      <span class="hero-cycle"><span class="hero-cycle-inner" id="cycleText"></span></span>
       <p class="hero-sub">
         Speak for 60 seconds — get a polished email, Slack message, or LinkedIn post in <strong>your voice</strong>.
       </p>
@@ -1796,6 +1813,42 @@ document.querySelectorAll('a,button,.fpill,.mode-btn,.hero-chip,.custom-select-t
 window.addEventListener('scroll',()=>{
   document.getElementById('mainNav').classList.toggle('scrolled',window.scrollY>60);
 });
+
+// ─── HERO TYPEWRITER ───
+const heroPhrases = [
+  'Perfectly expressed.',
+  'Instantly polished.',
+  'Brilliantly clear.',
+  'Always in your voice.',
+  'Ready in 60 seconds.',
+];
+let heroPhraseIdx = 0, heroCharIdx = 0, heroDeleting = false;
+const cycleEl = document.getElementById('cycleText');
+
+function heroTypeStep() {
+  const word = heroPhrases[heroPhraseIdx];
+  if (!heroDeleting) {
+    heroCharIdx++;
+    cycleEl.textContent = word.slice(0, heroCharIdx);
+    if (heroCharIdx === word.length) {
+      heroDeleting = true;
+      setTimeout(heroTypeStep, 2200);
+      return;
+    }
+    setTimeout(heroTypeStep, 65);
+  } else {
+    heroCharIdx--;
+    cycleEl.textContent = word.slice(0, heroCharIdx);
+    if (heroCharIdx === 0) {
+      heroDeleting = false;
+      heroPhraseIdx = (heroPhraseIdx + 1) % heroPhrases.length;
+      setTimeout(heroTypeStep, 400);
+      return;
+    }
+    setTimeout(heroTypeStep, 30);
+  }
+}
+setTimeout(heroTypeStep, 1200);
 
 // ─── HERO WAVEFORM ───
 const hw = document.getElementById('heroWave');
