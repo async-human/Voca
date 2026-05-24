@@ -124,9 +124,34 @@ nav.scrolled{
   min-height:100vh;
   display:flex;flex-direction:column;
   align-items:center;justify-content:flex-start;
-  padding:152px 24px 80px;
+  padding:132px 24px 80px;
   position:relative;overflow:hidden;
   text-align:center;
+  background:
+    radial-gradient(ellipse 90% 70% at 15% 10%, rgba(191,59,42,.11) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 60% at 88% 18%, rgba(42,122,114,.09) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 55% at 72% 78%, rgba(107,42,107,.07) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 45% at 8% 72%, rgba(191,59,42,.06) 0%, transparent 45%),
+    var(--paper);
+}
+.hero::before{
+  content:'';
+  position:absolute;inset:0;
+  background-image:radial-gradient(rgba(28,24,20,.055) 1px, transparent 1px);
+  background-size:32px 32px;
+  mask-image:radial-gradient(ellipse 85% 75% at 50% 40%, #000 20%, transparent 72%);
+  pointer-events:none;
+}
+.hero-mesh{
+  position:absolute;inset:-30%;
+  background:
+    conic-gradient(from 210deg at 30% 35%, rgba(191,59,42,.07), transparent 28%, rgba(42,122,114,.06) 52%, transparent 72%, rgba(191,59,42,.05) 100%);
+  animation:meshSpin 28s linear infinite;
+  pointer-events:none;opacity:.75;
+}
+@keyframes meshSpin{
+  from{transform:rotate(0deg) scale(1);}
+  to{transform:rotate(360deg) scale(1);}
 }
 
 /* Large decorative letter */
@@ -142,22 +167,67 @@ nav.scrolled{
   letter-spacing:-.05em;
   animation:letterFloat 10s ease-in-out infinite alternate;
   transition:transform .15s ease-out;
+  z-index:0;
 }
-.hero-blob{
-  position:absolute;border-radius:50%;
-  filter:blur(70px);pointer-events:none;
-  animation:blobDrift 14s ease-in-out infinite alternate;
-}
-.hero-blob-1{width:320px;height:320px;background:rgba(191,59,42,.14);top:12%;left:5%;}
-.hero-blob-2{width:240px;height:240px;background:rgba(42,122,114,.11);bottom:18%;right:6%;animation-delay:-5s;}
-.hero-blob-3{width:180px;height:180px;background:rgba(107,42,107,.09);top:38%;right:22%;animation-delay:-9s;}
 @keyframes letterFloat{
   from{transform:translate(-50%,-52%) rotate(-1deg);}
   to{transform:translate(-50%,-50%) rotate(1deg);}
 }
-@keyframes blobDrift{
+.hero-blob{
+  position:absolute;border-radius:50%;
+  filter:blur(70px);pointer-events:none;
+}
+.hero-blob-1{
+  width:360px;height:360px;background:rgba(191,59,42,.18);
+  top:8%;left:2%;
+  animation:blobDrift1 16s ease-in-out infinite alternate;
+}
+.hero-blob-2{
+  width:280px;height:280px;background:rgba(42,122,114,.14);
+  bottom:14%;right:4%;
+  animation:blobDrift2 19s ease-in-out infinite alternate;
+}
+.hero-blob-3{
+  width:220px;height:220px;background:rgba(107,42,107,.11);
+  top:42%;right:18%;
+  animation:blobDrift3 14s ease-in-out infinite alternate;
+}
+.hero-blob-4{
+  width:180px;height:180px;background:rgba(191,59,42,.12);
+  bottom:32%;left:18%;
+  animation:blobDrift2 22s ease-in-out infinite alternate-reverse;
+}
+@keyframes blobDrift1{
   from{transform:translate(0,0) scale(1);}
-  to{transform:translate(28px,-22px) scale(1.1);}
+  to{transform:translate(36px,-28px) scale(1.12);}
+}
+@keyframes blobDrift2{
+  from{transform:translate(0,0) scale(1);}
+  to{transform:translate(-30px,24px) scale(1.08);}
+}
+@keyframes blobDrift3{
+  from{transform:translate(0,0) scale(1);}
+  to{transform:translate(22px,18px) scale(1.15);}
+}
+
+.hero-floats{
+  position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0;
+}
+.hf-word{
+  position:absolute;left:var(--x);top:var(--y);
+  transform:rotate(var(--r));
+  font-family:'Libre Baskerville',serif;
+  font-style:italic;font-weight:700;
+  font-size:clamp(13px,1.8vw,20px);
+  color:rgba(28,24,20,.07);
+  letter-spacing:-.01em;
+  animation:wordFloat var(--dur,9s) ease-in-out infinite alternate;
+  animation-delay:var(--d,0s);
+  white-space:nowrap;
+}
+@keyframes wordFloat{
+  from{transform:rotate(var(--r)) translateY(0);}
+  to{transform:rotate(var(--r)) translateY(-14px);}
 }
 
 .live-pill{
@@ -169,8 +239,9 @@ nav.scrolled{
   font-family:'Instrument Sans',sans-serif;
   font-size:13px;font-weight:500;
   letter-spacing:.01em;color:var(--ink3);
-  margin-top:12px;margin-bottom:28px;opacity:0;
+  margin-bottom:28px;opacity:0;
   animation:riseIn .8s .05s ease both;
+  position:relative;z-index:1;
 }
 .live-pill strong{
   font-family:'Libre Baskerville',serif;
@@ -197,6 +268,7 @@ nav.scrolled{
   letter-spacing:.04em;color:var(--ink3);
   opacity:0;animation:riseIn .9s .72s ease both;
   max-width:min(520px,90vw);
+  position:relative;z-index:1;
 }
 .activity-dot{
   width:5px;height:5px;border-radius:50%;
@@ -206,14 +278,13 @@ nav.scrolled{
 .activity-text{transition:opacity .35s ease;}
 .activity-text.fade{opacity:0;}
 
-/* Horizontal rule lines */
+/* Horizontal rule — bottom divider only */
 .hero-rule{
-  position:absolute;left:48px;right:48px;
+  position:absolute;left:0;right:0;
   height:1px;background:var(--faint2);
-  pointer-events:none;
+  pointer-events:none;z-index:0;
 }
-.hero-rule-1{top:84px;}
-.hero-rule-2{bottom:80px;left:0;right:0;}
+.hero-rule-2{bottom:80px;}
 
 .hero-eyebrow{
   font-family:'DM Mono',monospace;
@@ -221,6 +292,7 @@ nav.scrolled{
   text-transform:uppercase;color:var(--accent);
   margin-bottom:28px;opacity:0;
   animation:riseIn .8s .1s ease both;
+  position:relative;z-index:1;
 }
 
 .hero-h{
@@ -232,6 +304,7 @@ nav.scrolled{
   margin-bottom:28px;opacity:0;
   animation:riseIn .9s .2s ease both;
   max-width:900px;
+  position:relative;z-index:1;
 }
 .hero-h em{
   font-style:italic;color:var(--accent);
@@ -242,6 +315,7 @@ nav.scrolled{
   line-height:1.65;color:var(--muted);
   max-width:540px;margin:0 auto 48px;
   opacity:0;animation:riseIn .9s .35s ease both;
+  position:relative;z-index:1;
 }
 .hero-sub strong{color:var(--ink);font-weight:600;}
 
@@ -250,6 +324,7 @@ nav.scrolled{
   display:flex;gap:10px;flex-wrap:wrap;
   justify-content:center;margin-bottom:20px;
   opacity:0;animation:riseIn .9s .5s ease both;
+  position:relative;z-index:1;
 }
 .hero-input{
   padding:14px 22px;border-radius:100px;
@@ -295,14 +370,17 @@ nav.scrolled{
   font-size:12px;letter-spacing:.05em;
   color:var(--muted);
   opacity:0;animation:riseIn .9s .65s ease both;
+  position:relative;z-index:1;
 }
+
+.error-msg,.success-msg{position:relative;z-index:1;}
 
 /* ── Voice Visualiser in Hero ── */
 .hero-vis{
   margin:56px auto 0;
   width:min(640px,90vw);
   opacity:0;animation:riseIn 1s .4s ease both;
-  position:relative;
+  position:relative;z-index:1;
 }
 .vis-label{
   font-family:'DM Mono',monospace;
@@ -754,8 +832,8 @@ section{padding:100px 24px;}
 .why-title{font-size:17px;font-weight:600;color:var(--ink);margin-bottom:8px;}
 .why-body{font-size:14px;line-height:1.7;color:var(--muted);}
 
-/* ─── TESTIMONIAL ─── */
-.social{background:var(--paper);padding:80px 24px;}
+/* ─── WAITLIST COUNT ─── */
+.social{background:var(--paper);padding:100px 24px;}
 .social-inner{max-width:720px;margin:0 auto;text-align:center;}
 .social-count{
   font-family:'Libre Baskerville',serif;
@@ -776,55 +854,11 @@ section{padding:100px 24px;}
   letter-spacing:.08em;text-transform:uppercase;
   color:var(--teal);margin-bottom:16px;
 }
-.social-label{font-size:17px;color:var(--ink3);margin-bottom:48px;}
+.social-label{font-size:17px;color:var(--ink3);margin-bottom:0;}
 .social-live-dot{
   width:6px;height:6px;border-radius:50%;
   background:var(--teal);animation:livePulse 2s ease infinite;
 }
-.quotes{
-  position:relative;
-  display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;
-  text-align:left;
-}
-.quote{
-  background:var(--paper2);border:1px solid var(--faint2);
-  border-radius:var(--r);padding:24px;
-  opacity:0;transform:translateY(16px);
-  transition:all .5s cubic-bezier(.16,1,.3,1);
-}
-.quote.visible{opacity:1;transform:translateY(0);}
-.quote.visible.featured{
-  transform:translateY(-4px);
-  border-color:rgba(191,59,42,.25);
-  box-shadow:0 12px 36px rgba(28,24,20,.08);
-}
-.quote-dots{
-  display:flex;justify-content:center;gap:8px;margin-top:24px;
-}
-.quote-dot{
-  width:6px;height:6px;border-radius:50%;
-  background:var(--faint2);border:none;cursor:none;
-  padding:0;transition:all .25s;
-}
-.quote-dot.active{background:var(--accent);transform:scale(1.25);}
-.quote-text{
-  font-family:'Libre Baskerville',serif;
-  font-size:14px;font-style:italic;
-  line-height:1.75;color:var(--ink2);
-  margin-bottom:16px;
-}
-.quote-author{
-  display:flex;align-items:center;gap:10px;
-}
-.q-av{
-  width:32px;height:32px;border-radius:50%;
-  background:var(--ink3);display:flex;
-  align-items:center;justify-content:center;
-  font-size:11px;font-weight:600;color:var(--paper);
-  flex-shrink:0;
-}
-.q-name{font-size:13px;font-weight:600;color:var(--ink);}
-.q-role{font-size:11px;color:var(--muted);}
 
 /* ─── FINAL CTA ─── */
 .final-cta{
@@ -882,28 +916,49 @@ section{padding:100px 24px;}
 footer{
   background:var(--ink);
   border-top:1px solid rgba(255,255,255,.06);
-  padding:32px 48px;
-  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px 36px;
+  overflow:hidden;
 }
-.foot-logo{
+.foot-inner{
+  max-width:1080px;margin:0 auto;
+  display:flex;flex-direction:column;align-items:center;
+}
+.foot-wordmark{
   font-family:'Libre Baskerville',serif;
-  font-size:18px;font-weight:700;color:var(--paper);
-  display:flex;align-items:baseline;gap:2px;
+  font-size:clamp(88px,18vw,196px);
+  font-weight:700;font-style:italic;
+  letter-spacing:-.04em;line-height:.9;
+  color:var(--paper);
+  text-align:center;
+  padding:48px 0 36px;
+  width:100%;
+  position:relative;
 }
-.foot-dot{width:4px;height:4px;border-radius:50%;background:var(--accent);margin-bottom:1px;}
+.foot-wordmark::after{
+  content:'.';
+  font-style:normal;
+  color:var(--accent2);
+  margin-left:-.08em;
+}
+.foot-bar{
+  width:100%;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:24px;padding-top:24px;
+  border-top:1px solid rgba(255,255,255,.08);
+}
 .foot-note{
   font-family:'DM Mono',monospace;
-  font-size:10px;letter-spacing:.08em;
-  color:rgba(255,255,255,.2);
+  font-size:11px;letter-spacing:.08em;
+  color:rgba(255,255,255,.28);
 }
-.foot-links{display:flex;gap:24px;}
+.foot-links{display:flex;gap:28px;flex-wrap:wrap;}
 .foot-links a{
   font-family:'DM Mono',monospace;
   font-size:10px;letter-spacing:.1em;text-transform:uppercase;
-  color:rgba(255,255,255,.25);text-decoration:none;
+  color:rgba(255,255,255,.32);text-decoration:none;
   transition:color .2s;cursor:none;
 }
-.foot-links a:hover{color:rgba(255,255,255,.6);}
+.foot-links a:hover{color:rgba(255,255,255,.65);}
 
 /* Success state */
 .success-msg{
@@ -973,20 +1028,21 @@ footer{
   nav{padding:16px 20px;}
   nav.scrolled{padding:12px 20px;}
   .nav-links{display:none;}
-  .hero-rule{left:20px;right:20px;}
-  .problem-grid,.steps,.why-grid,.quotes{grid-template-columns:1fr;}
+  .problem-grid,.steps,.why-grid{grid-template-columns:1fr;}
   .opane.active{grid-template-columns:1fr;}
   .hero-input{width:100%;}
-  footer{flex-direction:column;gap:16px;text-align:center;padding:24px;}
-  .foot-links{flex-wrap:wrap;justify-content:center;}
+  footer{padding:0 20px 28px;}
+  .foot-bar{flex-direction:column;text-align:center;justify-content:center;}
+  .foot-links{justify-content:center;}
+  .foot-wordmark{padding:36px 0 28px;}
   body{cursor:auto;}
   .cursor,.cursor-ring{display:none;}
 }
 @media(max-width:480px){
   section{padding:72px 20px;}
-  .hero{padding:136px 20px 64px;}
-  .hero-rule-1{top:72px;}
-  .live-pill{font-size:12px;padding:9px 16px;margin-top:8px;}
+  .hero{padding:120px 20px 64px;}
+  .live-pill{font-size:12px;padding:9px 16px;}
+  .hf-word{display:none;}
 }
 </style>
 </head>
@@ -1012,10 +1068,19 @@ footer{
 
 <!-- ─── HERO ─── -->
 <section class="hero" id="home">
+  <div class="hero-mesh" aria-hidden="true"></div>
   <div class="hero-blob hero-blob-1"></div>
   <div class="hero-blob hero-blob-2"></div>
   <div class="hero-blob hero-blob-3"></div>
-  <div class="hero-rule hero-rule-1"></div>
+  <div class="hero-blob hero-blob-4"></div>
+  <div class="hero-floats" aria-hidden="true">
+    <span class="hf-word" style="--x:8%;--y:18%;--r:-12deg;--dur:10s;--d:0s">voice</span>
+    <span class="hf-word" style="--x:82%;--y:14%;--r:8deg;--dur:11s;--d:-2s">email</span>
+    <span class="hf-word" style="--x:76%;--y:62%;--r:-6deg;--dur:9s;--d:-4s">slack</span>
+    <span class="hf-word" style="--x:10%;--y:68%;--r:10deg;--dur:12s;--d:-1s">linkedin</span>
+    <span class="hf-word" style="--x:88%;--y:38%;--r:-14deg;--dur:8s;--d:-3s">report</span>
+    <span class="hf-word" style="--x:6%;--y:42%;--r:6deg;--dur:13s;--d:-5s">journal</span>
+  </div>
   <div class="hero-bg-letter" id="heroLetter">K</div>
 
   <div class="live-pill">
@@ -1415,27 +1480,12 @@ footer{
   </div>
 </section>
 
-<!-- ─── SOCIAL PROOF ─── -->
+<!-- ─── WAITLIST COUNT ─── -->
 <section class="social">
   <div class="social-inner">
     <div class="social-live"><span class="social-live-dot"></span> Live waitlist</div>
     <div class="social-count"><span id="countNum">847</span>+</div>
     <div class="social-label">professionals already on the waitlist</div>
-    <div class="quotes" id="quotesGrid">
-      <div class="quote scroll-reveal">
-        <div class="quote-text">"I spend 2 hours a day writing emails I hate. If Vokal is half as good as this demo, I'm paying for it day one."</div>
-        <div class="quote-author"><div class="q-av">MR</div><div><div class="q-name">Marcus R.</div><div class="q-role">Product Manager, London</div></div></div>
-      </div>
-      <div class="quote scroll-reveal" style="transition-delay:.08s">
-        <div class="quote-text">"As a non-native English speaker this is genuinely life-changing. I think in Hindi and struggle to sound professional. This solves that."</div>
-        <div class="quote-author"><div class="q-av">PS</div><div><div class="q-name">Priya S.</div><div class="q-role">Startup Founder, Bangalore</div></div></div>
-      </div>
-      <div class="quote scroll-reveal" style="transition-delay:.16s">
-        <div class="quote-text">"The explanation layer is what gets me. Not just fixing my writing — showing me why. That's the product nobody else built."</div>
-        <div class="quote-author"><div class="q-av">TK</div><div><div class="q-name">Tom K.</div><div class="q-role">Engineering Lead, Berlin</div></div></div>
-      </div>
-    </div>
-    <div class="quote-dots" id="quoteDots" aria-hidden="true"></div>
   </div>
 </section>
 
@@ -1469,12 +1519,16 @@ footer{
 
 <!-- ─── FOOTER ─── -->
 <footer>
-  <div class="foot-logo">Vokal<div class="foot-dot"></div></div>
-  <div class="foot-note">© 2026 Vokal. All rights reserved.</div>
-  <div class="foot-links">
-    <a href="#">Privacy</a>
-    <a href="#">Terms</a>
-    <a href="mailto:hello@vokal.work">Contact</a>
+  <div class="foot-inner">
+    <div class="foot-wordmark" aria-label="Vokal">Vokal</div>
+    <div class="foot-bar">
+      <div class="foot-note">© 2026 Vokal. All rights reserved.</div>
+      <div class="foot-links">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="mailto:hello@vokal.work">Contact</a>
+      </div>
+    </div>
   </div>
 </footer>
 
@@ -1656,34 +1710,6 @@ function initStatCounters(){
   document.querySelectorAll('.stat-val').forEach(el => statObs.observe(el));
 }
 
-function initQuoteCarousel(){
-  const quotes = [...document.querySelectorAll('#quotesGrid .quote')];
-  const dotsWrap = document.getElementById('quoteDots');
-  if(!quotes.length || !dotsWrap) return;
-
-  quotes.forEach((_, i)=>{
-    const dot = document.createElement('button');
-    dot.type = 'button';
-    dot.className = 'quote-dot' + (i === 0 ? ' active' : '');
-    dot.addEventListener('click', ()=> setFeatured(i));
-    dotsWrap.appendChild(dot);
-  });
-
-  let featured = 0;
-  function setFeatured(i){
-    featured = i;
-    quotes.forEach((q, idx)=>{
-      q.classList.toggle('featured', idx === i);
-    });
-    dotsWrap.querySelectorAll('.quote-dot').forEach((d, idx)=>{
-      d.classList.toggle('active', idx === i);
-    });
-  }
-
-  setFeatured(0);
-  setInterval(()=> setFeatured((featured + 1) % quotes.length), 5500);
-}
-
 // Hero letter parallax
 const heroLetter = document.getElementById('heroLetter');
 if(heroLetter){
@@ -1741,7 +1767,6 @@ cycleDemoScenes();
 setInterval(cycleDemoScenes, 9000);
 initActivityFeed();
 initStatCounters();
-initQuoteCarousel();
 
 // ─── TICKER ───
 const TICKS=[
