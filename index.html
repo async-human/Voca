@@ -499,168 +499,293 @@ section{padding:100px 24px;}
 }
 .step-body{font-size:14px;line-height:1.7;color:rgba(255,255,255,.45);}
 
-/* ─── OUTPUT EXAMPLES ─── */
-.outputs{background:var(--paper);}
-.outputs-tabs{
-  display:flex;gap:0;border-bottom:1px solid var(--faint2);
-  margin-bottom:40px;overflow-x:auto;
-  scrollbar-width:none;
+/* ─── OUTPUT EXAMPLES — CINEMATIC ─── */
+.outputs{
+  background:var(--ink);
+  padding:120px 24px;
+  position:relative;
+  overflow:hidden;
 }
-.outputs-tabs::-webkit-scrollbar{display:none;}
-.otab{
-  padding:12px 22px;
+.outputs::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 50%,rgba(191,59,42,.06),transparent),
+    radial-gradient(ellipse 40% 60% at 80% 30%,rgba(42,122,114,.04),transparent);
+  pointer-events:none;
+}
+.outputs .section-inner{position:relative;z-index:1;}
+.outputs .section-eyebrow{color:var(--accent2);}
+.outputs .section-eyebrow::before{background:var(--accent2);}
+.outputs .section-h{color:rgba(255,255,255,.92);}
+.outputs .section-sub{color:rgba(255,255,255,.38);}
+
+.fmt-pills{
+  display:flex;gap:8px;
+  margin:48px 0 0;
+  overflow-x:auto;scrollbar-width:none;
+  padding-bottom:2px;
+}
+.fmt-pills::-webkit-scrollbar{display:none;}
+.fpill{
+  display:flex;align-items:center;gap:9px;
+  padding:11px 20px;border-radius:100px;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.04);
+  color:rgba(255,255,255,.38);
   font-family:'Instrument Sans',sans-serif;
-  font-size:13px;font-weight:500;color:var(--muted);
-  border:none;background:none;cursor:none;
-  white-space:nowrap;position:relative;
-  transition:color .2s;border-bottom:2px solid transparent;
-  margin-bottom:-1px;
+  font-size:13px;font-weight:500;
+  white-space:nowrap;cursor:none;flex-shrink:0;
+  transition:all .25s cubic-bezier(.4,0,.2,1);
+  position:relative;overflow:hidden;
 }
-.otab:hover{color:var(--ink);}
-.otab.active{color:var(--ink);border-bottom-color:var(--accent);}
+.fpill:hover{
+  border-color:rgba(255,255,255,.2);
+  color:rgba(255,255,255,.7);
+}
+.fpill.active{
+  background:rgba(191,59,42,.15);
+  border-color:rgba(191,59,42,.45);
+  color:rgba(255,255,255,.92);
+}
+.fpill-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:rgba(255,255,255,.2);
+  transition:all .25s;flex-shrink:0;
+}
+.fpill.active .fpill-dot{
+  background:var(--accent2);
+  box-shadow:0 0 8px rgba(217,79,60,.8);
+}
+.fpill-label{position:relative;z-index:1;}
 
-.output-panes{position:relative;}
-.opane{display:none;}
-.opane.active{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;}
+.fmt-stage{
+  display:grid;
+  grid-template-columns:1fr 1.2fr;
+  gap:28px;
+  margin-top:32px;
+  align-items:start;
+}
 
-.opane-input{
-  background:var(--paper2);border:1px solid var(--faint2);
-  border-radius:var(--r);padding:28px;
+.fmt-input{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:24px;
+  overflow:hidden;
+  position:relative;
 }
-.opane-label{
-  font-family:'DM Mono',monospace;font-size:10px;
-  letter-spacing:.12em;text-transform:uppercase;
-  color:var(--ink3);margin-bottom:14px;
-  display:flex;align-items:center;gap:8px;
-}
-.opane-label-dot{
-  width:5px;height:5px;border-radius:50%;
-  background:var(--accent);
-}
-.voice-bubble{
-  background:rgba(255,255,255,.72);
-  border:1px solid var(--faint2);
-  border-radius:16px;
-  padding:18px 18px 18px 20px;
-  font-size:15px;line-height:1.75;
-  color:var(--ink2);font-style:italic;
-  position:relative;margin-bottom:12px;
-}
-.voice-bubble::before{
-  content:'"';
-  font-family:'Libre Baskerville',serif;
-  font-size:44px;color:rgba(191,59,42,.25);
-  position:absolute;top:-6px;left:10px;
-  line-height:1;
-}
-.voice-meta{
-  display:flex;align-items:center;gap:8px;
-  font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);
-}
-.voice-wave{display:flex;align-items:center;gap:2px;}
-.vwb{width:2px;border-radius:1px;background:var(--muted);}
-
-.opane-output{
-  background:var(--paper2);border:1px solid var(--faint2);
-  border-radius:var(--r);overflow:hidden;
-}
-.op-strip{height:2px;background:var(--accent);}
-.op-head{
+.fmt-input-head{
   display:flex;align-items:center;justify-content:space-between;
-  padding:16px 20px 12px;border-bottom:1px solid var(--faint2);
+  padding:16px 20px;
+  border-bottom:1px solid rgba(255,255,255,.06);
 }
-.op-badge{
+.fi-label{
+  font-family:'DM Mono',monospace;font-size:9px;
+  letter-spacing:.14em;text-transform:uppercase;
+  color:rgba(255,255,255,.3);
+  display:flex;align-items:center;gap:8px;
+}
+.fi-rec{
+  display:flex;align-items:center;gap:6px;
+  font-family:'DM Mono',monospace;font-size:9px;
+  letter-spacing:.1em;color:var(--accent2);
+}
+.fi-rec-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--accent2);
+  animation:fiRipple 2s ease-out infinite;
+}
+@keyframes fiRipple{
+  0%{box-shadow:0 0 0 0 rgba(191,59,42,.4);}
+  70%{box-shadow:0 0 0 8px rgba(191,59,42,0);}
+  100%{box-shadow:0 0 0 0 rgba(191,59,42,0);}
+}
+
+.fi-wave{
+  display:flex;align-items:center;gap:2px;
+  justify-content:center;padding:24px 20px 16px;
+  height:80px;
+}
+.fiw{
+  width:2px;border-radius:2px;
+  background:rgba(191,59,42,.5);
+  animation:fiwAnim var(--d,.7s) ease-in-out infinite alternate;
+  animation-delay:var(--dl,0s);
+  transition:background .3s;
+}
+@keyframes fiwAnim{
+  0%{height:3px;opacity:.2;}
+  100%{height:var(--mh,20px);opacity:.9;}
+}
+
+.fi-body{padding:20px;}
+.fi-spoken-label{
   font-family:'DM Mono',monospace;font-size:9px;
   letter-spacing:.12em;text-transform:uppercase;
-  color:var(--accent);display:flex;align-items:center;gap:6px;
+  color:rgba(255,255,255,.25);margin-bottom:12px;
 }
-.op-badge::before{
-  content:'';width:5px;height:5px;border-radius:50%;
-  background:var(--accent);
-}
-.op-copy{
-  font-family:'DM Mono',monospace;font-size:10px;
-  color:var(--muted);cursor:none;
-  padding:5px 12px;border-radius:8px;
-  border:1px solid var(--faint2);background:transparent;
-  transition:all .2s;
-}
-.op-copy:hover{color:var(--ink);border-color:var(--ink);}
-.op-body{padding:20px;}
-
-/* Email styles */
-.em-field{
-  display:flex;gap:8px;margin-bottom:6px;
-  font-size:13px;
-}
-.em-key{
-  font-family:'DM Mono',monospace;font-size:9px;
-  letter-spacing:.08em;text-transform:uppercase;
-  color:var(--muted);width:28px;flex-shrink:0;margin-top:1px;
-}
-.em-val{color:var(--ink3);}
-.em-val b{color:var(--ink);font-weight:500;}
-.em-subject{
+.fi-text{
   font-family:'Libre Baskerville',serif;
-  font-size:17px;font-weight:700;color:var(--ink);
+  font-size:15px;font-style:italic;
+  line-height:1.8;color:rgba(255,255,255,.55);
+  min-height:100px;
+}
+.fi-meta{
+  display:flex;align-items:center;gap:12px;
+  margin-top:16px;padding-top:14px;
+  border-top:1px solid rgba(255,255,255,.06);
+  font-family:'DM Mono',monospace;font-size:10px;
+  color:rgba(255,255,255,.25);
+}
+.fi-meta-pip{width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.2);}
+
+.fmt-output{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:24px;
+  overflow:hidden;
+  position:relative;
+}
+.fmt-output-stripe{
+  height:2px;
+  background:var(--accent);
+  transform:scaleX(0);transform-origin:left;
+  transition:transform .6s cubic-bezier(.16,1,.3,1);
+}
+.fmt-output-stripe.in{transform:scaleX(1);}
+
+.fo-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.fo-badge{
+  font-family:'DM Mono',monospace;font-size:9px;
+  letter-spacing:.12em;text-transform:uppercase;
+  color:var(--accent2);
+  display:flex;align-items:center;gap:7px;
+}
+.fo-badge-dot{
+  width:5px;height:5px;border-radius:50%;
+  background:var(--accent2);
+  box-shadow:0 0 8px rgba(217,79,60,.7);
+  animation:pipGlow 2s ease-in-out infinite;
+}
+.fo-actions{display:flex;gap:8px;}
+.fo-btn{
+  padding:5px 14px;border-radius:8px;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.05);
+  color:rgba(255,255,255,.4);
+  font-family:'DM Mono',monospace;font-size:9px;
+  letter-spacing:.08em;cursor:none;transition:all .2s;
+}
+.fo-btn:hover{background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);}
+.fo-btn.send{
+  background:rgba(191,59,42,.15);
+  border-color:rgba(191,59,42,.3);
+  color:var(--accent2);
+}
+.fo-btn.send:hover{background:rgba(191,59,42,.25);}
+
+.fo-body{padding:24px;min-height:260px;}
+.fo-content{
+  opacity:0;transform:translateY(6px);
+  transition:opacity .3s ease,transform .3s ease;
+}
+.fo-content.visible{opacity:1;transform:translateY(0);}
+
+.xef{display:flex;gap:8px;margin-bottom:5px;font-size:13px;}
+.xek{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.2);width:28px;flex-shrink:0;margin-top:1px;}
+.xev{color:rgba(255,255,255,.45);}
+.xev b{color:rgba(255,255,255,.75);font-weight:500;}
+.xesubj{
+  font-family:'Libre Baskerville',serif;
+  font-size:17px;font-weight:700;
+  color:rgba(255,255,255,.88);
   margin:14px 0 12px;padding-top:12px;
-  border-top:1px solid var(--faint2);
+  border-top:1px solid rgba(255,255,255,.07);
+  line-height:1.3;
 }
-.em-body{font-size:13.5px;line-height:1.8;color:var(--ink2);}
-.em-body p{margin-bottom:9px;}
+.xebody{font-size:13.5px;line-height:1.82;color:rgba(255,255,255,.55);}
+.xebody p{margin-bottom:9px;}
+.xebody strong{color:rgba(255,255,255,.8);font-weight:600;}
 
-/* Slack styles */
-.sl-channel-bar{
-  font-family:'DM Mono',monospace;font-size:11px;
-  color:var(--teal);margin-bottom:10px;
-  display:flex;align-items:center;gap:6px;
+.xsl-ch{font-family:'DM Mono',monospace;font-size:11px;color:var(--teal);margin-bottom:10px;}
+.xsl-sender{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.xsl-av{width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:rgba(255,255,255,.7);flex-shrink:0;}
+.xsl-nm{font-size:12px;font-weight:600;color:rgba(255,255,255,.75);}
+.xsl-time{font-size:9px;color:rgba(255,255,255,.25);font-family:'DM Mono',monospace;}
+.xsl-msg{font-size:14px;line-height:1.72;color:rgba(255,255,255,.55);}
+.xsl-msg p{margin-bottom:7px;}
+.xsl-rxs{display:flex;gap:5px;margin-top:10px;flex-wrap:wrap;}
+.xsl-rx{padding:4px 10px;border-radius:100px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-size:12px;color:rgba(255,255,255,.35);}
+
+.xrh{font-family:'Libre Baskerville',serif;font-size:18px;font-weight:700;color:rgba(255,255,255,.88);margin-bottom:4px;}
+.xrd{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:14px;}
+.xrkpis{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px;}
+.xrkp{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:12px;}
+.xrkv{font-family:'Libre Baskerville',serif;font-size:22px;color:rgba(255,255,255,.82);line-height:1;margin-bottom:2px;}
+.xrkl{font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,.25);letter-spacing:.07em;text-transform:uppercase;}
+.xrsec{margin-bottom:10px;}
+.xrsh{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent2);margin-bottom:5px;}
+.xrsb{font-size:13px;line-height:1.7;color:rgba(255,255,255,.45);}
+
+.xlph{display:flex;gap:10px;margin-bottom:12px;align-items:center;}
+.xlpav{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:rgba(255,255,255,.7);flex-shrink:0;}
+.xlpn{font-size:13px;font-weight:600;color:rgba(255,255,255,.75);}
+.xlpr{font-size:11px;color:rgba(255,255,255,.3);}
+.xlpost{font-size:13.5px;line-height:1.75;color:rgba(255,255,255,.55);}
+.xlhook{font-family:'Libre Baskerville',serif;font-size:15px;font-style:italic;color:rgba(255,255,255,.82);display:block;margin-bottom:12px;line-height:1.45;}
+.xlpost p{margin-bottom:8px;}
+.xltags{color:rgba(42,122,114,.9);font-size:12px;margin-top:4px;}
+.xlstats{display:flex;gap:14px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.07);}
+.xlstat{font-size:11px;color:rgba(255,255,255,.3);}
+.xlstat b{color:rgba(255,255,255,.65);}
+
+.xjnh{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.07);}
+.xjnd{font-family:'Libre Baskerville',serif;font-size:14px;font-style:italic;color:rgba(255,255,255,.35);}
+.xjnm{display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(255,255,255,.3);}
+.xjnmp{width:6px;height:6px;border-radius:50%;background:var(--teal);}
+.xjnbody{font-family:'Libre Baskerville',serif;font-size:14px;line-height:1.9;color:rgba(255,255,255,.6);font-style:italic;}
+.xjnbody p{margin-bottom:12px;}
+.xjnins{margin-top:14px;background:rgba(42,122,114,.08);border-radius:12px;padding:13px;border-left:3px solid var(--teal);}
+.xjnil{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:6px;}
+.xjnib{font-size:12px;line-height:1.6;color:rgba(255,255,255,.38);}
+.xjnchips{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
+.xjnchip{padding:3px 9px;border-radius:100px;background:rgba(42,122,114,.1);border:1px solid rgba(42,122,114,.25);font-size:10px;color:var(--teal);font-family:'DM Mono',monospace;}
+
+.fmt-explain{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:12px;margin-top:20px;
 }
-.sl-sender{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
-.sl-av{width:28px;height:28px;border-radius:6px;background:var(--ink);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--paper);flex-shrink:0;}
-.sl-meta{font-size:12px;}
-.sl-name{font-weight:600;color:var(--ink);}
-.sl-time{color:var(--muted);font-family:'DM Mono',monospace;font-size:9px;}
-.sl-msg{font-size:14px;line-height:1.7;color:var(--ink2);}
-.sl-msg p{margin-bottom:7px;}
-.sl-rxs{display:flex;gap:5px;margin-top:10px;flex-wrap:wrap;}
-.sl-rx{padding:4px 10px;border-radius:100px;background:var(--paper3);border:1px solid var(--faint2);font-size:12px;color:var(--ink3);}
+.fex{
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:14px;padding:16px;
+  opacity:0;transform:translateY(10px);
+  transition:all .4s cubic-bezier(.16,1,.3,1);
+}
+.fex.in{opacity:1;transform:translateY(0);}
+.fex-tag{
+  font-family:'DM Mono',monospace;font-size:9px;
+  letter-spacing:.1em;text-transform:uppercase;
+  padding:3px 9px;border-radius:100px;
+  display:inline-block;margin-bottom:10px;
+}
+.fex-tag.s{background:rgba(26,58,107,.15);color:#7fa8e8;border:1px solid rgba(26,58,107,.3);}
+.fex-tag.t{background:rgba(42,122,114,.12);color:#5ec4bb;border:1px solid rgba(42,122,114,.25);}
+.fex-tag.c{background:rgba(191,59,42,.12);color:var(--accent2);border:1px solid rgba(191,59,42,.25);}
+.fex-tag.v{background:rgba(107,42,107,.12);color:#c47ec4;border:1px solid rgba(107,42,107,.25);}
+.fex-text{font-size:12px;line-height:1.55;color:rgba(255,255,255,.38);}
 
-/* Report styles */
-.rp-h{font-family:'Libre Baskerville',serif;font-size:18px;font-weight:700;color:var(--ink);margin-bottom:4px;}
-.rp-date{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
-.rp-kpis{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px;}
-.rp-kp{background:var(--paper3);border-radius:10px;padding:12px;}
-.rp-kv{font-family:'Libre Baskerville',serif;font-size:22px;color:var(--ink);line-height:1;margin-bottom:2px;}
-.rp-kl{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;}
-.rp-sec{margin-bottom:10px;}
-.rp-sh{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:5px;}
-.rp-sb{font-size:13px;line-height:1.7;color:var(--ink3);}
-
-/* LinkedIn styles */
-.li-ph{display:flex;gap:10px;margin-bottom:12px;align-items:center;}
-.li-pav{width:36px;height:36px;border-radius:50%;background:var(--ink);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--paper);flex-shrink:0;}
-.li-pn{font-size:13px;font-weight:600;color:var(--ink);}
-.li-pr{font-size:11px;color:var(--ink3);}
-.li-post{font-size:13.5px;line-height:1.75;color:var(--ink2);}
-.li-hook{font-family:'Libre Baskerville',serif;font-size:16px;font-style:italic;color:var(--ink);display:block;margin-bottom:12px;line-height:1.4;}
-.li-post p{margin-bottom:8px;}
-.li-tags{color:var(--navy);font-size:12px;margin-top:4px;}
-.li-stats{display:flex;gap:14px;margin-top:10px;padding-top:10px;border-top:1px solid var(--faint2);}
-.li-stat{font-size:11px;color:var(--ink3);}
-.li-stat b{color:var(--ink);}
-
-/* Journal styles */
-.jn-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--faint2);}
-.jn-date{font-family:'Libre Baskerville',serif;font-size:14px;font-style:italic;color:var(--ink3);}
-.jn-mood{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink3);}
-.jn-mp{width:6px;height:6px;border-radius:50%;background:var(--teal);}
-.jn-body{font-family:'Libre Baskerville',serif;font-size:14px;line-height:1.9;color:var(--ink);font-style:italic;}
-.jn-body p{margin-bottom:12px;}
-.jn-ins{margin-top:14px;background:var(--paper3);border-radius:12px;padding:13px;border-left:3px solid var(--teal);}
-.jn-il{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:6px;}
-.jn-ib{font-size:12px;line-height:1.6;color:var(--ink3);}
-.jn-chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
-.jn-chip{padding:3px 9px;border-radius:100px;background:rgba(42,122,114,.07);border:1px solid rgba(42,122,114,.18);font-size:10px;color:var(--teal);font-family:'DM Mono',monospace;}
+@media(max-width:900px){
+  .fmt-stage{grid-template-columns:1fr;}
+  .fmt-explain{grid-template-columns:1fr;}
+}
+@media(max-width:600px){
+  .fmt-explain{grid-template-columns:1fr 1fr;}
+  .fex:last-child{display:none;}
+}
 
 /* ─── WHY VOKAL ─── */
 .why{background:var(--paper2);}
@@ -977,7 +1102,6 @@ footer{
   .nav-links{display:none;}
   .vis-hint{display:none;}
   .problem-grid,.steps,.why-grid{grid-template-columns:1fr;}
-  .opane.active{grid-template-columns:1fr;}
   .hero-inner{grid-template-columns:1fr;gap:36px;}
   .hero-copy{text-align:center;}
   .hero-sub{margin-left:auto;margin-right:auto;}
@@ -1163,199 +1287,52 @@ footer{
   <div class="section-inner">
     <div class="section-eyebrow">Output Examples</div>
     <h2 class="section-h">Every format.<br><em>One voice.</em></h2>
-    <p class="section-sub">Select a format below to see how the same spoken thought transforms into exactly the right output.</p>
+    <p class="section-sub">Select a format to see how the same spoken thought becomes exactly the right output.</p>
 
-    <div class="outputs-tabs" style="margin-top:40px;">
-      <button class="otab active" onclick="switchTab(this,'email')">Email</button>
-      <button class="otab" onclick="switchTab(this,'slack')">Slack</button>
-      <button class="otab" onclick="switchTab(this,'report')">Report</button>
-      <button class="otab" onclick="switchTab(this,'linkedin')">LinkedIn</button>
-      <button class="otab" onclick="switchTab(this,'journal')">Journal</button>
+    <div class="fmt-pills" id="fmtPills">
+      <div class="fpill active" onclick="selectFmt(0,this)"><div class="fpill-dot"></div><span class="fpill-label">Professional Email</span></div>
+      <div class="fpill" onclick="selectFmt(1,this)"><div class="fpill-dot"></div><span class="fpill-label">Slack Message</span></div>
+      <div class="fpill" onclick="selectFmt(2,this)"><div class="fpill-dot"></div><span class="fpill-label">Executive Report</span></div>
+      <div class="fpill" onclick="selectFmt(3,this)"><div class="fpill-dot"></div><span class="fpill-label">LinkedIn Post</span></div>
+      <div class="fpill" onclick="selectFmt(4,this)"><div class="fpill-dot"></div><span class="fpill-label">Thinking Journal</span></div>
     </div>
 
-    <div class="output-panes">
-
-      <!-- EMAIL -->
-      <div class="opane active" id="pane-email">
-        <div class="opane-input">
-          <div class="opane-label"><div class="opane-label-dot"></div>You said (58 words, 23 seconds)</div>
-          <div class="voice-bubble" style="padding-top:28px;">
-            So uh, Sarah needs to know that the Q3 thing is going to be late, like two weeks late, because of the data pipeline stuff that the infra team messed up, but I don't want to sound like I'm blaming them, and I should probably say when we'll have an update...
+    <div class="fmt-stage">
+      <div class="fmt-input">
+        <div class="fmt-input-head">
+          <div class="fi-label">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+            Voice input
           </div>
-          <div class="voice-meta">
-            <div class="voice-wave">
-              <div class="vwb" style="height:8px"></div><div class="vwb" style="height:14px"></div><div class="vwb" style="height:6px"></div><div class="vwb" style="height:18px"></div><div class="vwb" style="height:10px"></div><div class="vwb" style="height:14px"></div><div class="vwb" style="height:7px"></div><div class="vwb" style="height:12px"></div>
-            </div>
-            23s · Professional Email selected
-          </div>
+          <div class="fi-rec"><div class="fi-rec-dot"></div>Recording</div>
         </div>
-        <div class="opane-output">
-          <div class="op-strip"></div>
-          <div class="op-head">
-            <div class="op-badge">Email · Generated</div>
-            <button class="op-copy">Copy</button>
-          </div>
-          <div class="op-body">
-            <div class="em-field"><div class="em-key">To</div><div class="em-val"><b>sarah.chen@company.com</b></div></div>
-            <div class="em-field"><div class="em-key">CC</div><div class="em-val">dev-team@company.com</div></div>
-            <div class="em-subject">Project Timeline Update — Q3 Launch</div>
-            <div class="em-body">
-              <p>Hi Sarah,</p>
-              <p>Quick heads-up on Q3: a data pipeline dependency is pushing delivery by ~2 weeks — revised target is <strong>July 28th</strong>.</p>
-              <p>The infrastructure team has a mitigation plan already in motion. Full revised milestones by EOD Thursday.</p>
-              <p>Happy to jump on a call before then if useful.</p>
-              <p>Best, Aryan</p>
-            </div>
+        <div class="fi-wave" id="fmtWave"></div>
+        <div class="fi-body">
+          <div class="fi-spoken-label">You said</div>
+          <div class="fi-text" id="fmtInputText"></div>
+          <div class="fi-meta">
+            <div class="fi-meta-pip"></div>
+            <span id="fmtInputMeta">58 words · 23 seconds</span>
           </div>
         </div>
       </div>
 
-      <!-- SLACK -->
-      <div class="opane" id="pane-slack">
-        <div class="opane-input">
-          <div class="opane-label"><div class="opane-label-dot"></div>You said (41 words, 18 seconds)</div>
-          <div class="voice-bubble" style="padding-top:28px;">
-            I need to tell the engineering team that the deadline is tight and like, we need to work together on this, not just me handing stuff over to them, I want it to feel collaborative not like I'm demanding things from them...
-          </div>
-          <div class="voice-meta">
-            <div class="voice-wave">
-              <div class="vwb" style="height:10px"></div><div class="vwb" style="height:16px"></div><div class="vwb" style="height:8px"></div><div class="vwb" style="height:12px"></div><div class="vwb" style="height:18px"></div><div class="vwb" style="height:6px"></div><div class="vwb" style="height:14px"></div>
-            </div>
-            18s · Slack Message selected
+      <div class="fmt-output">
+        <div class="fmt-output-stripe" id="fmtStripe"></div>
+        <div class="fo-head">
+          <div class="fo-badge"><div class="fo-badge-dot"></div><span id="fmtBadge">Email · Generated</span></div>
+          <div class="fo-actions">
+            <button class="fo-btn" type="button">Copy</button>
+            <button class="fo-btn send" type="button" id="fmtSendBtn">Send via Gmail →</button>
           </div>
         </div>
-        <div class="opane-output">
-          <div class="op-strip"></div>
-          <div class="op-head">
-            <div class="op-badge">Slack · Generated</div>
-            <button class="op-copy">Copy</button>
-          </div>
-          <div class="op-body">
-            <div class="sl-channel-bar"># engineering-team</div>
-            <div class="sl-sender">
-              <div class="sl-av">AK</div>
-              <div class="sl-meta"><div class="sl-name">Aryan Kumar</div><div class="sl-time">Today at 3:42 PM</div></div>
-            </div>
-            <div class="sl-msg">
-              <p>Hey team — the sprint deadline is tighter than I'd like. Rather than a hard handoff, can we carve out 30 min Friday to align together?</p>
-              <p>Want to make sure we're building the right thing, not just the fast thing. Let me know if Friday works.</p>
-            </div>
-            <div class="sl-rxs">
-              <div class="sl-rx">+1 React</div><div class="sl-rx">Raise hand 0</div><div class="sl-rx">Schedule</div>
-            </div>
-          </div>
+        <div class="fo-body">
+          <div class="fo-content" id="fmtOutputContent"></div>
         </div>
       </div>
-
-      <!-- REPORT -->
-      <div class="opane" id="pane-report">
-        <div class="opane-input">
-          <div class="opane-label"><div class="opane-label-dot"></div>You said (62 words, 28 seconds)</div>
-          <div class="voice-bubble" style="padding-top:28px;">
-            So the AI integration project in Q2 went really well, like we automated a lot of tasks, maybe 70-something percent, and the team is moving way faster now, we saved a bunch of money too, like six figures, but there are some risks I need to call out around the model drifting...
-          </div>
-          <div class="voice-meta">
-            <div class="voice-wave">
-              <div class="vwb" style="height:12px"></div><div class="vwb" style="height:18px"></div><div class="vwb" style="height:9px"></div><div class="vwb" style="height:16px"></div><div class="vwb" style="height:20px"></div><div class="vwb" style="height:8px"></div><div class="vwb" style="height:15px"></div>
-            </div>
-            28s · Report selected
-          </div>
-        </div>
-        <div class="opane-output">
-          <div class="op-strip"></div>
-          <div class="op-head">
-            <div class="op-badge">Report · Generated</div>
-            <button class="op-copy">Export PDF</button>
-          </div>
-          <div class="op-body">
-            <div class="rp-h">Q2 AI Integration — Progress Report</div>
-            <div class="rp-date">Aryan Kumar · May 2026 · Confidential</div>
-            <div class="rp-kpis">
-              <div class="rp-kp"><div class="rp-kv">73%</div><div class="rp-kl">Tasks Automated</div></div>
-              <div class="rp-kp"><div class="rp-kv">2.1×</div><div class="rp-kl">Team Velocity</div></div>
-              <div class="rp-kp"><div class="rp-kv">↓41%</div><div class="rp-kl">Review Cycles</div></div>
-              <div class="rp-kp"><div class="rp-kv">$180K</div><div class="rp-kl">Cost Saved</div></div>
-            </div>
-            <div class="rp-sec"><div class="rp-sh">Executive Summary</div><div class="rp-sb">The AI integration initiative delivered measurable velocity gains in Q2. Automated pipeline coverage reached 73%, reducing manual review cycles by 41% and freeing ~340 engineering hours.</div></div>
-            <div class="rp-sec"><div class="rp-sh">Key Risks</div><div class="rp-sb">Model drift in the classification layer requires bi-weekly recalibration. Third-party embeddings API introduces latency risk above 10K daily requests.</div></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- LINKEDIN -->
-      <div class="opane" id="pane-linkedin">
-        <div class="opane-input">
-          <div class="opane-label"><div class="opane-label-dot"></div>You said (55 words, 24 seconds)</div>
-          <div class="voice-bubble" style="padding-top:28px;">
-            I want to share something about building AI products and like the thing that I've realised is that most people think the hard part is the model but it's actually the gap between what someone thinks and what they can express, and I think that's what I want to build into...
-          </div>
-          <div class="voice-meta">
-            <div class="voice-wave">
-              <div class="vwb" style="height:9px"></div><div class="vwb" style="height:15px"></div><div class="vwb" style="height:11px"></div><div class="vwb" style="height:19px"></div><div class="vwb" style="height:7px"></div><div class="vwb" style="height:13px"></div><div class="vwb" style="height:17px"></div>
-            </div>
-            24s · LinkedIn selected
-          </div>
-        </div>
-        <div class="opane-output">
-          <div class="op-strip"></div>
-          <div class="op-head">
-            <div class="op-badge">LinkedIn · Generated</div>
-            <button class="op-copy">Post</button>
-          </div>
-          <div class="op-body">
-            <div class="li-ph"><div class="li-pav">AK</div><div><div class="li-pn">Aryan Kumar</div><div class="li-pr">AI Engineer · Building Vokal</div></div></div>
-            <div class="li-post">
-              <span class="li-hook">"The hard part of AI isn't the model. It's the gap between what people think and what they can say."</span>
-              <p>I've spent 3 years building LLM products. The biggest unlock wasn't about architecture — it was about expression.</p>
-              <p>Most professionals have sharp ideas trapped behind clunky language. The problem isn't intelligence. It's the interface between thought and words.</p>
-              <p>That's the gap I'm building into. How many of you feel this daily?</p>
-              <div class="li-tags">#AIProducts #BuildingInPublic #GenerativeAI</div>
-            </div>
-            <div class="li-stats">
-              <div class="li-stat">Est. reach: <b>4,200</b></div>
-              <div class="li-stat">Hook score: <b>91/100</b></div>
-              <div class="li-stat">Read time: <b>45s</b></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- JOURNAL -->
-      <div class="opane" id="pane-journal">
-        <div class="opane-input">
-          <div class="opane-label"><div class="opane-label-dot"></div>You said (48 words, 21 seconds)</div>
-          <div class="voice-bubble" style="padding-top:28px;">
-            I keep thinking about whether I'm building the right thing or just building what I know how to build... the promotion conversation is coming up and I think what I'm actually scared of is being seen as someone who can't lead, not just the rejection...
-          </div>
-          <div class="voice-meta">
-            <div class="voice-wave">
-              <div class="vwb" style="height:7px"></div><div class="vwb" style="height:13px"></div><div class="vwb" style="height:10px"></div><div class="vwb" style="height:16px"></div><div class="vwb" style="height:8px"></div><div class="vwb" style="height:14px"></div><div class="vwb" style="height:11px"></div>
-            </div>
-            21s · Journal selected
-          </div>
-        </div>
-        <div class="opane-output">
-          <div class="op-strip"></div>
-          <div class="op-head">
-            <div class="op-badge">Journal · Structured</div>
-            <button class="op-copy">Save</button>
-          </div>
-          <div class="op-body">
-            <div class="jn-h"><div class="jn-date">Sunday, May 25 · Evening</div><div class="jn-mood"><div class="jn-mp"></div>Reflective</div></div>
-            <div class="jn-body">
-              <p>Am I building something that matters, or something I just know how to build?</p>
-              <p>The promotion conversation is looming. What I'm actually afraid of isn't the rejection — it's being seen as someone who peaked technically but can't lead.</p>
-            </div>
-            <div class="jn-ins">
-              <div class="jn-il">AI Pattern Detected</div>
-              <div class="jn-ib">11th session this month with tension between technical identity and leadership ambition. Unresolved values conflict worth exploring.</div>
-              <div class="jn-chips"><span class="jn-chip">Identity</span><span class="jn-chip">Leadership fear</span><span class="jn-chip">11× this month</span></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
     </div>
+
+    <div class="fmt-explain" id="fmtExplain"></div>
   </div>
 </section>
 
@@ -1700,7 +1677,7 @@ function animRing(){
   requestAnimationFrame(animRing);
 }
 animRing();
-document.querySelectorAll('a,button,.otab,.mode-btn,.hero-chip').forEach(el=>{
+document.querySelectorAll('a,button,.fpill,.mode-btn,.hero-chip').forEach(el=>{
   el.addEventListener('mouseenter',()=>{cur.classList.add('hover');ring.classList.add('hover');});
   el.addEventListener('mouseleave',()=>{cur.classList.remove('hover');ring.classList.remove('hover');});
 });
@@ -1755,13 +1732,123 @@ document.querySelectorAll('.scroll-reveal').forEach(el=>observer.observe(el));
 const countEl = document.getElementById('countNum');
 initWaitlistCount();
 
-// ─── OUTPUT TABS ───
-function switchTab(btn,id){
-  document.querySelectorAll('.otab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.opane').forEach(p=>p.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('pane-'+id).classList.add('active');
+// ─── OUTPUT FORMAT SELECTOR ───
+const FMT_DATA = [
+  {
+    pill:'Professional Email',badge:'Email · Generated',send:'Send via Gmail →',
+    meta:'58 words · 23 seconds',
+    input:'So uh, Sarah needs to know that the Q3 thing is going to be late, like two weeks late, because of the data pipeline stuff that the infra team messed up, but I don\'t want to sound like I\'m blaming them, and I should probably say when we\'ll have an update...',
+    output:`<div class="xef"><div class="xek">To</div><div class="xev"><b>sarah.chen@company.com</b></div></div><div class="xef"><div class="xek">CC</div><div class="xev">dev-team@company.com</div></div><div class="xesubj">Project Timeline Update — Q3 Launch</div><div class="xebody"><p>Hi Sarah,</p><p>Quick heads-up on Q3: a data pipeline dependency is pushing delivery by ~2 weeks — revised target is <strong>July 28th</strong>.</p><p>The infrastructure team has a mitigation plan already in motion. Full revised milestones by EOD Thursday.</p><p>Happy to jump on a call before then if useful.</p><p>Best, Aryan</p></div>`,
+    explain:[
+      {t:'s',l:'Structure',txt:'Lead restructured — key info moved to sentence one. You buried it in sentence 4. Your manager reads 40+ emails daily.'},
+      {t:'t',l:'Tone',txt:'Replaced self-blame with proactive ownership. Authority maintained without deflecting accountability.'},
+      {t:'c',l:'Clarity',txt:'Added concrete date (July 28) and follow-up commitment. Vague timelines erode senior stakeholder trust.'},
+    ]
+  },
+  {
+    pill:'Slack Message',badge:'Slack · Generated',send:'Post to Slack →',
+    meta:'41 words · 18 seconds',
+    input:'I need to tell the engineering team that the deadline is tight and we need to work together on this, not just me handing stuff over to them, I want it to feel collaborative not demanding...',
+    output:`<div class="xsl-ch"># engineering-team</div><div class="xsl-sender"><div class="xsl-av">AK</div><div><div class="xsl-nm">Aryan Kumar</div><div class="xsl-time">Today at 3:42 PM</div></div></div><div class="xsl-msg"><p>Hey team — the sprint deadline is tighter than I'd like. Rather than a hard handoff, can we carve out 30 min Friday to align together?</p><p>Want to make sure we're building the right thing, not just the fast thing. Let me know if Friday works.</p></div><div class="xsl-rxs"><div class="xsl-rx">+1 React</div><div class="xsl-rx">Raise hand 0</div><div class="xsl-rx">Schedule</div></div>`,
+    explain:[
+      {t:'t',l:'Tone',txt:'Reframed as a collaboration invite. Removed 2 passive-aggressive phrases in your original recording.'},
+      {t:'v',l:'Voice',txt:'Matched your casual Slack register — conversational, not formal. Your professional email voice would feel cold here.'},
+      {t:'c',l:'Clarity',txt:'Added an explicit ask. Vague Slack messages get ignored. Clear calls-to-action triple response rates.'},
+    ]
+  },
+  {
+    pill:'Executive Report',badge:'Report · Generated',send:'Export as PDF →',
+    meta:'62 words · 28 seconds',
+    input:'So the AI integration project in Q2 went really well, we automated maybe 70-something percent of tasks, team is moving way faster, saved like six figures, but there are some risks I need to flag around model drift...',
+    output:`<div class="xrh">Q2 AI Integration — Progress Report</div><div class="xrd">Aryan Kumar · May 2026 · Confidential</div><div class="xrkpis"><div class="xrkp"><div class="xrkv">73%</div><div class="xrkl">Tasks Automated</div></div><div class="xrkp"><div class="xrkv">2.1×</div><div class="xrkl">Team Velocity</div></div><div class="xrkp"><div class="xrkv">↓41%</div><div class="xrkl">Review Cycles</div></div><div class="xrkp"><div class="xrkv">$180K</div><div class="xrkl">Cost Saved</div></div></div><div class="xrsec"><div class="xrsh">Executive Summary</div><div class="xrsb">The AI integration initiative delivered measurable velocity gains in Q2. Automated pipeline coverage reached 73%, reducing manual review cycles by 41% and freeing ~340 engineering hours.</div></div><div class="xrsec"><div class="xrsh">Key Risks</div><div class="xrsb">Model drift in the classification layer requires bi-weekly recalibration. Dependency on third-party embeddings API introduces latency risk above 10K daily requests.</div></div>`,
+    explain:[
+      {t:'s',l:'Structure',txt:'KPI dashboard added at the top — executives scan before reading. Your numbers were buried in paragraph 3.'},
+      {t:'c',l:'Clarity',txt:'4 minutes of speaking → structured sections readable in 90 seconds.'},
+      {t:'v',l:'Voice',txt:'Matched formal report register throughout. Your natural voice was too conversational for a board-level document.'},
+    ]
+  },
+  {
+    pill:'LinkedIn Post',badge:'LinkedIn · Generated',send:'Post to LinkedIn →',
+    meta:'55 words · 24 seconds',
+    input:'I want to share something about building AI products and like the thing I\'ve realised is that most people think the hard part is the model but it\'s actually the gap between what someone thinks and what they can express...',
+    output:`<div class="xlph"><div class="xlpav">AK</div><div><div class="xlpn">Aryan Kumar</div><div class="xlpr">AI Engineer · Building Vokal</div></div></div><div class="xlpost"><span class="xlhook">"The hard part of AI isn't the model. It's the gap between what people think and what they can say."</span><p>I've spent 3 years building LLM products. The biggest unlock wasn't about architecture.</p><p>It was about <b style="color:rgba(255,255,255,.75)">the gap between what people think and what they can express.</b></p><p>Most professionals have sharp ideas trapped behind clunky language. That's the gap I'm building into.</p><div class="xltags">#AIProducts #BuildingInPublic #GenerativeAI</div></div><div class="xlstats"><div class="xlstat">Est. reach: <b>4,200</b></div><div class="xlstat">Hook score: <b>91/100</b></div><div class="xlstat">Read time: <b>45s</b></div></div>`,
+    explain:[
+      {t:'s',l:'Structure',txt:'Opened with a contrarian hook. Your original started with context-setting. Hooks decide scroll-vs-stop in 0.3 seconds.'},
+      {t:'c',l:'Clarity',txt:'Compressed 4 minutes to 130 words. LinkedIn attention spans peak at 150 words.'},
+      {t:'v',l:'Voice',txt:"Kept your authentic voice and the direct closing question. Didn't sanitise the vulnerability."},
+    ]
+  },
+  {
+    pill:'Thinking Journal',badge:'Journal · Structured',send:'Save to Journal →',
+    meta:'48 words · 21 seconds',
+    input:'I keep thinking about whether I\'m building the right thing or just building what I know... the promotion conversation is coming up and what I\'m actually scared of is being seen as someone who can\'t lead...',
+    output:`<div class="xjnh"><div class="xjnd">Sunday, May 25 · Evening</div><div class="xjnm"><div class="xjnmp"></div>Reflective</div></div><div class="xjnbody"><p>Am I building something that matters, or something I just know how to build?</p><p>The promotion conversation is looming. What I'm actually afraid of isn't the rejection — it's being seen as someone who peaked technically but can't lead.</p></div><div class="xjnins"><div class="xjnil">AI Pattern Detected</div><div class="xjnib">11th session this month with tension between technical identity and leadership ambition. Unresolved values conflict worth exploring.</div><div class="xjnchips"><span class="xjnchip">Identity</span><span class="xjnchip">Leadership fear</span><span class="xjnchip">11× this month</span></div></div>`,
+    explain:[
+      {t:'s',l:'Structure',txt:'Extracted 3 distinct threads from your 3-minute voice note. Your spoken version had them tangled together.'},
+      {t:'v',l:'Voice',txt:"Preserved your exact emotional register — introspective, slightly anxious, searching. Didn't polish away the vulnerability."},
+      {t:'c',l:'Clarity',txt:"Added the pattern insight at the bottom — this is your 11th session with this theme. The AI notices what you might not."},
+    ]
+  }
+];
+
+let curFmt = 0, fmtTypeInt = null;
+
+const fmtWaveEl = document.getElementById('fmtWave');
+for (let i = 0; i < 46; i++) {
+  const b = document.createElement('div');
+  b.className = 'fiw';
+  const mh = 4 + Math.sin(i * .42) * 6 + Math.random() * 24;
+  b.style.setProperty('--mh', mh + 'px');
+  b.style.setProperty('--d', (0.4 + Math.random() * .9) + 's');
+  b.style.setProperty('--dl', (Math.random() * .5) + 's');
+  b.style.height = '3px';
+  fmtWaveEl.appendChild(b);
 }
+
+function selectFmt(idx, el) {
+  curFmt = idx;
+  document.querySelectorAll('.fpill').forEach((p, i) => p.classList.toggle('active', i === idx));
+  loadFmt(idx);
+}
+
+function loadFmt(idx) {
+  const d = FMT_DATA[idx];
+
+  document.getElementById('fmtBadge').textContent = d.badge;
+  document.getElementById('fmtSendBtn').textContent = d.send;
+  document.getElementById('fmtInputMeta').textContent = d.meta;
+
+  const stripe = document.getElementById('fmtStripe');
+  stripe.classList.remove('in');
+  requestAnimationFrame(() => requestAnimationFrame(() => stripe.classList.add('in')));
+
+  clearInterval(fmtTypeInt);
+  const inputEl = document.getElementById('fmtInputText');
+  inputEl.textContent = '';
+  let ii = 0;
+  fmtTypeInt = setInterval(() => {
+    ii++;
+    inputEl.textContent = d.input.slice(0, ii);
+    if (ii >= d.input.length) clearInterval(fmtTypeInt);
+  }, 12);
+
+  const outputEl = document.getElementById('fmtOutputContent');
+  outputEl.classList.remove('visible');
+  outputEl.innerHTML = d.output;
+  setTimeout(() => outputEl.classList.add('visible'), 300);
+
+  const explainEl = document.getElementById('fmtExplain');
+  explainEl.innerHTML = '';
+  d.explain.forEach((e, i) => {
+    const div = document.createElement('div');
+    div.className = 'fex';
+    div.innerHTML = `<div class="fex-tag ${e.t}">${e.l}</div><div class="fex-text">${e.txt}</div>`;
+    explainEl.appendChild(div);
+    setTimeout(() => div.classList.add('in'), 400 + i * 120);
+  });
+}
+
+loadFmt(0);
 
 // ─── WAITLIST SIGNUP ───
 async function handleSignup(form){
