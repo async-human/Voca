@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Voca turns your spoken thoughts into polished professional communication — instantly, in your voice. Join the waitlist.">
+<meta property="og:title" content="Voca — Think out loud. Send something brilliant.">
+<meta property="og:description" content="Speak for 60 seconds. Get a perfect email, report, or LinkedIn post — written in your voice, explained by AI.">
+<meta property="og:type" content="website">
+<title>Voca — Think out loud. Send something brilliant.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+/* ─── RESET ─── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+
+/* ─── TOKENS ─── */
+:root{
+  --paper:#F0EAE1;
+  --paper2:#E8E1D8;
+  --paper3:#DDD5CA;
+  --ink:#1C1814;
+  --ink2:#2E2820;
+  --ink3:#44392E;
+  --muted:#897D72;
+  --faint:#C8BEB4;
+  --faint2:#DDD5CA;
+  --accent:#BF3B2A;
+  --accent2:#D94F3C;
+  --accent3:#9A2D1E;
+  --accentbg:rgba(191,59,42,0.08);
+  --teal:#2A7A72;
+  --navy:#1A3A6B;
+  --plum:#6B2A6B;
+  --olive:#5A6B2A;
+  --r:24px;
+  --rr:16px;
+}
+
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Instrument Sans',sans-serif;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+  cursor:none;
+}
+
+/* ─── CUSTOM CURSOR ─── */
+.cursor{
+  width:10px;height:10px;border-radius:50%;
+  background:var(--accent);
+  position:fixed;top:0;left:0;
+  pointer-events:none;z-index:99999;
+  transform:translate(-50%,-50%);
+  transition:width .25s,height .25s,background .25s;
+  mix-blend-mode:multiply;
+}
+.cursor-ring{
+  width:36px;height:36px;border-radius:50%;
+  border:1px solid rgba(191,59,42,.35);
+  position:fixed;top:0;left:0;
+  pointer-events:none;z-index:99998;
+  transform:translate(-50%,-50%);
+  transition:transform .12s ease-out,width .3s,height .3s,border-color .3s;
+}
+.cursor.hover{width:6px;height:6px;}
+.cursor-ring.hover{width:52px;height:52px;border-color:rgba(191,59,42,.6);}
+
+/* ─── PAPER TEXTURE ─── */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:9999;
+}
+
+/* ─── NAV ─── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:1000;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:22px 48px;
+  transition:all .4s ease;
+}
+nav.scrolled{
+  background:rgba(240,234,225,0.88);
+  backdrop-filter:blur(20px) saturate(1.8);
+  padding:16px 48px;
+  border-bottom:1px solid var(--faint2);
+}
+.nav-logo{
+  display:flex;align-items:baseline;gap:3px;
+  text-decoration:none;
+}
+.nav-logo-text{
+  font-family:'Libre Baskerville',serif;
+  font-size:22px;font-weight:700;color:var(--ink);
+  letter-spacing:-.01em;
+}
+.nav-logo-dot{
+  width:5px;height:5px;border-radius:50%;
+  background:var(--accent);margin-bottom:2px;
+}
+.nav-links{
+  display:flex;align-items:center;gap:32px;
+}
+.nav-links a{
+  font-size:14px;font-weight:500;color:var(--muted);
+  text-decoration:none;transition:color .2s;
+  cursor:none;
+}
+.nav-links a:hover{color:var(--ink);}
+.nav-cta{
+  background:var(--ink);color:var(--paper)!important;
+  padding:9px 22px;border-radius:100px;
+  font-weight:600!important;
+  transition:all .2s!important;
+}
+.nav-cta:hover{background:var(--accent)!important;color:var(--paper)!important;}
+
+/* ─── HERO ─── */
+.hero{
+  min-height:100vh;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:120px 24px 80px;
+  position:relative;overflow:hidden;
+  text-align:center;
+}
+
+/* Large decorative letter */
+.hero-bg-letter{
+  position:absolute;
+  font-family:'Libre Baskerville',serif;
+  font-size:clamp(320px,50vw,600px);
+  font-weight:700;font-style:italic;
+  color:rgba(28,24,20,0.028);
+  line-height:1;top:50%;left:50%;
+  transform:translate(-50%,-52%);
+  pointer-events:none;user-select:none;
+  letter-spacing:-.05em;
+}
+
+/* Horizontal rule lines */
+.hero-rule{
+  position:absolute;left:0;right:0;
+  height:1px;background:var(--faint2);
+}
+.hero-rule-1{top:120px;}
+.hero-rule-2{bottom:80px;}
+
+.hero-eyebrow{
+  font-family:'DM Mono',monospace;
+  font-size:11px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--accent);
+  margin-bottom:28px;opacity:0;
+  animation:riseIn .8s .1s ease both;
+}
+
+.hero-h{
+  font-family:'Libre Baskerville',serif;
+  font-size:clamp(42px,7vw,88px);
+  font-weight:700;line-height:1.06;
+  letter-spacing:-.025em;
+  color:var(--ink);
+  margin-bottom:28px;opacity:0;
+  animation:riseIn .9s .2s ease both;
+  max-width:900px;
+}
+.hero-h em{
+  font-style:italic;color:var(--accent);
+}
+
+.hero-sub{
+  font-size:clamp(16px,2.2vw,20px);
+  line-height:1.65;color:var(--muted);
+  max-width:540px;margin:0 auto 48px;
+  opacity:0;animation:riseIn .9s .35s ease both;
+}
+.hero-sub strong{color:var(--ink);font-weight:600;}
+
+/* Waitlist form */
+.hero-form{
+  display:flex;gap:10px;flex-wrap:wrap;
+  justify-content:center;margin-bottom:20px;
+  opacity:0;animation:riseIn .9s .5s ease both;
+}
+.hero-input{
+  padding:14px 22px;border-radius:100px;
+  border:1.5px solid var(--faint2);
+  background:rgba(255,255,255,.5);
+  font-family:'Instrument Sans',sans-serif;
+  font-size:15px;color:var(--ink);
+  width:300px;outline:none;
+  transition:all .25s;
+  backdrop-filter:blur(8px);
+}
+.hero-input::placeholder{color:var(--faint);}
+.hero-input:focus{
+  border-color:var(--accent);
+  background:rgba(255,255,255,.75);
+  box-shadow:0 0 0 4px rgba(191,59,42,.08);
+}
+.hero-btn{
+  padding:14px 32px;border-radius:100px;
+  background:var(--ink);color:var(--paper);
+  font-family:'Instrument Sans',sans-serif;
+  font-size:15px;font-weight:600;
+  border:none;cursor:none;
+  transition:all .25s cubic-bezier(.34,1.56,.64,1);
+  white-space:nowrap;
+  box-shadow:0 4px 24px rgba(28,24,20,.25);
+  position:relative;overflow:hidden;
+}
+.hero-btn::after{
+  content:'';position:absolute;inset:0;
+  background:var(--accent);
+  transform:translateY(100%);
+  transition:transform .3s ease;
+  border-radius:100px;
+}
+.hero-btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(28,24,20,.3);}
+.hero-btn:hover::after{transform:translateY(0);}
+.hero-btn span{position:relative;z-index:1;}
+.hero-btn:active{transform:scale(.97);}
+
+.hero-form-note{
+  font-family:'DM Mono',monospace;
+  font-size:11px;letter-spacing:.06em;
+  color:var(--faint);
+  opacity:0;animation:riseIn .9s .65s ease both;
+}
+
+/* ── Voice Visualiser in Hero ── */
+.hero-vis{
+  margin:56px auto 0;
+  width:min(640px,90vw);
+  opacity:0;animation:riseIn 1s .4s ease both;
+  position:relative;
+}
+.vis-label{
+  font-family:'DM Mono',monospace;
+  font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--faint);
+  margin-bottom:12px;
+  display:flex;align-items:center;gap:10px;
+}
+.vis-label::before,.vis-label::after{
+  content:'';flex:1;height:1px;background:var(--faint2);
+}
+.vis-card{
+  background:var(--ink);
+  border-radius:var(--r);
+  padding:32px;
+  position:relative;overflow:hidden;
+}
+/* Subtle noise on dark card */
+.vis-card::before{
+  content:'';position:absolute;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E");
+  pointer-events:none;opacity:.6;border-radius:var(--r);
+}
+.vis-inner{position:relative;z-index:1;}
+.vis-top{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:24px;
+}
+.vis-mode-pill{
+  font-family:'DM Mono',monospace;font-size:9px;
+  letter-spacing:.12em;text-transform:uppercase;
+  padding:5px 12px;border-radius:100px;
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.1);
+  color:rgba(255,255,255,.5);
+  display:flex;align-items:center;gap:6px;
+}
+.vis-mode-pip{
+  width:5px;height:5px;border-radius:50%;
+  background:var(--accent2);
+  box-shadow:0 0 8px var(--accent);
+  animation:pipGlow 2s ease-in-out infinite;
+}
+@keyframes pipGlow{
+  0%,100%{box-shadow:0 0 6px var(--accent)}
+  50%{box-shadow:0 0 14px var(--accent2),0 0 24px rgba(191,59,42,.4)}
+}
+.vis-timer{
+  font-family:'Libre Baskerville',serif;
+  font-size:28px;font-weight:400;
+  color:rgba(255,255,255,.9);letter-spacing:.02em;
+}
+
+/* Waveform bars */
+.waveform{
+  display:flex;align-items:center;gap:3px;
+  height:72px;justify-content:center;
+  margin-bottom:24px;
+}
+.wb{
+  width:3px;border-radius:3px;
+  background:linear-gradient(to top,var(--accent3),var(--accent2));
+  animation:wbAnim var(--d,.7s) ease-in-out infinite alternate;
+  animation-delay:var(--dl,0s);
+  opacity:.8;
+}
+@keyframes wbAnim{
+  0%{height:3px;opacity:.25}
+  100%{height:var(--mh,24px);opacity:1}
+}
+
+/* Output preview inside dark card */
+.vis-output{
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:14px;padding:18px;
+}
+.vo-type{
+  font-family:'DM Mono',monospace;font-size:9px;
+  letter-spacing:.12em;text-transform:uppercase;
+  color:var(--accent2);margin-bottom:10px;
+  display:flex;align-items:center;gap:6px;
+}
+.vo-type::before{
+  content:'';width:5px;height:5px;border-radius:50%;
+  background:var(--accent2);
+  box-shadow:0 0 8px var(--accent);
+}
+.vo-text{
+  font-family:'Libre Baskerville',serif;
+  font-size:15px;line-height:1.72;
+  color:rgba(255,255,255,.75);
+  font-style:italic;
+}
+.vo-change{
+  margin-top:14px;padding-top:12px;
+  border-top:1px solid rgba(255,255,255,.07);
+  display:flex;gap:8px;align-items:flex-start;
+}
+.vo-tag{
+  font-family:'DM Mono',monospace;font-size:9px;
+  padding:2px 8px;border-radius:100px;
+  background:rgba(191,59,42,.15);
+  border:1px solid rgba(191,59,42,.25);
+  color:var(--accent2);white-space:nowrap;
+  flex-shrink:0;margin-top:1px;
+}
+.vo-change-text{
+  font-size:12px;line-height:1.5;
+  color:rgba(255,255,255,.4);
+}
+
+@keyframes riseIn{
+  from{opacity:0;transform:translateY(22px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* ─── SOCIAL PROOF TICKER ─── */
+.ticker-wrap{
+  background:var(--ink);
+  padding:14px 0;overflow:hidden;
+  border-top:1px solid rgba(255,255,255,.05);
+  border-bottom:1px solid rgba(255,255,255,.05);
+}
+.ticker-inner{
+  display:flex;gap:0;
+  animation:ticker 28s linear infinite;
+  width:max-content;
+}
+.ticker-item{
+  display:flex;align-items:center;gap:10px;
+  padding:0 32px;white-space:nowrap;
+  font-family:'DM Mono',monospace;
+  font-size:11px;letter-spacing:.1em;
+  color:rgba(255,255,255,.35);text-transform:uppercase;
+}
+.ticker-sep{color:var(--accent);font-size:14px;}
+@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ─── SECTION COMMONS ─── */
+section{padding:100px 24px;}
+.section-inner{max-width:1080px;margin:0 auto;}
+.section-eyebrow{
+  font-family:'DM Mono',monospace;
+  font-size:10px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--accent);
+  margin-bottom:16px;
+  display:flex;align-items:center;gap:12px;
+}
+.section-eyebrow::before{
+  content:'';width:24px;height:1px;background:var(--accent);
+}
+.section-h{
+  font-family:'Libre Baskerville',serif;
+  font-size:clamp(32px,5vw,52px);
+  font-weight:700;line-height:1.1;
+  letter-spacing:-.02em;color:var(--ink);
+  margin-bottom:18px;
+}
+.section-h em{font-style:italic;color:var(--accent);}
+.section-sub{
+  font-size:17px;line-height:1.7;
+  color:var(--muted);max-width:520px;
+}
+
+/* ─── PROBLEM SECTION ─── */
+.problem{background:var(--paper);}
+.problem-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;margin-top:56px;
+}
+.prob-card{
+  background:var(--paper2);
+  border:1px solid var(--faint2);
+  border-radius:var(--r);padding:32px;
+  opacity:0;transform:translateY(24px);
+  transition:all .6s cubic-bezier(.16,1,.3,1);
+}
+.prob-card.visible{opacity:1;transform:translateY(0);}
+.prob-num{
+  font-family:'Libre Baskerville',serif;
+  font-size:48px;font-weight:700;
+  color:var(--faint2);line-height:1;
+  margin-bottom:16px;letter-spacing:-.03em;
+}
+.prob-title{
+  font-size:18px;font-weight:600;color:var(--ink);
+  margin-bottom:10px;
+}
+.prob-body{font-size:14px;line-height:1.7;color:var(--muted);}
+
+/* ─── HOW IT WORKS ─── */
+.how{background:var(--ink);color:var(--paper);}
+.how .section-h{color:var(--paper);}
+.how .section-sub{color:rgba(255,255,255,.5);}
+.how .section-eyebrow{color:var(--accent2);}
+.how .section-eyebrow::before{background:var(--accent2);}
+
+.steps{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1px;background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:var(--r);overflow:hidden;
+  margin-top:56px;
+}
+.step{
+  background:var(--ink);
+  padding:36px 32px;
+  opacity:0;transform:translateY(20px);
+  transition:all .6s cubic-bezier(.16,1,.3,1);
+  position:relative;overflow:hidden;
+}
+.step::before{
+  content:'';position:absolute;
+  top:0;left:0;right:0;height:2px;
+  background:var(--accent);
+  transform:scaleX(0);transform-origin:left;
+  transition:transform .4s ease;
+}
+.step:hover::before{transform:scaleX(1);}
+.step.visible{opacity:1;transform:translateY(0);}
+.step-n{
+  font-family:'Libre Baskerville',serif;
+  font-size:52px;font-weight:700;
+  color:rgba(255,255,255,.06);
+  line-height:1;margin-bottom:20px;
+}
+.step-icon{
+  width:44px;height:44px;border-radius:12px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.08);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:18px;
+  color:rgba(255,255,255,.7);
+  flex-shrink:0;
+}
+.step-title{
+  font-size:18px;font-weight:600;color:var(--paper);
+  margin-bottom:10px;
+}
+.step-body{font-size:14px;line-height:1.7;color:rgba(255,255,255,.45);}
+
+/* ─── OUTPUT EXAMPLES ─── */
+.outputs{background:var(--paper);}
+.outputs-tabs{
+  display:flex;gap:0;border-bottom:1px solid var(--faint2);
+  margin-bottom:40px;overflow-x:auto;
+  scrollbar-width:none;
+}
+.outputs-tabs::-webkit-scrollbar{display:none;}
+.otab{
+  padding:12px 22px;
+  font-family:'Instrument Sans',sans-serif;
+  font-size:13px;font-weight:500;color:var(--muted);
+  border:none;background:none;cursor:none;
+  white-space:nowrap;position:relative;
+  transition:color .2s;border-bottom:2px solid transparent;
+  margin-bottom:-1px;
+}
+.otab:hover{color:var(--ink);}
+.otab.active{color:var(--ink);border-bottom-color:var(--accent);}
+
+.output-panes{position:relative;}
+.opane{display:none;}
+.opane.active{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;}
+
+.opane-input{
+  background:var(--paper2);border:1px solid var(--faint2);
+  border-radius:var(--r);padding:28px;
+}
+.opane-label{
+  font-family:'DM Mono',monospace;font-size:9px;
+  letter-spacing:.14em;text-transform:uppercase;
+  color:var(--faint);margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;
+}
+.opane-label-dot{
+  width:5px;height:5px;border-radius:50%;
+  background:var(--faint);
+}
+.voice-bubble{
+  background:var(--paper3);border-radius:16px;
+  padding:16px;font-size:14px;line-height:1.7;
+  color:var(--muted);font-style:italic;
+  position:relative;margin-bottom:10px;
+}
+.voice-bubble::before{
+  content:'"';
+  font-family:'Libre Baskerville',serif;
+  font-size:48px;color:var(--faint2);
+  position:absolute;top:-8px;left:12px;
+  line-height:1;
+}
+.voice-meta{
+  display:flex;align-items:center;gap:8px;
+  font-family:'DM Mono',monospace;font-size:10px;color:var(--faint);
+}
+.voice-wave{display:flex;align-items:center;gap:2px;}
+.vwb{width:2px;border-radius:1px;background:var(--faint);}
+
+.opane-output{
+  background:var(--paper2);border:1px solid var(--faint2);
+  border-radius:var(--r);overflow:hidden;
+}
+.op-strip{height:2px;background:var(--accent);}
+.op-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px 12px;border-bottom:1px solid var(--faint2);
+}
+.op-badge{
+  font-family:'DM Mono',monospace;font-size:9px;
+  letter-spacing:.12em;text-transform:uppercase;
+  color:var(--accent);display:flex;align-items:center;gap:6px;
+}
+.op-badge::before{
+  content:'';width:5px;height:5px;border-radius:50%;
+  background:var(--accent);
+}
+.op-copy{
+  font-family:'DM Mono',monospace;font-size:10px;
+  color:var(--faint);cursor:none;
+  padding:5px 12px;border-radius:8px;
+  border:1px solid var(--faint2);background:transparent;
+  transition:all .2s;
+}
+.op-copy:hover{color:var(--ink);border-color:var(--ink);}
+.op-body{padding:20px;}
+
+/* Email styles */
+.em-field{
+  display:flex;gap:8px;margin-bottom:6px;
+  font-size:13px;
+}
+.em-key{
+  font-family:'DM Mono',monospace;font-size:9px;
+  letter-spacing:.08em;text-transform:uppercase;
+  color:var(--faint);width:28px;flex-shrink:0;margin-top:1px;
+}
+.em-val{color:var(--muted);}
+.em-val b{color:var(--ink);font-weight:500;}
+.em-subject{
+  font-family:'Libre Baskerville',serif;
+  font-size:17px;font-weight:700;color:var(--ink);
+  margin:14px 0 12px;padding-top:12px;
+  border-top:1px solid var(--faint2);
+}
+.em-body{font-size:13.5px;line-height:1.8;color:var(--ink2);}
+.em-body p{margin-bottom:9px;}
+
+/* Slack styles */
+.sl-channel-bar{
+  font-family:'DM Mono',monospace;font-size:11px;
+  color:var(--teal);margin-bottom:10px;
+  display:flex;align-items:center;gap:6px;
+}
+.sl-sender{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.sl-av{width:28px;height:28px;border-radius:6px;background:var(--ink);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--paper);flex-shrink:0;}
+.sl-meta{font-size:12px;}
+.sl-name{font-weight:600;color:var(--ink);}
+.sl-time{color:var(--faint);font-family:'DM Mono',monospace;font-size:9px;}
+.sl-msg{font-size:14px;line-height:1.7;color:var(--ink2);}
+.sl-msg p{margin-bottom:7px;}
+.sl-rxs{display:flex;gap:5px;margin-top:10px;flex-wrap:wrap;}
+.sl-rx{padding:4px 10px;border-radius:100px;background:var(--paper3);border:1px solid var(--faint2);font-size:12px;color:var(--muted);}
+
+/* Report styles */
+.rp-h{font-family:'Libre Baskerville',serif;font-size:18px;font-weight:700;color:var(--ink);margin-bottom:4px;}
+.rp-date{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:14px;}
+.rp-kpis{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px;}
+.rp-kp{background:var(--paper3);border-radius:10px;padding:12px;}
+.rp-kv{font-family:'Libre Baskerville',serif;font-size:22px;color:var(--ink);line-height:1;margin-bottom:2px;}
+.rp-kl{font-family:'DM Mono',monospace;font-size:9px;color:var(--faint);letter-spacing:.07em;text-transform:uppercase;}
+.rp-sec{margin-bottom:10px;}
+.rp-sh{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:5px;}
+.rp-sb{font-size:13px;line-height:1.7;color:var(--muted);}
+
+/* LinkedIn styles */
+.li-ph{display:flex;gap:10px;margin-bottom:12px;align-items:center;}
+.li-pav{width:36px;height:36px;border-radius:50%;background:var(--ink);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--paper);flex-shrink:0;}
+.li-pn{font-size:13px;font-weight:600;color:var(--ink);}
+.li-pr{font-size:11px;color:var(--muted);}
+.li-post{font-size:13.5px;line-height:1.75;color:var(--ink2);}
+.li-hook{font-family:'Libre Baskerville',serif;font-size:16px;font-style:italic;color:var(--ink);display:block;margin-bottom:12px;line-height:1.4;}
+.li-post p{margin-bottom:8px;}
+.li-tags{color:var(--navy);font-size:12px;margin-top:4px;}
+.li-stats{display:flex;gap:14px;margin-top:10px;padding-top:10px;border-top:1px solid var(--faint2);}
+.li-stat{font-size:11px;color:var(--muted);}
+.li-stat b{color:var(--ink);}
+
+/* Journal styles */
+.jn-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--faint2);}
+.jn-date{font-family:'Libre Baskerville',serif;font-size:14px;font-style:italic;color:var(--muted);}
+.jn-mood{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);}
+.jn-mp{width:6px;height:6px;border-radius:50%;background:var(--teal);}
+.jn-body{font-family:'Libre Baskerville',serif;font-size:14px;line-height:1.9;color:var(--ink);font-style:italic;}
+.jn-body p{margin-bottom:12px;}
+.jn-ins{margin-top:14px;background:var(--paper3);border-radius:12px;padding:13px;border-left:3px solid var(--teal);}
+.jn-il{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:6px;}
+.jn-ib{font-size:12px;line-height:1.6;color:var(--muted);}
+.jn-chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
+.jn-chip{padding:3px 9px;border-radius:100px;background:rgba(42,122,114,.07);border:1px solid rgba(42,122,114,.18);font-size:10px;color:var(--teal);font-family:'DM Mono',monospace;}
+
+/* ─── WHY VOCA ─── */
+.why{background:var(--paper2);}
+.why-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:16px;margin-top:56px;
+}
+.why-card{
+  padding:28px;border-radius:var(--r);
+  background:var(--paper);
+  border:1px solid var(--faint2);
+  opacity:0;transform:translateY(20px);
+  transition:all .6s cubic-bezier(.16,1,.3,1);
+}
+.why-card.visible{opacity:1;transform:translateY(0);}
+.why-icon{
+  width:48px;height:48px;border-radius:14px;
+  background:var(--accentbg);
+  border:1px solid rgba(191,59,42,.15);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:18px;
+  color:var(--accent);
+  flex-shrink:0;
+}
+.why-title{font-size:17px;font-weight:600;color:var(--ink);margin-bottom:8px;}
+.why-body{font-size:14px;line-height:1.7;color:var(--muted);}
+
+/* ─── TESTIMONIAL ─── */
+.social{background:var(--paper);padding:80px 24px;}
+.social-inner{max-width:720px;margin:0 auto;text-align:center;}
+.social-count{
+  font-family:'Libre Baskerville',serif;
+  font-size:clamp(48px,8vw,80px);font-weight:700;
+  color:var(--ink);letter-spacing:-.03em;
+  line-height:1;margin-bottom:8px;
+}
+.social-count span{color:var(--accent);}
+.social-label{font-size:16px;color:var(--muted);margin-bottom:48px;}
+.quotes{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;
+  text-align:left;
+}
+.quote{
+  background:var(--paper2);border:1px solid var(--faint2);
+  border-radius:var(--r);padding:24px;
+  opacity:0;transform:translateY(16px);
+  transition:all .5s cubic-bezier(.16,1,.3,1);
+}
+.quote.visible{opacity:1;transform:translateY(0);}
+.quote-text{
+  font-family:'Libre Baskerville',serif;
+  font-size:14px;font-style:italic;
+  line-height:1.75;color:var(--ink2);
+  margin-bottom:16px;
+}
+.quote-author{
+  display:flex;align-items:center;gap:10px;
+}
+.q-av{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--ink3);display:flex;
+  align-items:center;justify-content:center;
+  font-size:11px;font-weight:600;color:var(--paper);
+  flex-shrink:0;
+}
+.q-name{font-size:13px;font-weight:600;color:var(--ink);}
+.q-role{font-size:11px;color:var(--muted);}
+
+/* ─── FINAL CTA ─── */
+.final-cta{
+  background:var(--ink);
+  padding:120px 24px;text-align:center;
+}
+.final-cta-inner{max-width:680px;margin:0 auto;}
+.final-h{
+  font-family:'Libre Baskerville',serif;
+  font-size:clamp(36px,6vw,62px);
+  font-weight:700;line-height:1.08;
+  letter-spacing:-.025em;
+  color:var(--paper);margin-bottom:20px;
+}
+.final-h em{font-style:italic;color:var(--accent2);}
+.final-sub{
+  font-size:17px;line-height:1.65;
+  color:rgba(255,255,255,.45);
+  margin-bottom:48px;max-width:480px;margin-left:auto;margin-right:auto;
+}
+.final-form{
+  display:flex;gap:10px;justify-content:center;
+  flex-wrap:wrap;margin-bottom:16px;
+}
+.final-input{
+  padding:14px 22px;border-radius:100px;
+  border:1.5px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.07);
+  font-family:'Instrument Sans',sans-serif;
+  font-size:15px;color:var(--paper);
+  width:300px;outline:none;
+  transition:all .25s;
+  backdrop-filter:blur(8px);
+}
+.final-input::placeholder{color:rgba(255,255,255,.25);}
+.final-input:focus{border-color:rgba(191,59,42,.6);background:rgba(255,255,255,.1);}
+.final-btn{
+  padding:14px 32px;border-radius:100px;
+  background:var(--accent);color:var(--paper);
+  font-family:'Instrument Sans',sans-serif;
+  font-size:15px;font-weight:600;
+  border:none;cursor:none;
+  transition:all .25s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 4px 24px rgba(191,59,42,.4);
+}
+.final-btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(191,59,42,.5);}
+.final-btn:active{transform:scale(.97);}
+.final-note{
+  font-family:'DM Mono',monospace;
+  font-size:11px;letter-spacing:.06em;
+  color:rgba(255,255,255,.2);
+}
+
+/* ─── FOOTER ─── */
+footer{
+  background:var(--ink);
+  border-top:1px solid rgba(255,255,255,.06);
+  padding:32px 48px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.foot-logo{
+  font-family:'Libre Baskerville',serif;
+  font-size:18px;font-weight:700;color:var(--paper);
+  display:flex;align-items:baseline;gap:2px;
+}
+.foot-dot{width:4px;height:4px;border-radius:50%;background:var(--accent);margin-bottom:1px;}
+.foot-note{
+  font-family:'DM Mono',monospace;
+  font-size:10px;letter-spacing:.08em;
+  color:rgba(255,255,255,.2);
+}
+.foot-links{display:flex;gap:24px;}
+.foot-links a{
+  font-family:'DM Mono',monospace;
+  font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(255,255,255,.25);text-decoration:none;
+  transition:color .2s;cursor:none;
+}
+.foot-links a:hover{color:rgba(255,255,255,.6);}
+
+/* Success state */
+.success-msg{
+  display:none;
+  align-items:center;gap:10px;
+  padding:12px 22px;border-radius:100px;
+  background:rgba(42,122,114,.1);
+  border:1px solid rgba(42,122,114,.25);
+  font-family:'DM Mono',monospace;
+  font-size:12px;letter-spacing:.07em;
+  color:var(--teal);
+}
+.success-msg.show{display:flex;}
+
+.error-msg{
+  display:none;
+  align-items:center;gap:10px;
+  padding:12px 22px;border-radius:100px;
+  background:rgba(191,59,42,.08);
+  border:1px solid rgba(191,59,42,.22);
+  font-family:'DM Mono',monospace;
+  font-size:12px;letter-spacing:.07em;
+  color:var(--accent);
+}
+.error-msg.show{display:flex;}
+
+.form-select{
+  padding:14px 20px;border-radius:100px;
+  border:1.5px solid var(--faint2);
+  background:rgba(255,255,255,.5);
+  font-family:'Instrument Sans',sans-serif;
+  font-size:14px;color:var(--ink);
+  outline:none;cursor:none;
+  transition:all .25s;
+  backdrop-filter:blur(8px);
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23897D72' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 18px center;
+  padding-right:42px;
+}
+.form-select:focus{
+  border-color:var(--accent);
+  background-color:rgba(255,255,255,.75);
+  box-shadow:0 0 0 4px rgba(191,59,42,.08);
+}
+.final-form .form-select{
+  border-color:rgba(255,255,255,.12);
+  background-color:rgba(255,255,255,.07);
+  color:var(--paper);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(255,255,255,.35)' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+.final-form .form-select:focus{border-color:rgba(191,59,42,.6);background-color:rgba(255,255,255,.1);}
+.final-form .form-select option{color:var(--ink);}
+
+.hero-btn:disabled,.final-btn:disabled{
+  opacity:.65;cursor:not-allowed;
+  transform:none !important;
+}
+
+.hp-field{
+  position:absolute;left:-9999px;width:1px;height:1px;opacity:0;
+}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:768px){
+  nav{padding:16px 20px;}
+  nav.scrolled{padding:12px 20px;}
+  .nav-links{display:none;}
+  .problem-grid,.steps,.why-grid,.quotes{grid-template-columns:1fr;}
+  .opane.active{grid-template-columns:1fr;}
+  .hero-input{width:100%;}
+  footer{flex-direction:column;gap:16px;text-align:center;padding:24px;}
+  .foot-links{flex-wrap:wrap;justify-content:center;}
+  body{cursor:auto;}
+  .cursor,.cursor-ring{display:none;}
+}
+@media(max-width:480px){
+  section{padding:72px 20px;}
+  .hero{padding:100px 20px 64px;}
+}
+</style>
+</head>
+<body>
+
+<!-- Custom cursor -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- ─── NAV ─── -->
+<nav id="mainNav">
+  <a class="nav-logo" href="#">
+    <span class="nav-logo-text">Voca</span>
+    <div class="nav-logo-dot"></div>
+  </a>
+  <div class="nav-links">
+    <a href="#how">How it works</a>
+    <a href="#examples">Examples</a>
+    <a href="#why">Why Voca</a>
+    <a href="#waitlist" class="nav-cta">Join Waitlist</a>
+  </div>
+</nav>
+
+<!-- ─── HERO ─── -->
+<section class="hero" id="home">
+  <div class="hero-rule hero-rule-1"></div>
+  <div class="hero-bg-letter">V</div>
+
+  <div class="hero-eyebrow">Introducing Voca · Early Access</div>
+
+  <h1 class="hero-h">
+    Think out loud.<br><em>Send something brilliant.</em>
+  </h1>
+
+  <p class="hero-sub">
+    Speak for 60 seconds. Get a perfect email, Slack message, report, or LinkedIn post —
+    <strong>written in your exact voice</strong>, with AI that explains every change.
+  </p>
+
+  <div class="hero-form" id="heroForm">
+    <input class="hero-input" type="email" placeholder="your@email.com" id="heroEmail" autocomplete="email">
+    <button class="hero-btn" id="heroBtn" type="button" onclick="handleSignup('hero')">
+      <span>Join the waitlist →</span>
+    </button>
+    <input class="hp-field" type="text" name="website" id="heroWebsite" tabindex="-1" autocomplete="off">
+  </div>
+  <div class="error-msg" id="heroError"></div>
+  <div class="success-msg" id="heroSuccess">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    You're on the list — we'll be in touch soon
+  </div>
+  <div class="hero-form-note">No spam. Early access notification only. Free to join.</div>
+
+  <!-- Live visualiser card -->
+  <div class="hero-vis">
+    <div class="vis-label">Live demo — voice to email</div>
+    <div class="vis-card">
+      <div class="vis-inner">
+        <div class="vis-top">
+          <div class="vis-mode-pill">
+            <div class="vis-mode-pip"></div>
+            Recording · Professional Email
+          </div>
+          <div class="vis-timer" id="demoTimer">0:04</div>
+        </div>
+
+        <!-- Animated waveform -->
+        <div class="waveform" id="heroWave"></div>
+
+        <!-- Output preview -->
+        <div class="vis-output">
+          <div class="vo-type">Generated · Professional Email</div>
+          <div class="vo-text">
+            Hi Sarah, quick heads-up on Q3 — a pipeline dependency pushes delivery by ~2 weeks to July 28th. Mitigation plan already in motion. Full update EOD Thursday.
+          </div>
+          <div class="vo-change">
+            <span class="vo-tag">Structure</span>
+            <div class="vo-change-text">Lead restructured — key info moved to sentence one. You buried it in sentence 4.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-rule hero-rule-2"></div>
+</section>
+
+<!-- ─── TICKER ─── -->
+<div class="ticker-wrap">
+  <div class="ticker-inner" id="ticker">
+    <!-- duplicated for seamless loop -->
+  </div>
+</div>
+
+<!-- ─── PROBLEM ─── -->
+<section class="problem" id="problem">
+  <div class="section-inner">
+    <div class="section-eyebrow">The Problem</div>
+    <h2 class="section-h">You think faster<br>than you can <em>type.</em></h2>
+    <p class="section-sub">Most professionals have sharp ideas trapped behind slow fingers and the paralysing fear of the blank page.</p>
+
+    <div class="problem-grid">
+      <div class="prob-card scroll-reveal">
+        <div class="prob-num">40</div>
+        <div class="prob-title">Minutes lost per day</div>
+        <div class="prob-body">The average knowledge worker spends 40 minutes daily drafting professional emails and messages — time they could spend actually thinking.</div>
+      </div>
+      <div class="prob-card scroll-reveal" style="transition-delay:.1s">
+        <div class="prob-num">3×</div>
+        <div class="prob-title">Faster spoken than typed</div>
+        <div class="prob-body">You speak 150 words per minute. You type 40. The gap between your thinking speed and your writing speed is your biggest productivity leak.</div>
+      </div>
+      <div class="prob-card scroll-reveal" style="transition-delay:.15s">
+        <div class="prob-num">1.5B</div>
+        <div class="prob-title">Non-native English speakers</div>
+        <div class="prob-body">1.5 billion professionals communicate in English as a second language. Writing polished professional English is exhausting, even for fluent speakers.</div>
+      </div>
+      <div class="prob-card scroll-reveal" style="transition-delay:.2s">
+        <div class="prob-num">68%</div>
+        <div class="prob-title">Of people hate writing</div>
+        <div class="prob-body">Most tools fix your writing after the fact. None of them make you a better communicator over time. Grammarly doesn't teach — it just corrects.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── HOW IT WORKS ─── -->
+<section class="how" id="how">
+  <div class="section-inner">
+    <div class="section-eyebrow">How It Works</div>
+    <h2 class="section-h">Five seconds to start.<br>Sixty seconds to <em>finish.</em></h2>
+    <p class="section-sub">No prompts to write. No templates to fill. Just speak naturally — Voca handles the rest.</p>
+
+    <div class="steps">
+      <div class="step scroll-reveal">
+        <div class="step-n">01</div>
+        <div class="step-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+        </div>
+        <div class="step-title">Speak naturally</div>
+        <div class="step-body">Open Voca and tap record. Say whatever is on your mind — messy, rambling, half-formed. No pressure to be articulate. That's our job.</div>
+      </div>
+      <div class="step scroll-reveal" style="transition-delay:.1s">
+        <div class="step-n">02</div>
+        <div class="step-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+        </div>
+        <div class="step-title">AI understands intent</div>
+        <div class="step-body">Voca doesn't just transcribe — it extracts your intent, identifies your audience, and maps your communication goal before writing a single word.</div>
+      </div>
+      <div class="step scroll-reveal" style="transition-delay:.2s">
+        <div class="step-n">03</div>
+        <div class="step-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </div>
+        <div class="step-title">Output in your voice</div>
+        <div class="step-body">After a few sessions, Voca knows your style, vocabulary, and tone. Every output sounds like you — just the sharpest, clearest version of you.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── OUTPUT EXAMPLES ─── -->
+<section class="outputs" id="examples">
+  <div class="section-inner">
+    <div class="section-eyebrow">Output Examples</div>
+    <h2 class="section-h">Every format.<br><em>One voice.</em></h2>
+    <p class="section-sub">Select a format below to see how the same spoken thought transforms into exactly the right output.</p>
+
+    <div class="outputs-tabs" style="margin-top:40px;">
+      <button class="otab active" onclick="switchTab(this,'email')">Email</button>
+      <button class="otab" onclick="switchTab(this,'slack')">Slack</button>
+      <button class="otab" onclick="switchTab(this,'report')">Report</button>
+      <button class="otab" onclick="switchTab(this,'linkedin')">LinkedIn</button>
+      <button class="otab" onclick="switchTab(this,'journal')">Journal</button>
+    </div>
+
+    <div class="output-panes">
+
+      <!-- EMAIL -->
+      <div class="opane active" id="pane-email">
+        <div class="opane-input">
+          <div class="opane-label"><div class="opane-label-dot"></div>You said (58 words, 23 seconds)</div>
+          <div class="voice-bubble" style="padding-top:28px;">
+            So uh, Sarah needs to know that the Q3 thing is going to be late, like two weeks late, because of the data pipeline stuff that the infra team messed up, but I don't want to sound like I'm blaming them, and I should probably say when we'll have an update...
+          </div>
+          <div class="voice-meta">
+            <div class="voice-wave">
+              <div class="vwb" style="height:8px"></div><div class="vwb" style="height:14px"></div><div class="vwb" style="height:6px"></div><div class="vwb" style="height:18px"></div><div class="vwb" style="height:10px"></div><div class="vwb" style="height:14px"></div><div class="vwb" style="height:7px"></div><div class="vwb" style="height:12px"></div>
+            </div>
+            23s · Professional Email selected
+          </div>
+        </div>
+        <div class="opane-output">
+          <div class="op-strip"></div>
+          <div class="op-head">
+            <div class="op-badge">Email · Generated</div>
+            <button class="op-copy">Copy</button>
+          </div>
+          <div class="op-body">
+            <div class="em-field"><div class="em-key">To</div><div class="em-val"><b>sarah.chen@company.com</b></div></div>
+            <div class="em-field"><div class="em-key">CC</div><div class="em-val">dev-team@company.com</div></div>
+            <div class="em-subject">Project Timeline Update — Q3 Launch</div>
+            <div class="em-body">
+              <p>Hi Sarah,</p>
+              <p>Quick heads-up on Q3: a data pipeline dependency is pushing delivery by ~2 weeks — revised target is <strong>July 28th</strong>.</p>
+              <p>The infrastructure team has a mitigation plan already in motion. Full revised milestones by EOD Thursday.</p>
+              <p>Happy to jump on a call before then if useful.</p>
+              <p>Best, Aryan</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLACK -->
+      <div class="opane" id="pane-slack">
+        <div class="opane-input">
+          <div class="opane-label"><div class="opane-label-dot"></div>You said (41 words, 18 seconds)</div>
+          <div class="voice-bubble" style="padding-top:28px;">
+            I need to tell the engineering team that the deadline is tight and like, we need to work together on this, not just me handing stuff over to them, I want it to feel collaborative not like I'm demanding things from them...
+          </div>
+          <div class="voice-meta">
+            <div class="voice-wave">
+              <div class="vwb" style="height:10px"></div><div class="vwb" style="height:16px"></div><div class="vwb" style="height:8px"></div><div class="vwb" style="height:12px"></div><div class="vwb" style="height:18px"></div><div class="vwb" style="height:6px"></div><div class="vwb" style="height:14px"></div>
+            </div>
+            18s · Slack Message selected
+          </div>
+        </div>
+        <div class="opane-output">
+          <div class="op-strip"></div>
+          <div class="op-head">
+            <div class="op-badge">Slack · Generated</div>
+            <button class="op-copy">Copy</button>
+          </div>
+          <div class="op-body">
+            <div class="sl-channel-bar"># engineering-team</div>
+            <div class="sl-sender">
+              <div class="sl-av">AK</div>
+              <div class="sl-meta"><div class="sl-name">Aryan Kumar</div><div class="sl-time">Today at 3:42 PM</div></div>
+            </div>
+            <div class="sl-msg">
+              <p>Hey team — the sprint deadline is tighter than I'd like. Rather than a hard handoff, can we carve out 30 min Friday to align together?</p>
+              <p>Want to make sure we're building the right thing, not just the fast thing. Let me know if Friday works.</p>
+            </div>
+            <div class="sl-rxs">
+              <div class="sl-rx">+1 React</div><div class="sl-rx">Raise hand 0</div><div class="sl-rx">Schedule</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REPORT -->
+      <div class="opane" id="pane-report">
+        <div class="opane-input">
+          <div class="opane-label"><div class="opane-label-dot"></div>You said (62 words, 28 seconds)</div>
+          <div class="voice-bubble" style="padding-top:28px;">
+            So the AI integration project in Q2 went really well, like we automated a lot of tasks, maybe 70-something percent, and the team is moving way faster now, we saved a bunch of money too, like six figures, but there are some risks I need to call out around the model drifting...
+          </div>
+          <div class="voice-meta">
+            <div class="voice-wave">
+              <div class="vwb" style="height:12px"></div><div class="vwb" style="height:18px"></div><div class="vwb" style="height:9px"></div><div class="vwb" style="height:16px"></div><div class="vwb" style="height:20px"></div><div class="vwb" style="height:8px"></div><div class="vwb" style="height:15px"></div>
+            </div>
+            28s · Report selected
+          </div>
+        </div>
+        <div class="opane-output">
+          <div class="op-strip"></div>
+          <div class="op-head">
+            <div class="op-badge">Report · Generated</div>
+            <button class="op-copy">Export PDF</button>
+          </div>
+          <div class="op-body">
+            <div class="rp-h">Q2 AI Integration — Progress Report</div>
+            <div class="rp-date">Aryan Kumar · May 2026 · Confidential</div>
+            <div class="rp-kpis">
+              <div class="rp-kp"><div class="rp-kv">73%</div><div class="rp-kl">Tasks Automated</div></div>
+              <div class="rp-kp"><div class="rp-kv">2.1×</div><div class="rp-kl">Team Velocity</div></div>
+              <div class="rp-kp"><div class="rp-kv">↓41%</div><div class="rp-kl">Review Cycles</div></div>
+              <div class="rp-kp"><div class="rp-kv">$180K</div><div class="rp-kl">Cost Saved</div></div>
+            </div>
+            <div class="rp-sec"><div class="rp-sh">Executive Summary</div><div class="rp-sb">The AI integration initiative delivered measurable velocity gains in Q2. Automated pipeline coverage reached 73%, reducing manual review cycles by 41% and freeing ~340 engineering hours.</div></div>
+            <div class="rp-sec"><div class="rp-sh">Key Risks</div><div class="rp-sb">Model drift in the classification layer requires bi-weekly recalibration. Third-party embeddings API introduces latency risk above 10K daily requests.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LINKEDIN -->
+      <div class="opane" id="pane-linkedin">
+        <div class="opane-input">
+          <div class="opane-label"><div class="opane-label-dot"></div>You said (55 words, 24 seconds)</div>
+          <div class="voice-bubble" style="padding-top:28px;">
+            I want to share something about building AI products and like the thing that I've realised is that most people think the hard part is the model but it's actually the gap between what someone thinks and what they can express, and I think that's what I want to build into...
+          </div>
+          <div class="voice-meta">
+            <div class="voice-wave">
+              <div class="vwb" style="height:9px"></div><div class="vwb" style="height:15px"></div><div class="vwb" style="height:11px"></div><div class="vwb" style="height:19px"></div><div class="vwb" style="height:7px"></div><div class="vwb" style="height:13px"></div><div class="vwb" style="height:17px"></div>
+            </div>
+            24s · LinkedIn selected
+          </div>
+        </div>
+        <div class="opane-output">
+          <div class="op-strip"></div>
+          <div class="op-head">
+            <div class="op-badge">LinkedIn · Generated</div>
+            <button class="op-copy">Post</button>
+          </div>
+          <div class="op-body">
+            <div class="li-ph"><div class="li-pav">AK</div><div><div class="li-pn">Aryan Kumar</div><div class="li-pr">AI Engineer · Building Voca</div></div></div>
+            <div class="li-post">
+              <span class="li-hook">"The hard part of AI isn't the model. It's the gap between what people think and what they can say."</span>
+              <p>I've spent 3 years building LLM products. The biggest unlock wasn't about architecture — it was about expression.</p>
+              <p>Most professionals have sharp ideas trapped behind clunky language. The problem isn't intelligence. It's the interface between thought and words.</p>
+              <p>That's the gap I'm building into. How many of you feel this daily?</p>
+              <div class="li-tags">#AIProducts #BuildingInPublic #GenerativeAI</div>
+            </div>
+            <div class="li-stats">
+              <div class="li-stat">Est. reach: <b>4,200</b></div>
+              <div class="li-stat">Hook score: <b>91/100</b></div>
+              <div class="li-stat">Read time: <b>45s</b></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- JOURNAL -->
+      <div class="opane" id="pane-journal">
+        <div class="opane-input">
+          <div class="opane-label"><div class="opane-label-dot"></div>You said (48 words, 21 seconds)</div>
+          <div class="voice-bubble" style="padding-top:28px;">
+            I keep thinking about whether I'm building the right thing or just building what I know how to build... the promotion conversation is coming up and I think what I'm actually scared of is being seen as someone who can't lead, not just the rejection...
+          </div>
+          <div class="voice-meta">
+            <div class="voice-wave">
+              <div class="vwb" style="height:7px"></div><div class="vwb" style="height:13px"></div><div class="vwb" style="height:10px"></div><div class="vwb" style="height:16px"></div><div class="vwb" style="height:8px"></div><div class="vwb" style="height:14px"></div><div class="vwb" style="height:11px"></div>
+            </div>
+            21s · Journal selected
+          </div>
+        </div>
+        <div class="opane-output">
+          <div class="op-strip"></div>
+          <div class="op-head">
+            <div class="op-badge">Journal · Structured</div>
+            <button class="op-copy">Save</button>
+          </div>
+          <div class="op-body">
+            <div class="jn-h"><div class="jn-date">Sunday, May 25 · Evening</div><div class="jn-mood"><div class="jn-mp"></div>Reflective</div></div>
+            <div class="jn-body">
+              <p>Am I building something that matters, or something I just know how to build?</p>
+              <p>The promotion conversation is looming. What I'm actually afraid of isn't the rejection — it's being seen as someone who peaked technically but can't lead.</p>
+            </div>
+            <div class="jn-ins">
+              <div class="jn-il">AI Pattern Detected</div>
+              <div class="jn-ib">11th session this month with tension between technical identity and leadership ambition. Unresolved values conflict worth exploring.</div>
+              <div class="jn-chips"><span class="jn-chip">Identity</span><span class="jn-chip">Leadership fear</span><span class="jn-chip">11× this month</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─── WHY VOCA ─── -->
+<section class="why" id="why">
+  <div class="section-inner">
+    <div class="section-eyebrow">Why Voca</div>
+    <h2 class="section-h">Not a tool.<br>A <em>communication partner.</em></h2>
+    <p class="section-sub">Most AI tools make you dependent. Voca makes you sharper.</p>
+
+    <div class="why-grid">
+      <div class="why-card scroll-reveal">
+        <div class="why-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
+        </div>
+        <div class="why-title">Learns your voice</div>
+        <div class="why-body">After a few sessions, Voca builds a deep voice profile — your vocabulary, tone, style, and blind spots. Every output sounds unmistakably like you.</div>
+      </div>
+      <div class="why-card scroll-reveal" style="transition-delay:.08s">
+        <div class="why-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+        </div>
+        <div class="why-title">Makes you better over time</div>
+        <div class="why-body">Every output comes with an explanation of why. Over weeks, you internalise the patterns. Your writing improves even when you're not using Voca.</div>
+      </div>
+      <div class="why-card scroll-reveal" style="transition-delay:.16s">
+        <div class="why-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <div class="why-title">Built on your data</div>
+        <div class="why-body">Your voice profile, your patterns, your history — these accumulate over time and belong entirely to you. The longer you use Voca, the more irreplaceable it becomes.</div>
+      </div>
+      <div class="why-card scroll-reveal" style="transition-delay:.08s">
+        <div class="why-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="why-title">60 seconds, any format</div>
+        <div class="why-body">Email, Slack, report, LinkedIn post, or personal journal — one voice note, any format. Switch output types without re-recording.</div>
+      </div>
+      <div class="why-card scroll-reveal" style="transition-delay:.16s">
+        <div class="why-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </div>
+        <div class="why-title">Speaks your language</div>
+        <div class="why-body">Built for the 1.5 billion professionals who communicate in English as a second language. Your ideas deserve to sound as sharp as they are.</div>
+      </div>
+      <div class="why-card scroll-reveal" style="transition-delay:.24s">
+        <div class="why-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <div class="why-title">Thinking partner</div>
+        <div class="why-body">The journal mode surfaces patterns in your thinking across weeks — recurring anxieties, unresolved decisions, blind spots. Like a therapist who read everything you ever said.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── SOCIAL PROOF ─── -->
+<section class="social">
+  <div class="social-inner">
+    <div class="social-count"><span id="countNum">0</span>+</div>
+    <div class="social-label">professionals already on the waitlist</div>
+    <div class="quotes">
+      <div class="quote scroll-reveal">
+        <div class="quote-text">"I spend 2 hours a day writing emails I hate. If Voca is half as good as this demo, I'm paying for it day one."</div>
+        <div class="quote-author"><div class="q-av">MR</div><div><div class="q-name">Marcus R.</div><div class="q-role">Product Manager, London</div></div></div>
+      </div>
+      <div class="quote scroll-reveal" style="transition-delay:.08s">
+        <div class="quote-text">"As a non-native English speaker this is genuinely life-changing. I think in Hindi and struggle to sound professional. This solves that."</div>
+        <div class="quote-author"><div class="q-av">PS</div><div><div class="q-name">Priya S.</div><div class="q-role">Startup Founder, Bangalore</div></div></div>
+      </div>
+      <div class="quote scroll-reveal" style="transition-delay:.16s">
+        <div class="quote-text">"The explanation layer is what gets me. Not just fixing my writing — showing me why. That's the product nobody else built."</div>
+        <div class="quote-author"><div class="q-av">TK</div><div><div class="q-name">Tom K.</div><div class="q-role">Engineering Lead, Berlin</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FINAL CTA ─── -->
+<section class="final-cta" id="waitlist">
+  <div class="final-cta-inner">
+    <h2 class="final-h">Your voice.<br><em>Perfectly expressed.</em></h2>
+    <p class="final-sub">Join the waitlist for early access. We're onboarding the first 500 users personally — with direct feedback sessions.</p>
+    <div class="final-form" id="finalForm">
+      <input class="final-input" type="email" placeholder="your@email.com" id="finalEmail" autocomplete="email">
+      <select class="form-select" id="finalUseCase" aria-label="What do you write most?">
+        <option value="">What do you write most?</option>
+        <option value="email">Emails</option>
+        <option value="reports">Reports & docs</option>
+        <option value="linkedin">LinkedIn posts</option>
+        <option value="slack">Slack messages</option>
+        <option value="journal">Personal journal</option>
+        <option value="other">Something else</option>
+      </select>
+      <button class="final-btn" id="finalBtn" type="button" onclick="handleSignup('final')">Get early access →</button>
+      <input class="hp-field" type="text" name="website" id="finalWebsite" tabindex="-1" autocomplete="off">
+    </div>
+    <div class="error-msg" id="finalError" style="justify-content:center;margin-bottom:12px;"></div>
+    <div class="success-msg" id="finalSuccess" style="justify-content:center;margin-bottom:12px;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      You're on the list — we'll be in touch soon
+    </div>
+    <div class="final-note">No spam · Free to join · Cancel anytime</div>
+  </div>
+</section>
+
+<!-- ─── FOOTER ─── -->
+<footer>
+  <div class="foot-logo">Voca<div class="foot-dot"></div></div>
+  <div class="foot-note">© 2026 Voca. All rights reserved.</div>
+  <div class="foot-links">
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+    <a href="mailto:hello@usevoca.com">Contact</a>
+  </div>
+</footer>
+
+<script src="/config.js"></script>
+<script>
+const API_URL = window.VOCA_API_URL || 'http://localhost:3001';
+
+function getUtmParams(){
+  const params = new URLSearchParams(window.location.search);
+  return {
+    utm_source: params.get('utm_source'),
+    utm_medium: params.get('utm_medium'),
+    utm_campaign: params.get('utm_campaign'),
+  };
+}
+
+async function fetchWaitlistCount(){
+  try{
+    const res = await fetch(`${API_URL}/api/waitlist/count`);
+    if(!res.ok) return null;
+    const data = await res.json();
+    return typeof data.count === 'number' ? data.count : null;
+  }catch{
+    return null;
+  }
+}
+
+function animateCount(target){
+  const countEl = document.getElementById('countNum');
+  let n = 0;
+  const step = Math.max(1, Math.ceil(target / 60));
+  const t = setInterval(()=>{
+    n = Math.min(n + step, target);
+    countEl.textContent = n.toLocaleString();
+    if(n >= target) clearInterval(t);
+  }, 16);
+}
+
+// ─── CURSOR ───
+const cur = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX;my=e.clientY;
+  cur.style.left=mx+'px';cur.style.top=my+'px';
+});
+function animRing(){
+  rx+=(mx-rx)*.12;ry+=(my-ry)*.12;
+  ring.style.left=rx+'px';ring.style.top=ry+'px';
+  requestAnimationFrame(animRing);
+}
+animRing();
+document.querySelectorAll('a,button,.otab,.mode-btn').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cur.classList.add('hover');ring.classList.add('hover');});
+  el.addEventListener('mouseleave',()=>{cur.classList.remove('hover');ring.classList.remove('hover');});
+});
+
+// ─── NAV SCROLL ───
+window.addEventListener('scroll',()=>{
+  document.getElementById('mainNav').classList.toggle('scrolled',window.scrollY>60);
+});
+
+// ─── HERO WAVEFORM ───
+const hw = document.getElementById('heroWave');
+for(let i=0;i<52;i++){
+  const b=document.createElement('div');
+  b.className='wb';
+  const mh=6+Math.sin(i*.42)*8+Math.random()*32;
+  b.style.setProperty('--mh',mh+'px');
+  b.style.setProperty('--d',(0.4+Math.random()*.8)+'s');
+  b.style.setProperty('--dl',(Math.random()*.6)+'s');
+  b.style.height='3px';
+  hw.appendChild(b);
+}
+
+// Demo timer animation
+let demoSecs=4;
+setInterval(()=>{
+  demoSecs=(demoSecs+1)%60;
+  const s=demoSecs.toString().padStart(2,'0');
+  document.getElementById('demoTimer').textContent=`0:${s}`;
+},1000);
+
+// ─── TICKER ───
+const TICKS=[
+  'Think out loud','Send something brilliant',
+  'Voice → Email in 30s','Your voice · Perfected',
+  'AI that explains itself','1.5B professionals · Underserved',
+  'Early access now open','Built for thinkers',
+];
+const ticker=document.getElementById('ticker');
+const all=[...TICKS,...TICKS,...TICKS];
+ticker.innerHTML=all.map(t=>`<div class="ticker-item">${t}<span class="ticker-sep">·</span></div>`).join('');
+
+// ─── SCROLL REVEAL ───
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');}});
+},{threshold:.12});
+document.querySelectorAll('.scroll-reveal').forEach(el=>observer.observe(el));
+
+// ─── COUNT UP ───
+const countEl=document.getElementById('countNum');
+const countObs=new IntersectionObserver(entries=>{
+  if(entries[0].isIntersecting){
+    countObs.disconnect();
+    fetchWaitlistCount().then(count=>{
+      animateCount(count && count > 0 ? count : 847);
+    });
+  }
+});
+countObs.observe(countEl);
+
+// ─── OUTPUT TABS ───
+function switchTab(btn,id){
+  document.querySelectorAll('.otab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.opane').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('pane-'+id).classList.add('active');
+}
+
+// ─── WAITLIST SIGNUP ───
+async function handleSignup(form){
+  const isHero = form === 'hero';
+  const input = document.getElementById(isHero ? 'heroEmail' : 'finalEmail');
+  const btn = document.getElementById(isHero ? 'heroBtn' : 'finalBtn');
+  const successEl = document.getElementById(isHero ? 'heroSuccess' : 'finalSuccess');
+  const errorEl = document.getElementById(isHero ? 'heroError' : 'finalError');
+  const formEl = document.getElementById(isHero ? 'heroForm' : 'finalForm');
+  const honeypot = document.getElementById(isHero ? 'heroWebsite' : 'finalWebsite');
+  const useCaseEl = document.getElementById('finalUseCase');
+
+  const email = input.value.trim();
+  errorEl.classList.remove('show');
+  errorEl.textContent = '';
+
+  if(!email || !email.includes('@')){
+    input.style.borderColor = 'var(--accent)';
+    input.focus();
+    setTimeout(()=> input.style.borderColor = '', 1500);
+    return;
+  }
+
+  const originalLabel = (btn.querySelector('span') || btn).textContent;
+  btn.disabled = true;
+  (btn.querySelector('span') || btn).textContent = isHero ? 'Joining…' : 'Saving…';
+
+  try{
+    const res = await fetch(`${API_URL}/api/waitlist`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email,
+        use_case: isHero ? null : (useCaseEl.value || null),
+        source: isHero ? 'hero' : 'final-cta',
+        website: honeypot.value,
+        referrer: document.referrer || null,
+        ...getUtmParams(),
+      }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if(!res.ok){
+      throw new Error(data.error || 'Something went wrong. Please try again.');
+    }
+
+    formEl.style.display = 'none';
+    successEl.classList.add('show');
+
+    fetchWaitlistCount().then(count=>{
+      if(count && count > 0) countEl.textContent = count.toLocaleString();
+    });
+  }catch(err){
+    errorEl.textContent = err.message || 'Something went wrong. Please try again.';
+    errorEl.classList.add('show');
+    btn.disabled = false;
+    (btn.querySelector('span') || btn).textContent = originalLabel;
+  }
+}
+
+// Enter key for inputs
+['heroEmail','finalEmail'].forEach(id=>{
+  document.getElementById(id).addEventListener('keydown',e=>{
+    if(e.key==='Enter'){
+      handleSignup(id === 'heroEmail' ? 'hero' : 'final');
+    }
+  });
+});
+</script>
+</body>
+</html>
