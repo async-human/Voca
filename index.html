@@ -121,12 +121,11 @@ nav.scrolled{
 
 /* ─── HERO ─── */
 .hero{
-  min-height:100vh;
+  min-height:auto;
   display:flex;flex-direction:column;
-  align-items:center;justify-content:flex-start;
-  padding:132px 24px 80px;
+  align-items:center;justify-content:center;
+  padding:108px 24px 72px;
   position:relative;overflow:hidden;
-  text-align:center;
   background:var(--paper);
 }
 .hero::before{
@@ -136,172 +135,101 @@ nav.scrolled{
   background-size:22px 22px;
   pointer-events:none;z-index:0;
 }
-
-/* Large decorative letter */
-.hero-bg-letter{
-  position:absolute;
-  font-family:'Libre Baskerville',serif;
-  font-size:clamp(320px,50vw,600px);
-  font-weight:700;font-style:italic;
-  color:rgba(28,24,20,0.025);
-  line-height:1;top:50%;left:50%;
-  transform:translate(-50%,-52%);
-  pointer-events:none;user-select:none;
-  letter-spacing:-.05em;
-  transition:transform .15s ease-out;
-  z-index:0;
-}
-.live-pill{
-  display:inline-flex;align-items:center;gap:10px;
-  padding:10px 20px;border-radius:100px;
-  background:rgba(255,255,255,.82);
-  border:1px solid rgba(28,24,20,.08);
-  box-shadow:0 2px 12px rgba(28,24,20,.04);
-  font-family:'Instrument Sans',sans-serif;
-  font-size:13px;font-weight:500;
-  letter-spacing:.01em;color:var(--ink3);
-  margin-bottom:28px;opacity:0;
-  animation:riseIn .8s .05s ease both;
+.hero-inner{
+  width:min(1120px,100%);
+  display:grid;
+  grid-template-columns:1fr 1.05fr;
+  gap:48px 56px;
+  align-items:center;
   position:relative;z-index:1;
 }
-.live-pill strong{
-  font-family:'Libre Baskerville',serif;
-  font-size:15px;font-weight:700;
-  color:var(--accent);letter-spacing:-.02em;
-}
-.live-dot{
-  width:6px;height:6px;border-radius:50%;
-  background:var(--teal);
-  animation:livePulse 2s ease infinite;
-}
-@keyframes livePulse{
-  0%,100%{opacity:1;transform:scale(1);box-shadow:0 0 0 0 rgba(42,122,114,.4);}
-  50%{opacity:.7;transform:scale(.9);box-shadow:0 0 0 6px rgba(42,122,114,0);}
-}
-
-.activity-strip{
-  display:inline-flex;align-items:center;gap:10px;
-  margin-top:16px;padding:10px 20px;border-radius:100px;
-  background:rgba(255,255,255,.78);
-  border:1px solid rgba(28,24,20,.08);
-  box-shadow:0 2px 12px rgba(28,24,20,.04);
-  font-family:'DM Mono',monospace;font-size:12px;
-  letter-spacing:.04em;color:var(--ink3);
-  opacity:0;animation:riseIn .9s .72s ease both;
-  max-width:min(520px,90vw);
-  position:relative;z-index:1;
-}
-.activity-dot{
-  width:5px;height:5px;border-radius:50%;
-  background:var(--accent);flex-shrink:0;
-  animation:livePulse 1.8s ease infinite;
-}
-.activity-text{transition:opacity .35s ease;}
-.activity-text.fade{opacity:0;}
-
-/* Horizontal rule — bottom divider only */
-.hero-rule{
-  position:absolute;left:0;right:0;
-  height:1px;background:var(--faint2);
-  pointer-events:none;z-index:0;
-}
-.hero-rule-2{bottom:80px;}
+.hero-copy{text-align:left;}
 
 .hero-eyebrow{
   font-family:'DM Mono',monospace;
-  font-size:11px;letter-spacing:.18em;
+  font-size:11px;letter-spacing:.16em;
   text-transform:uppercase;color:var(--accent);
-  margin-bottom:28px;opacity:0;
-  animation:riseIn .8s .1s ease both;
-  position:relative;z-index:1;
+  margin-bottom:20px;opacity:0;
+  animation:riseIn .8s .05s ease both;
 }
-
 .hero-h{
   font-family:'Libre Baskerville',serif;
-  font-size:clamp(42px,7vw,88px);
-  font-weight:700;line-height:1.06;
+  font-size:clamp(36px,4.5vw,62px);
+  font-weight:700;line-height:1.08;
   letter-spacing:-.025em;
   color:var(--ink);
-  margin-bottom:28px;opacity:0;
-  animation:riseIn .9s .2s ease both;
-  max-width:900px;
-  position:relative;z-index:1;
+  margin-bottom:18px;opacity:0;
+  animation:riseIn .9s .12s ease both;
 }
-.hero-h em{
-  font-style:italic;color:var(--accent);
-}
-
+.hero-h em{font-style:italic;color:var(--accent);}
 .hero-sub{
-  font-size:clamp(16px,2.2vw,20px);
+  font-size:clamp(15px,1.8vw,18px);
   line-height:1.65;color:var(--muted);
-  max-width:540px;margin:0 auto 48px;
-  opacity:0;animation:riseIn .9s .35s ease both;
-  position:relative;z-index:1;
+  max-width:440px;margin:0 0 24px;
+  opacity:0;animation:riseIn .9s .22s ease both;
 }
 .hero-sub strong{color:var(--ink);font-weight:600;}
 
-/* Waitlist form */
-.hero-form{
-  display:flex;gap:10px;flex-wrap:wrap;
-  justify-content:center;margin-bottom:20px;
-  opacity:0;animation:riseIn .9s .5s ease both;
-  position:relative;z-index:1;
+.hero-chips{
+  display:flex;flex-wrap:wrap;gap:8px;
+  margin-bottom:28px;opacity:0;
+  animation:riseIn .9s .32s ease both;
 }
-.hero-input{
-  padding:14px 22px;border-radius:100px;
+.hero-chip{
+  padding:8px 16px;border-radius:100px;
   border:1.5px solid var(--faint2);
-  background:rgba(255,255,255,.5);
+  background:rgba(255,255,255,.55);
   font-family:'Instrument Sans',sans-serif;
-  font-size:15px;color:var(--ink);
-  width:300px;outline:none;
-  transition:all .25s;
-  backdrop-filter:blur(8px);
+  font-size:13px;font-weight:500;color:var(--muted);
+  cursor:none;transition:all .22s;
 }
-.hero-input::placeholder{color:var(--faint);}
-.hero-input:focus{
-  border-color:var(--accent);
-  background:rgba(255,255,255,.75);
-  box-shadow:0 0 0 4px rgba(191,59,42,.08);
-}
-.hero-btn{
-  padding:14px 32px;border-radius:100px;
+.hero-chip:hover{color:var(--ink);border-color:var(--faint);}
+.hero-chip.active{
   background:var(--ink);color:var(--paper);
+  border-color:var(--ink);
+  box-shadow:0 4px 16px rgba(28,24,20,.15);
+}
+.hero-cta-row{
+  display:flex;align-items:center;flex-wrap:wrap;gap:16px;
+  opacity:0;animation:riseIn .9s .42s ease both;
+}
+.hero-cta{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:14px 28px;border-radius:100px;
+  background:var(--accent);color:var(--paper);
   font-family:'Instrument Sans',sans-serif;
   font-size:15px;font-weight:600;
-  border:none;cursor:none;
+  text-decoration:none;border:none;cursor:none;
   transition:all .25s cubic-bezier(.34,1.56,.64,1);
-  white-space:nowrap;
-  box-shadow:0 4px 24px rgba(28,24,20,.25);
-  position:relative;overflow:hidden;
+  box-shadow:0 4px 24px rgba(191,59,42,.35);
 }
-.hero-btn::after{
-  content:'';position:absolute;inset:0;
-  background:var(--accent);
-  transform:translateY(100%);
-  transition:transform .3s ease;
-  border-radius:100px;
+.hero-cta:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 32px rgba(191,59,42,.45);
+  background:var(--accent2);
 }
-.hero-btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(28,24,20,.3);}
-.hero-btn:hover::after{transform:translateY(0);}
-.hero-btn span{position:relative;z-index:1;}
-.hero-btn:active{transform:scale(.97);}
-
-.hero-form-note{
+.hero-count-note{
   font-family:'DM Mono',monospace;
-  font-size:12px;letter-spacing:.05em;
-  color:var(--muted);
-  opacity:0;animation:riseIn .9s .65s ease both;
-  position:relative;z-index:1;
+  font-size:12px;letter-spacing:.04em;color:var(--muted);
 }
-
-.error-msg,.success-msg{position:relative;z-index:1;}
+.hero-count-note strong{
+  font-family:'Libre Baskerville',serif;
+  font-size:14px;color:var(--accent);font-weight:700;
+}
 
 /* ── Voice Visualiser in Hero ── */
 .hero-vis{
-  margin:56px auto 0;
-  width:min(640px,90vw);
-  opacity:0;animation:riseIn 1s .4s ease both;
-  position:relative;z-index:1;
+  width:100%;
+  opacity:0;animation:riseIn 1s .25s ease both;
+  position:relative;
+}
+.hero-vis.playing .vis-card{
+  animation:cardGlow 5s ease-in-out infinite, demoPop .45s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes demoPop{
+  0%{transform:scale(1);}
+  35%{transform:scale(1.015);}
+  100%{transform:scale(1);}
 }
 .vis-label{
   font-family:'DM Mono',monospace;
@@ -309,6 +237,11 @@ nav.scrolled{
   text-transform:uppercase;color:var(--muted);
   margin-bottom:14px;
   display:flex;align-items:center;gap:10px;
+}
+.vis-hint{
+  margin-left:auto;
+  font-size:10px;letter-spacing:.06em;
+  color:var(--faint);text-transform:none;
 }
 .vis-label::before,.vis-label::after{
   content:'';flex:1;height:1px;background:var(--faint2);
@@ -780,6 +713,10 @@ section{padding:100px 24px;}
   width:6px;height:6px;border-radius:50%;
   background:var(--teal);animation:livePulse 2s ease infinite;
 }
+@keyframes livePulse{
+  0%,100%{opacity:1;transform:scale(1);box-shadow:0 0 0 0 rgba(42,122,114,.4);}
+  50%{opacity:.7;transform:scale(.9);box-shadow:0 0 0 6px rgba(42,122,114,0);}
+}
 
 /* ─── FINAL CTA ─── */
 .final-cta{
@@ -1001,9 +938,14 @@ footer{
   nav{padding:16px 20px;}
   nav.scrolled{padding:12px 20px;}
   .nav-links{display:none;}
+  .vis-hint{display:none;}
   .problem-grid,.steps,.why-grid{grid-template-columns:1fr;}
   .opane.active{grid-template-columns:1fr;}
-  .hero-input{width:100%;}
+  .hero-inner{grid-template-columns:1fr;gap:36px;}
+  .hero-copy{text-align:center;}
+  .hero-sub{margin-left:auto;margin-right:auto;}
+  .hero-chips{justify-content:center;}
+  .hero-cta-row{justify-content:center;}
   footer .foot-inner{padding:0 20px;}
   .foot-grid{grid-template-columns:1fr 1fr;}
   .foot-col{border-right:none;border-bottom:1px solid var(--faint2);padding:28px 20px;}
@@ -1018,8 +960,7 @@ footer{
 }
 @media(max-width:480px){
   section{padding:72px 20px;}
-  .hero{padding:120px 20px 64px;}
-  .live-pill{font-size:12px;padding:9px 16px;}
+  .hero{padding:100px 20px 56px;}
   .foot-grid{grid-template-columns:1fr;}
   .foot-col,.foot-col:nth-child(odd){border-right:none!important;}
   .foot-col:nth-child(3){border-bottom:1px solid var(--faint2);}
@@ -1049,73 +990,54 @@ footer{
 
 <!-- ─── HERO ─── -->
 <section class="hero" id="home">
-  <div class="hero-bg-letter" id="heroLetter">K</div>
+  <div class="hero-inner">
+    <div class="hero-copy">
+      <div class="hero-eyebrow">Early access · Vokal</div>
+      <h1 class="hero-h">
+        Think out loud.<br><em>Send something brilliant.</em>
+      </h1>
+      <p class="hero-sub">
+        Speak for 60 seconds — get a polished email, Slack message, or LinkedIn post in <strong>your voice</strong>.
+      </p>
+      <div class="hero-chips" id="heroChips">
+        <button type="button" class="hero-chip active" data-scene="0">Email</button>
+        <button type="button" class="hero-chip" data-scene="1">Slack</button>
+        <button type="button" class="hero-chip" data-scene="2">LinkedIn</button>
+        <button type="button" class="hero-chip" data-scene="3">Report</button>
+      </div>
+      <div class="hero-cta-row">
+        <a href="#waitlist" class="hero-cta">Get early access →</a>
+        <span class="hero-count-note"><strong id="heroCountNum">847</strong>+ on the waitlist</span>
+      </div>
+    </div>
 
-  <div class="live-pill">
-    <span class="live-dot"></span>
-    <span><strong id="heroCountNum">847</strong>+ professionals waiting</span>
-  </div>
-
-  <div class="hero-eyebrow">Introducing Vokal · Early Access</div>
-
-  <h1 class="hero-h">
-    Think out loud.<br><em>Send something brilliant.</em>
-  </h1>
-
-  <p class="hero-sub">
-    Speak for 60 seconds. Get a perfect email, Slack message, report, or LinkedIn post —
-    <strong>written in your exact voice</strong>, with AI that explains every change.
-  </p>
-
-  <div class="hero-form" id="heroForm">
-    <input class="hero-input" type="email" placeholder="your@email.com" id="heroEmail" autocomplete="email">
-    <button class="hero-btn" id="heroBtn" type="button" onclick="handleSignup('hero')">
-      <span>Join the waitlist →</span>
-    </button>
-    <input class="hp-field" type="text" name="website" id="heroWebsite" tabindex="-1" autocomplete="off">
-  </div>
-  <div class="error-msg" id="heroError"></div>
-  <div class="success-msg" id="heroSuccess">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-    You're on the list — we'll be in touch soon
-  </div>
-  <div class="hero-form-note">No spam. Early access notification only. Free to join.</div>
-
-  <div class="activity-strip" id="activityStrip">
-    <span class="activity-dot"></span>
-    <span class="activity-text" id="activityText">Voice → Email generated in 23s</span>
-  </div>
-
-  <!-- Live visualiser card -->
-  <div class="hero-vis">
-    <div class="vis-label">Live demo — voice to email</div>
-    <div class="vis-card">
-      <div class="vis-inner">
-        <div class="vis-top">
-          <div class="vis-mode-pill">
-            <div class="vis-mode-pip"></div>
-            <span id="demoMode">Recording · Professional Email</span>
+    <div class="hero-vis" id="heroVis">
+      <div class="vis-label">
+        <span>Try it live</span>
+        <span class="vis-hint">tap a format ←</span>
+      </div>
+      <div class="vis-card">
+        <div class="vis-inner">
+          <div class="vis-top">
+            <div class="vis-mode-pill">
+              <div class="vis-mode-pip"></div>
+              <span id="demoMode">Recording · Professional Email</span>
+            </div>
+            <div class="vis-timer" id="demoTimer">0:04</div>
           </div>
-          <div class="vis-timer" id="demoTimer">0:04</div>
-        </div>
-
-        <!-- Animated waveform -->
-        <div class="waveform" id="heroWave"></div>
-
-        <!-- Output preview -->
-        <div class="vis-output">
-          <div class="vo-type" id="demoType">Generated · Professional Email</div>
-          <div class="vo-text typing" id="demoText"></div>
-          <div class="vo-change">
-            <span class="vo-tag" id="demoTag">Structure</span>
-            <div class="vo-change-text" id="demoChange">Lead restructured — key info moved to sentence one. You buried it in sentence 4.</div>
+          <div class="waveform" id="heroWave"></div>
+          <div class="vis-output">
+            <div class="vo-type" id="demoType">Generated · Professional Email</div>
+            <div class="vo-text typing" id="demoText"></div>
+            <div class="vo-change">
+              <span class="vo-tag" id="demoTag">Structure</span>
+              <div class="vo-change-text" id="demoChange">Lead restructured — key info moved to sentence one. You buried it in sentence 4.</div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-
-  <div class="hero-rule hero-rule-2"></div>
 </section>
 
 <!-- ─── TICKER ─── -->
@@ -1631,12 +1553,6 @@ const DEMO_SCENES = [
   },
 ];
 
-const ACTIVITY_LINES = DEMO_SCENES.map(s => s.activity).concat([
-  'Voice profile learning your patterns',
-  'Explanation layer reviewing tone',
-  'Formatting for professional context',
-]);
-
 let demoScene = 0;
 let typeTimer = null;
 
@@ -1659,30 +1575,35 @@ function typeDemoText(text, onDone){
 
 function playDemoScene(index){
   const scene = DEMO_SCENES[index % DEMO_SCENES.length];
+  demoScene = index % DEMO_SCENES.length;
   document.getElementById('demoMode').textContent = scene.mode;
   document.getElementById('demoType').textContent = scene.type;
   document.getElementById('demoTag').textContent = scene.tag;
   document.getElementById('demoChange').textContent = scene.change;
   typeDemoText(scene.text);
+  document.querySelectorAll('.hero-chip').forEach(chip=>{
+    chip.classList.toggle('active', Number(chip.dataset.scene) === demoScene);
+  });
+  const vis = document.getElementById('heroVis');
+  if(vis){
+    vis.classList.remove('playing');
+    void vis.offsetWidth;
+    vis.classList.add('playing');
+  }
+  demoSecs = 4;
+  document.getElementById('demoTimer').textContent = '0:04';
 }
 
 function cycleDemoScenes(){
-  playDemoScene(demoScene);
-  demoScene = (demoScene + 1) % DEMO_SCENES.length;
+  playDemoScene((demoScene + 1) % DEMO_SCENES.length);
 }
 
-function initActivityFeed(){
-  const textEl = document.getElementById('activityText');
-  if(!textEl) return;
-  let i = 0;
-  setInterval(()=>{
-    textEl.classList.add('fade');
-    setTimeout(()=>{
-      i = (i + 1) % ACTIVITY_LINES.length;
-      textEl.textContent = ACTIVITY_LINES[i];
-      textEl.classList.remove('fade');
-    }, 350);
-  }, 4200);
+function initHeroChips(){
+  document.querySelectorAll('.hero-chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      playDemoScene(Number(chip.dataset.scene));
+    });
+  });
 }
 
 function initStatCounters(){
@@ -1709,15 +1630,7 @@ function initStatCounters(){
   document.querySelectorAll('.stat-val').forEach(el => statObs.observe(el));
 }
 
-// Hero letter parallax
-const heroLetter = document.getElementById('heroLetter');
-if(heroLetter){
-  document.addEventListener('mousemove', e=>{
-    const x = (e.clientX / window.innerWidth - 0.5) * 12;
-    const y = (e.clientY / window.innerHeight - 0.5) * 8;
-    heroLetter.style.transform = `translate(calc(-50% + ${x}px), calc(-52% + ${y}px)) rotate(${x * 0.08}deg)`;
-  });
-}
+// Hero letter parallax removed — split layout
 
 // ─── CURSOR ───
 const cur = document.getElementById('cursor');
@@ -1733,7 +1646,7 @@ function animRing(){
   requestAnimationFrame(animRing);
 }
 animRing();
-document.querySelectorAll('a,button,.otab,.mode-btn').forEach(el=>{
+document.querySelectorAll('a,button,.otab,.mode-btn,.hero-chip').forEach(el=>{
   el.addEventListener('mouseenter',()=>{cur.classList.add('hover');ring.classList.add('hover');});
   el.addEventListener('mouseleave',()=>{cur.classList.remove('hover');ring.classList.remove('hover');});
 });
@@ -1763,8 +1676,8 @@ setInterval(()=>{
   document.getElementById('demoTimer').textContent = `0:${demoSecs.toString().padStart(2,'0')}`;
 }, 1000);
 cycleDemoScenes();
-setInterval(cycleDemoScenes, 9000);
-initActivityFeed();
+setInterval(cycleDemoScenes, 12000);
+initHeroChips();
 initStatCounters();
 
 // ─── TICKER ───
@@ -1786,13 +1699,7 @@ document.querySelectorAll('.scroll-reveal').forEach(el=>observer.observe(el));
 
 // ─── COUNT UP ───
 const countEl = document.getElementById('countNum');
-const countObs = new IntersectionObserver(entries=>{
-  if(entries[0].isIntersecting){
-    countObs.disconnect();
-    initWaitlistCount();
-  }
-});
-countObs.observe(countEl);
+initWaitlistCount();
 
 // ─── OUTPUT TABS ───
 function switchTab(btn,id){
@@ -1859,13 +1766,9 @@ async function handleSignup(form){
   }
 }
 
-// Enter key for inputs
-['heroEmail','finalEmail'].forEach(id=>{
-  document.getElementById(id).addEventListener('keydown',e=>{
-    if(e.key==='Enter'){
-      handleSignup(id === 'heroEmail' ? 'hero' : 'final');
-    }
-  });
+// Enter key for waitlist input
+document.getElementById('finalEmail').addEventListener('keydown', e=>{
+  if(e.key === 'Enter') handleSignup('final');
 });
 </script>
 </body>
