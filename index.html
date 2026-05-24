@@ -127,31 +127,14 @@ nav.scrolled{
   padding:132px 24px 80px;
   position:relative;overflow:hidden;
   text-align:center;
-  background:
-    radial-gradient(ellipse 90% 70% at 15% 10%, rgba(191,59,42,.11) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 60% at 88% 18%, rgba(42,122,114,.09) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 55% at 72% 78%, rgba(107,42,107,.07) 0%, transparent 50%),
-    radial-gradient(ellipse 50% 45% at 8% 72%, rgba(191,59,42,.06) 0%, transparent 45%),
-    var(--paper);
+  background:var(--paper);
 }
 .hero::before{
   content:'';
   position:absolute;inset:0;
-  background-image:radial-gradient(rgba(28,24,20,.055) 1px, transparent 1px);
-  background-size:32px 32px;
-  mask-image:radial-gradient(ellipse 85% 75% at 50% 40%, #000 20%, transparent 72%);
-  pointer-events:none;
-}
-.hero-mesh{
-  position:absolute;inset:-30%;
-  background:
-    conic-gradient(from 210deg at 30% 35%, rgba(191,59,42,.07), transparent 28%, rgba(42,122,114,.06) 52%, transparent 72%, rgba(191,59,42,.05) 100%);
-  animation:meshSpin 28s linear infinite;
-  pointer-events:none;opacity:.75;
-}
-@keyframes meshSpin{
-  from{transform:rotate(0deg) scale(1);}
-  to{transform:rotate(360deg) scale(1);}
+  background-image:radial-gradient(rgba(28,24,20,.045) 1px, transparent 1px);
+  background-size:22px 22px;
+  pointer-events:none;z-index:0;
 }
 
 /* Large decorative letter */
@@ -160,76 +143,14 @@ nav.scrolled{
   font-family:'Libre Baskerville',serif;
   font-size:clamp(320px,50vw,600px);
   font-weight:700;font-style:italic;
-  color:rgba(28,24,20,0.028);
+  color:rgba(28,24,20,0.025);
   line-height:1;top:50%;left:50%;
   transform:translate(-50%,-52%);
   pointer-events:none;user-select:none;
   letter-spacing:-.05em;
-  animation:letterFloat 10s ease-in-out infinite alternate;
   transition:transform .15s ease-out;
   z-index:0;
 }
-@keyframes letterFloat{
-  from{transform:translate(-50%,-52%) rotate(-1deg);}
-  to{transform:translate(-50%,-50%) rotate(1deg);}
-}
-.hero-blob{
-  position:absolute;border-radius:50%;
-  filter:blur(70px);pointer-events:none;
-}
-.hero-blob-1{
-  width:360px;height:360px;background:rgba(191,59,42,.18);
-  top:8%;left:2%;
-  animation:blobDrift1 16s ease-in-out infinite alternate;
-}
-.hero-blob-2{
-  width:280px;height:280px;background:rgba(42,122,114,.14);
-  bottom:14%;right:4%;
-  animation:blobDrift2 19s ease-in-out infinite alternate;
-}
-.hero-blob-3{
-  width:220px;height:220px;background:rgba(107,42,107,.11);
-  top:42%;right:18%;
-  animation:blobDrift3 14s ease-in-out infinite alternate;
-}
-.hero-blob-4{
-  width:180px;height:180px;background:rgba(191,59,42,.12);
-  bottom:32%;left:18%;
-  animation:blobDrift2 22s ease-in-out infinite alternate-reverse;
-}
-@keyframes blobDrift1{
-  from{transform:translate(0,0) scale(1);}
-  to{transform:translate(36px,-28px) scale(1.12);}
-}
-@keyframes blobDrift2{
-  from{transform:translate(0,0) scale(1);}
-  to{transform:translate(-30px,24px) scale(1.08);}
-}
-@keyframes blobDrift3{
-  from{transform:translate(0,0) scale(1);}
-  to{transform:translate(22px,18px) scale(1.15);}
-}
-
-.hero-floats{
-  position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0;
-}
-.hf-word{
-  position:absolute;left:var(--x);top:var(--y);
-  transform:rotate(var(--r));
-  font-family:'Libre Baskerville',serif;
-  font-style:italic;font-weight:700;
-  font-size:clamp(13px,1.8vw,20px);
-  color:rgba(28,24,20,.07);
-  letter-spacing:-.01em;
-  animation:wordFloat var(--dur,9s) ease-in-out infinite alternate;
-  animation-delay:var(--d,0s);
-  white-space:nowrap;
-}
-@keyframes wordFloat{
-  from{transform:rotate(var(--r)) translateY(0);}
-  to{transform:rotate(var(--r)) translateY(-14px);}
-}
-
 .live-pill{
   display:inline-flex;align-items:center;gap:10px;
   padding:10px 20px;border-radius:100px;
@@ -1042,7 +963,6 @@ footer{
   section{padding:72px 20px;}
   .hero{padding:120px 20px 64px;}
   .live-pill{font-size:12px;padding:9px 16px;}
-  .hf-word{display:none;}
 }
 </style>
 </head>
@@ -1068,19 +988,6 @@ footer{
 
 <!-- ─── HERO ─── -->
 <section class="hero" id="home">
-  <div class="hero-mesh" aria-hidden="true"></div>
-  <div class="hero-blob hero-blob-1"></div>
-  <div class="hero-blob hero-blob-2"></div>
-  <div class="hero-blob hero-blob-3"></div>
-  <div class="hero-blob hero-blob-4"></div>
-  <div class="hero-floats" aria-hidden="true">
-    <span class="hf-word" style="--x:8%;--y:18%;--r:-12deg;--dur:10s;--d:0s">voice</span>
-    <span class="hf-word" style="--x:82%;--y:14%;--r:8deg;--dur:11s;--d:-2s">email</span>
-    <span class="hf-word" style="--x:76%;--y:62%;--r:-6deg;--dur:9s;--d:-4s">slack</span>
-    <span class="hf-word" style="--x:10%;--y:68%;--r:10deg;--dur:12s;--d:-1s">linkedin</span>
-    <span class="hf-word" style="--x:88%;--y:38%;--r:-14deg;--dur:8s;--d:-3s">report</span>
-    <span class="hf-word" style="--x:6%;--y:42%;--r:6deg;--dur:13s;--d:-5s">journal</span>
-  </div>
   <div class="hero-bg-letter" id="heroLetter">K</div>
 
   <div class="live-pill">
