@@ -140,12 +140,12 @@ nav.scrolled{
 .hero-inner{
   width:min(1120px,100%);
   display:grid;
-  grid-template-columns:1fr 1.05fr;
+  grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);
   gap:48px 56px;
   align-items:center;
   position:relative;z-index:1;
 }
-.hero-copy{text-align:left;}
+.hero-copy{text-align:left;min-width:0;}
 
 .hero-eyebrow{
   font-family:'DM Mono',monospace;
@@ -165,11 +165,12 @@ nav.scrolled{
 }
 .hero-h em{font-style:italic;color:var(--accent);}
 .hero-cycle{
-  position:relative;
-  display:inline-grid;
-  vertical-align:top;
-  max-width:100%;
+  display:block;
+  width:100%;
+  height:1.12em;
   margin-bottom:18px;
+  position:relative;
+  overflow:hidden;
   font-family:'Libre Baskerville',serif;
   font-size:clamp(26px,4.2vw,62px);
   font-weight:700;line-height:1.12;
@@ -177,23 +178,11 @@ nav.scrolled{
   color:var(--accent);font-style:italic;
   opacity:0;animation:riseIn .9s .18s ease both;
 }
-.hero-cycle-sizer{
-  grid-area:1/1;
-  visibility:hidden;
-  white-space:nowrap;
-  pointer-events:none;user-select:none;
-  font-style:italic;
-}
 .hero-cycle-inner{
-  grid-area:1/1;
-  align-self:start;
+  position:absolute;
+  left:0;top:0;
   white-space:nowrap;
-  display:inline-block;
-  border-right:3px solid var(--accent);
-  padding-right:4px;
-  animation:heroBlink .8s step-end infinite;
 }
-@keyframes heroBlink{0%,100%{border-color:var(--accent);}50%{border-color:transparent;}}
 .hero-sub{
   font-size:clamp(15px,1.8vw,18px);
   line-height:1.65;color:var(--muted);
@@ -252,6 +241,7 @@ nav.scrolled{
 /* ── Voice Visualiser in Hero ── */
 .hero-vis{
   width:100%;
+  min-width:0;
   opacity:0;animation:riseIn 1s .25s ease both;
   position:relative;
 }
@@ -1215,6 +1205,7 @@ footer{
   .hero-inner{grid-template-columns:1fr;gap:36px;}
   .hero-copy{text-align:center;}
   .hero-h,.hero-cycle{font-size:clamp(24px,6.5vw,40px);}
+  .hero-cycle-inner{left:0;right:0;width:100%;text-align:center;}
   .hero-sub{margin-left:auto;margin-right:auto;}
   .hero-chips{justify-content:center;}
   .hero-cta-row{justify-content:center;}
@@ -1272,10 +1263,7 @@ footer{
     <div class="hero-copy">
       <div class="hero-eyebrow">Early access · Vokal</div>
       <h1 class="hero-h">Your voice.</h1>
-      <span class="hero-cycle">
-        <span class="hero-cycle-sizer" id="cycleSizer" aria-hidden="true"></span>
-        <span class="hero-cycle-inner" id="cycleText"></span>
-      </span>
+      <span class="hero-cycle"><span class="hero-cycle-inner" id="cycleText"></span></span>
       <p class="hero-sub">
         Speak for 60 seconds — get a polished email, Slack message, or LinkedIn post in <strong>your voice</strong>.
       </p>
@@ -1840,8 +1828,6 @@ const heroPhrases = [
 ];
 let heroPhraseIdx = 0, heroCharIdx = 0, heroDeleting = false;
 const cycleEl = document.getElementById('cycleText');
-const cycleSizer = document.getElementById('cycleSizer');
-cycleSizer.textContent = heroPhrases.reduce((a, b) => (a.length >= b.length ? a : b));
 
 function heroTypeStep() {
   const word = heroPhrases[heroPhraseIdx];
