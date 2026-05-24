@@ -140,12 +140,12 @@ nav.scrolled{
 .hero-inner{
   width:min(1120px,100%);
   display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);
-  gap:48px 56px;
+  grid-template-columns:minmax(0,1.12fr) minmax(0,0.93fr);
+  gap:48px 64px;
   align-items:center;
   position:relative;z-index:1;
 }
-.hero-copy{text-align:left;min-width:0;}
+.hero-copy{text-align:left;min-width:0;overflow-x:clip;}
 
 .hero-eyebrow{
   font-family:'DM Mono',monospace;
@@ -172,7 +172,7 @@ nav.scrolled{
   position:relative;
   overflow:hidden;
   font-family:'Libre Baskerville',serif;
-  font-size:clamp(26px,4.2vw,62px);
+  font-size:var(--hero-cycle-size, clamp(22px,2.8vw,48px));
   font-weight:700;line-height:1.12;
   letter-spacing:-.025em;
   color:var(--accent);font-style:italic;
@@ -181,7 +181,10 @@ nav.scrolled{
 .hero-cycle-inner{
   position:absolute;
   left:0;top:0;
+  max-width:100%;
   white-space:nowrap;
+  overflow:hidden;
+  text-overflow:clip;
 }
 .hero-sub{
   font-size:clamp(15px,1.8vw,18px);
@@ -1203,8 +1206,9 @@ footer{
   .vis-hint{display:none;}
   .problem-grid,.steps,.why-grid{grid-template-columns:1fr;}
   .hero-inner{grid-template-columns:1fr;gap:36px;}
-  .hero-copy{text-align:center;}
-  .hero-h,.hero-cycle{font-size:clamp(24px,6.5vw,40px);}
+  .hero-copy{text-align:center;overflow-x:visible;}
+  .hero-h{font-size:clamp(24px,6.5vw,40px);}
+  .hero-cycle{font-size:clamp(22px,6vw,38px);--hero-cycle-size:clamp(22px,6vw,38px);}
   .hero-cycle-inner{left:0;right:0;width:100%;text-align:center;}
   .hero-sub{margin-left:auto;margin-right:auto;}
   .hero-chips{justify-content:center;}
@@ -1828,6 +1832,39 @@ const heroPhrases = [
 ];
 let heroPhraseIdx = 0, heroCharIdx = 0, heroDeleting = false;
 const cycleEl = document.getElementById('cycleText');
+const heroCycleBox = document.querySelector('.hero-cycle');
+const heroPhraseLongest = heroPhrases.reduce((a, b) => (a.length >= b.length ? a : b));
+let heroCycleProbe = null;
+
+function fitHeroCycleFont() {
+  if (!heroCycleBox || window.innerWidth <= 768) {
+    if (heroCycleBox) heroCycleBox.style.removeProperty('--hero-cycle-size');
+    return;
+  }
+
+  const available = heroCycleBox.clientWidth;
+  if (!available) return;
+
+  if (!heroCycleProbe) {
+    heroCycleProbe = document.createElement('span');
+    heroCycleProbe.setAttribute('aria-hidden', 'true');
+    heroCycleProbe.style.cssText = 'position:absolute;left:-9999px;top:0;visibility:hidden;white-space:nowrap;font-family:"Libre Baskerville",serif;font-weight:700;font-style:italic;letter-spacing:-0.025em;';
+    document.body.appendChild(heroCycleProbe);
+  }
+
+  const maxSize = 48;
+  const minSize = 20;
+  heroCycleProbe.textContent = heroPhraseLongest;
+
+  let size = maxSize;
+  heroCycleProbe.style.fontSize = size + 'px';
+  while (heroCycleProbe.offsetWidth > available && size > minSize) {
+    size -= 1;
+    heroCycleProbe.style.fontSize = size + 'px';
+  }
+
+  heroCycleBox.style.setProperty('--hero-cycle-size', size + 'px');
+}
 
 function heroTypeStep() {
   const word = heroPhrases[heroPhraseIdx];
@@ -1853,6 +1890,14 @@ function heroTypeStep() {
   }
 }
 setTimeout(heroTypeStep, 1200);
+
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(fitHeroCycleFont);
+} else {
+  fitHeroCycleFont();
+}
+window.addEventListener('resize', fitHeroCycleFont);
+setTimeout(fitHeroCycleFont, 150);
 
 // ─── HERO WAVEFORM ───
 const hw = document.getElementById('heroWave');
