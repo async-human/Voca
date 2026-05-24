@@ -7,6 +7,7 @@
 <meta property="og:title" content="Voca — Think out loud. Send something brilliant.">
 <meta property="og:description" content="Speak for 60 seconds. Get a perfect email, report, or LinkedIn post — written in your voice, explained by AI.">
 <meta property="og:type" content="website">
+<meta property="og:url" content="https://vokal.work">
 <title>Voca — Think out loud. Send something brilliant.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
@@ -139,7 +140,61 @@ nav.scrolled{
   transform:translate(-50%,-52%);
   pointer-events:none;user-select:none;
   letter-spacing:-.05em;
+  animation:letterFloat 10s ease-in-out infinite alternate;
+  transition:transform .15s ease-out;
 }
+.hero-blob{
+  position:absolute;border-radius:50%;
+  filter:blur(70px);pointer-events:none;
+  animation:blobDrift 14s ease-in-out infinite alternate;
+}
+.hero-blob-1{width:320px;height:320px;background:rgba(191,59,42,.14);top:12%;left:5%;}
+.hero-blob-2{width:240px;height:240px;background:rgba(42,122,114,.11);bottom:18%;right:6%;animation-delay:-5s;}
+.hero-blob-3{width:180px;height:180px;background:rgba(107,42,107,.09);top:38%;right:22%;animation-delay:-9s;}
+@keyframes letterFloat{
+  from{transform:translate(-50%,-52%) rotate(-1deg);}
+  to{transform:translate(-50%,-50%) rotate(1deg);}
+}
+@keyframes blobDrift{
+  from{transform:translate(0,0) scale(1);}
+  to{transform:translate(28px,-22px) scale(1.1);}
+}
+
+.live-pill{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:8px 16px;border-radius:100px;
+  background:rgba(255,255,255,.45);border:1px solid var(--faint2);
+  font-family:'DM Mono',monospace;font-size:11px;
+  letter-spacing:.06em;color:var(--muted);
+  margin-bottom:24px;opacity:0;
+  animation:riseIn .8s .05s ease both;
+}
+.live-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--teal);
+  animation:livePulse 2s ease infinite;
+}
+@keyframes livePulse{
+  0%,100%{opacity:1;transform:scale(1);box-shadow:0 0 0 0 rgba(42,122,114,.4);}
+  50%{opacity:.7;transform:scale(.9);box-shadow:0 0 0 6px rgba(42,122,114,0);}
+}
+
+.activity-strip{
+  display:inline-flex;align-items:center;gap:10px;
+  margin-top:14px;padding:10px 18px;border-radius:100px;
+  background:rgba(255,255,255,.35);border:1px solid var(--faint2);
+  font-family:'DM Mono',monospace;font-size:11px;
+  letter-spacing:.05em;color:var(--muted);
+  opacity:0;animation:riseIn .9s .72s ease both;
+  max-width:min(520px,90vw);
+}
+.activity-dot{
+  width:5px;height:5px;border-radius:50%;
+  background:var(--accent);flex-shrink:0;
+  animation:livePulse 1.8s ease infinite;
+}
+.activity-text{transition:opacity .35s ease;}
+.activity-text.fade{opacity:0;}
 
 /* Horizontal rule lines */
 .hero-rule{
@@ -253,6 +308,12 @@ nav.scrolled{
   border-radius:var(--r);
   padding:32px;
   position:relative;overflow:hidden;
+  box-shadow:0 0 0 1px rgba(255,255,255,.06),0 24px 80px rgba(28,24,20,.22);
+  animation:cardGlow 5s ease-in-out infinite;
+}
+@keyframes cardGlow{
+  0%,100%{box-shadow:0 0 0 1px rgba(255,255,255,.06),0 24px 80px rgba(28,24,20,.22);}
+  50%{box-shadow:0 0 48px rgba(191,59,42,.12),0 28px 90px rgba(28,24,20,.28);}
 }
 /* Subtle noise on dark card */
 .vis-card::before{
@@ -330,7 +391,14 @@ nav.scrolled{
   font-size:15px;line-height:1.72;
   color:rgba(255,255,255,.75);
   font-style:italic;
+  min-height:4.8em;
 }
+.vo-text.typing::after{
+  content:'|';
+  margin-left:2px;color:var(--accent2);
+  animation:blink 1s step-end infinite;
+}
+@keyframes blink{50%{opacity:0;}}
 .vo-change{
   margin-top:14px;padding-top:12px;
   border-top:1px solid rgba(255,255,255,.07);
@@ -417,6 +485,11 @@ section{padding:100px 24px;}
   transition:all .6s cubic-bezier(.16,1,.3,1);
 }
 .prob-card.visible{opacity:1;transform:translateY(0);}
+.prob-card.visible:hover{
+  transform:translateY(-5px);
+  box-shadow:0 16px 48px rgba(28,24,20,.08);
+  border-color:var(--faint);
+}
 .prob-num{
   font-family:'Libre Baskerville',serif;
   font-size:48px;font-weight:700;
@@ -675,12 +748,29 @@ section{padding:100px 24px;}
   color:var(--ink);letter-spacing:-.03em;
   line-height:1;margin-bottom:8px;
 }
-.social-count span{color:var(--accent);}
-.social-label{font-size:16px;color:var(--muted);margin-bottom:48px;}
+.social-count span{color:var(--accent);display:inline-block;transition:transform .35s cubic-bezier(.34,1.56,.64,1);}
+.social-count span.pop{animation:countPop .5s cubic-bezier(.34,1.56,.64,1);}
+@keyframes countPop{
+  0%{transform:scale(1);}
+  40%{transform:scale(1.12);}
+  100%{transform:scale(1);}
+}
+.social-live{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:'DM Mono',monospace;font-size:11px;
+  letter-spacing:.08em;text-transform:uppercase;
+  color:var(--teal);margin-bottom:12px;
+}
+.social-live-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--teal);animation:livePulse 2s ease infinite;
+}
 .quotes{
+  position:relative;
   display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;
   text-align:left;
 }
+.social-label{font-size:16px;color:var(--muted);margin-bottom:48px;}
 .quote{
   background:var(--paper2);border:1px solid var(--faint2);
   border-radius:var(--r);padding:24px;
@@ -688,6 +778,20 @@ section{padding:100px 24px;}
   transition:all .5s cubic-bezier(.16,1,.3,1);
 }
 .quote.visible{opacity:1;transform:translateY(0);}
+.quote.visible.featured{
+  transform:translateY(-4px);
+  border-color:rgba(191,59,42,.25);
+  box-shadow:0 12px 36px rgba(28,24,20,.08);
+}
+.quote-dots{
+  display:flex;justify-content:center;gap:8px;margin-top:24px;
+}
+.quote-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--faint2);border:none;cursor:none;
+  padding:0;transition:all .25s;
+}
+.quote-dot.active{background:var(--accent);transform:scale(1.25);}
 .quote-text{
   font-family:'Libre Baskerville',serif;
   font-size:14px;font-style:italic;
@@ -890,8 +994,16 @@ footer{
 
 <!-- ─── HERO ─── -->
 <section class="hero" id="home">
+  <div class="hero-blob hero-blob-1"></div>
+  <div class="hero-blob hero-blob-2"></div>
+  <div class="hero-blob hero-blob-3"></div>
   <div class="hero-rule hero-rule-1"></div>
-  <div class="hero-bg-letter">V</div>
+  <div class="hero-bg-letter" id="heroLetter">V</div>
+
+  <div class="live-pill">
+    <span class="live-dot"></span>
+    <span id="heroWaitlistPill">847+ professionals waiting</span>
+  </div>
 
   <div class="hero-eyebrow">Introducing Voca · Early Access</div>
 
@@ -918,6 +1030,11 @@ footer{
   </div>
   <div class="hero-form-note">No spam. Early access notification only. Free to join.</div>
 
+  <div class="activity-strip" id="activityStrip">
+    <span class="activity-dot"></span>
+    <span class="activity-text" id="activityText">Voice → Email generated in 23s</span>
+  </div>
+
   <!-- Live visualiser card -->
   <div class="hero-vis">
     <div class="vis-label">Live demo — voice to email</div>
@@ -926,7 +1043,7 @@ footer{
         <div class="vis-top">
           <div class="vis-mode-pill">
             <div class="vis-mode-pip"></div>
-            Recording · Professional Email
+            <span id="demoMode">Recording · Professional Email</span>
           </div>
           <div class="vis-timer" id="demoTimer">0:04</div>
         </div>
@@ -936,13 +1053,11 @@ footer{
 
         <!-- Output preview -->
         <div class="vis-output">
-          <div class="vo-type">Generated · Professional Email</div>
-          <div class="vo-text">
-            Hi Sarah, quick heads-up on Q3 — a pipeline dependency pushes delivery by ~2 weeks to July 28th. Mitigation plan already in motion. Full update EOD Thursday.
-          </div>
+          <div class="vo-type" id="demoType">Generated · Professional Email</div>
+          <div class="vo-text typing" id="demoText"></div>
           <div class="vo-change">
-            <span class="vo-tag">Structure</span>
-            <div class="vo-change-text">Lead restructured — key info moved to sentence one. You buried it in sentence 4.</div>
+            <span class="vo-tag" id="demoTag">Structure</span>
+            <div class="vo-change-text" id="demoChange">Lead restructured — key info moved to sentence one. You buried it in sentence 4.</div>
           </div>
         </div>
       </div>
@@ -968,22 +1083,22 @@ footer{
 
     <div class="problem-grid">
       <div class="prob-card scroll-reveal">
-        <div class="prob-num">40</div>
+        <div class="prob-num"><span class="stat-val" data-target="40">0</span></div>
         <div class="prob-title">Minutes lost per day</div>
         <div class="prob-body">The average knowledge worker spends 40 minutes daily drafting professional emails and messages — time they could spend actually thinking.</div>
       </div>
       <div class="prob-card scroll-reveal" style="transition-delay:.1s">
-        <div class="prob-num">3×</div>
+        <div class="prob-num"><span class="stat-val" data-target="3" data-suffix="×">0</span></div>
         <div class="prob-title">Faster spoken than typed</div>
         <div class="prob-body">You speak 150 words per minute. You type 40. The gap between your thinking speed and your writing speed is your biggest productivity leak.</div>
       </div>
       <div class="prob-card scroll-reveal" style="transition-delay:.15s">
-        <div class="prob-num">1.5B</div>
+        <div class="prob-num"><span class="stat-val" data-target="1.5" data-suffix="B">0</span></div>
         <div class="prob-title">Non-native English speakers</div>
         <div class="prob-body">1.5 billion professionals communicate in English as a second language. Writing polished professional English is exhausting, even for fluent speakers.</div>
       </div>
       <div class="prob-card scroll-reveal" style="transition-delay:.2s">
-        <div class="prob-num">68%</div>
+        <div class="prob-num"><span class="stat-val" data-target="68" data-suffix="%">0</span></div>
         <div class="prob-title">Of people hate writing</div>
         <div class="prob-body">Most tools fix your writing after the fact. None of them make you a better communicator over time. Grammarly doesn't teach — it just corrects.</div>
       </div>
@@ -1285,9 +1400,10 @@ footer{
 <!-- ─── SOCIAL PROOF ─── -->
 <section class="social">
   <div class="social-inner">
-    <div class="social-count"><span id="countNum">0</span>+</div>
+    <div class="social-live"><span class="social-live-dot"></span> Live waitlist</div>
+    <div class="social-count"><span id="countNum">847</span>+</div>
     <div class="social-label">professionals already on the waitlist</div>
-    <div class="quotes">
+    <div class="quotes" id="quotesGrid">
       <div class="quote scroll-reveal">
         <div class="quote-text">"I spend 2 hours a day writing emails I hate. If Voca is half as good as this demo, I'm paying for it day one."</div>
         <div class="quote-author"><div class="q-av">MR</div><div><div class="q-name">Marcus R.</div><div class="q-role">Product Manager, London</div></div></div>
@@ -1301,6 +1417,7 @@ footer{
         <div class="quote-author"><div class="q-av">TK</div><div><div class="q-name">Tom K.</div><div class="q-role">Engineering Lead, Berlin</div></div></div>
       </div>
     </div>
+    <div class="quote-dots" id="quoteDots" aria-hidden="true"></div>
   </div>
 </section>
 
@@ -1339,13 +1456,15 @@ footer{
   <div class="foot-links">
     <a href="#">Privacy</a>
     <a href="#">Terms</a>
-    <a href="mailto:hello@usevoca.com">Contact</a>
+    <a href="mailto:hello@vokal.work">Contact</a>
   </div>
 </footer>
 
 <script src="/config.js"></script>
 <script>
 const API_URL = window.VOCA_API_URL || 'http://localhost:3001';
+const WAITLIST_BASE = 847;
+let displayCount = WAITLIST_BASE;
 
 function getUtmParams(){
   const params = new URLSearchParams(window.location.search);
@@ -1367,15 +1486,194 @@ async function fetchWaitlistCount(){
   }
 }
 
-function animateCount(target){
-  const countEl = document.getElementById('countNum');
-  let n = 0;
-  const step = Math.max(1, Math.ceil(target / 60));
+function formatCount(n){
+  return n.toLocaleString();
+}
+
+function updateCountUI(count, pop = false){
+  displayCount = count;
+  const formatted = formatCount(count);
+  countEl.textContent = formatted;
+  const pill = document.getElementById('heroWaitlistPill');
+  if(pill) pill.textContent = `${formatted}+ professionals waiting`;
+  if(pop){
+    countEl.classList.remove('pop');
+    void countEl.offsetWidth;
+    countEl.classList.add('pop');
+  }
+}
+
+function animateCountTo(target){
+  const start = Math.max(WAITLIST_BASE - 35, target - 50);
+  let n = start;
+  const step = Math.max(1, Math.ceil((target - start) / 55));
   const t = setInterval(()=>{
     n = Math.min(n + step, target);
-    countEl.textContent = n.toLocaleString();
+    updateCountUI(n);
     if(n >= target) clearInterval(t);
+  }, 18);
+}
+
+function bumpWaitlistCount(delta = 1){
+  updateCountUI(displayCount + delta, true);
+}
+
+async function initWaitlistCount(){
+  const real = await fetchWaitlistCount();
+  const total = WAITLIST_BASE + (real ?? 0);
+  updateCountUI(WAITLIST_BASE);
+  animateCountTo(total);
+}
+
+const DEMO_SCENES = [
+  {
+    mode: 'Recording · Professional Email',
+    type: 'Generated · Professional Email',
+    text: 'Hi Sarah, quick heads-up on Q3 — a pipeline dependency pushes delivery by ~2 weeks to July 28th. Mitigation plan already in motion. Full update EOD Thursday.',
+    tag: 'Structure',
+    change: 'Lead restructured — key info moved to sentence one. You buried it in sentence 4.',
+    activity: 'Voice → Email generated in 23s',
+  },
+  {
+    mode: 'Recording · Slack Message',
+    type: 'Generated · Slack Update',
+    text: 'Hey team — shipping the auth fix tonight. QA sign-off at 6pm, deploy by 9. Ping me if anything blocks.',
+    tag: 'Tone',
+    change: 'Trimmed filler words. Sounds direct without being blunt — matches how you actually talk.',
+    activity: 'Voice → Slack draft in 18s',
+  },
+  {
+    mode: 'Recording · LinkedIn Post',
+    type: 'Generated · LinkedIn Post',
+    text: 'Most teams don\'t have a writing problem. They have a thinking-out-loud problem. The best ideas die in your head because typing is too slow.',
+    tag: 'Hook',
+    change: 'Opening line rewritten for scroll-stopping impact. Your original buried the insight in line three.',
+    activity: 'Voice → LinkedIn post in 31s',
+  },
+  {
+    mode: 'Recording · Weekly Report',
+    type: 'Generated · Status Report',
+    text: 'Week 12 summary: onboarding conversion up 14%, two enterprise pilots in legal review, hiring pipeline healthy for eng roles.',
+    tag: 'Clarity',
+    change: 'Grouped metrics by theme. Executives scan top-line wins first — your ramble hid them.',
+    activity: 'Voice → Report section in 27s',
+  },
+];
+
+const ACTIVITY_LINES = DEMO_SCENES.map(s => s.activity).concat([
+  'Voice profile learning your patterns',
+  'Explanation layer reviewing tone',
+  'Formatting for professional context',
+]);
+
+let demoScene = 0;
+let typeTimer = null;
+
+function typeDemoText(text, onDone){
+  const el = document.getElementById('demoText');
+  el.classList.add('typing');
+  el.textContent = '';
+  let i = 0;
+  clearInterval(typeTimer);
+  typeTimer = setInterval(()=>{
+    el.textContent = text.slice(0, i + 1);
+    i++;
+    if(i >= text.length){
+      clearInterval(typeTimer);
+      el.classList.remove('typing');
+      if(onDone) onDone();
+    }
   }, 16);
+}
+
+function playDemoScene(index){
+  const scene = DEMO_SCENES[index % DEMO_SCENES.length];
+  document.getElementById('demoMode').textContent = scene.mode;
+  document.getElementById('demoType').textContent = scene.type;
+  document.getElementById('demoTag').textContent = scene.tag;
+  document.getElementById('demoChange').textContent = scene.change;
+  typeDemoText(scene.text);
+}
+
+function cycleDemoScenes(){
+  playDemoScene(demoScene);
+  demoScene = (demoScene + 1) % DEMO_SCENES.length;
+}
+
+function initActivityFeed(){
+  const textEl = document.getElementById('activityText');
+  if(!textEl) return;
+  let i = 0;
+  setInterval(()=>{
+    textEl.classList.add('fade');
+    setTimeout(()=>{
+      i = (i + 1) % ACTIVITY_LINES.length;
+      textEl.textContent = ACTIVITY_LINES[i];
+      textEl.classList.remove('fade');
+    }, 350);
+  }, 4200);
+}
+
+function initStatCounters(){
+  const statObs = new IntersectionObserver(entries=>{
+    entries.forEach(entry=>{
+      if(!entry.isIntersecting) return;
+      const el = entry.target;
+      if(el.dataset.done) return;
+      el.dataset.done = '1';
+      const target = parseFloat(el.dataset.target);
+      const suffix = el.dataset.suffix || '';
+      const isFloat = String(target).includes('.') || target % 1 !== 0;
+      let current = 0;
+      const steps = 50;
+      const inc = target / steps;
+      const timer = setInterval(()=>{
+        current = Math.min(current + inc, target);
+        el.textContent = (isFloat ? current.toFixed(1) : Math.round(current)) + suffix;
+        if(current >= target) clearInterval(timer);
+      }, 20);
+      statObs.unobserve(el);
+    });
+  }, { threshold: 0.4 });
+  document.querySelectorAll('.stat-val').forEach(el => statObs.observe(el));
+}
+
+function initQuoteCarousel(){
+  const quotes = [...document.querySelectorAll('#quotesGrid .quote')];
+  const dotsWrap = document.getElementById('quoteDots');
+  if(!quotes.length || !dotsWrap) return;
+
+  quotes.forEach((_, i)=>{
+    const dot = document.createElement('button');
+    dot.type = 'button';
+    dot.className = 'quote-dot' + (i === 0 ? ' active' : '');
+    dot.addEventListener('click', ()=> setFeatured(i));
+    dotsWrap.appendChild(dot);
+  });
+
+  let featured = 0;
+  function setFeatured(i){
+    featured = i;
+    quotes.forEach((q, idx)=>{
+      q.classList.toggle('featured', idx === i);
+    });
+    dotsWrap.querySelectorAll('.quote-dot').forEach((d, idx)=>{
+      d.classList.toggle('active', idx === i);
+    });
+  }
+
+  setFeatured(0);
+  setInterval(()=> setFeatured((featured + 1) % quotes.length), 5500);
+}
+
+// Hero letter parallax
+const heroLetter = document.getElementById('heroLetter');
+if(heroLetter){
+  document.addEventListener('mousemove', e=>{
+    const x = (e.clientX / window.innerWidth - 0.5) * 12;
+    const y = (e.clientY / window.innerHeight - 0.5) * 8;
+    heroLetter.style.transform = `translate(calc(-50% + ${x}px), calc(-52% + ${y}px)) rotate(${x * 0.08}deg)`;
+  });
 }
 
 // ─── CURSOR ───
@@ -1415,13 +1713,17 @@ for(let i=0;i<52;i++){
   hw.appendChild(b);
 }
 
-// Demo timer animation
-let demoSecs=4;
+// Demo timer + scene cycling
+let demoSecs = 4;
 setInterval(()=>{
-  demoSecs=(demoSecs+1)%60;
-  const s=demoSecs.toString().padStart(2,'0');
-  document.getElementById('demoTimer').textContent=`0:${s}`;
-},1000);
+  demoSecs = (demoSecs + 1) % 60;
+  document.getElementById('demoTimer').textContent = `0:${demoSecs.toString().padStart(2,'0')}`;
+}, 1000);
+cycleDemoScenes();
+setInterval(cycleDemoScenes, 9000);
+initActivityFeed();
+initStatCounters();
+initQuoteCarousel();
 
 // ─── TICKER ───
 const TICKS=[
@@ -1441,13 +1743,11 @@ const observer=new IntersectionObserver(entries=>{
 document.querySelectorAll('.scroll-reveal').forEach(el=>observer.observe(el));
 
 // ─── COUNT UP ───
-const countEl=document.getElementById('countNum');
-const countObs=new IntersectionObserver(entries=>{
+const countEl = document.getElementById('countNum');
+const countObs = new IntersectionObserver(entries=>{
   if(entries[0].isIntersecting){
     countObs.disconnect();
-    fetchWaitlistCount().then(count=>{
-      animateCount(count && count > 0 ? count : 847);
-    });
+    initWaitlistCount();
   }
 });
 countObs.observe(countEl);
@@ -1508,10 +1808,7 @@ async function handleSignup(form){
 
     formEl.style.display = 'none';
     successEl.classList.add('show');
-
-    fetchWaitlistCount().then(count=>{
-      if(count && count > 0) countEl.textContent = count.toLocaleString();
-    });
+    bumpWaitlistCount(1);
   }catch(err){
     errorEl.textContent = err.message || 'Something went wrong. Please try again.';
     errorEl.classList.add('show');

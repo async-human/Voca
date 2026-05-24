@@ -35,7 +35,7 @@ export function welcomeEmailHtml({ email }) {
           </tr>
           <tr>
             <td style="padding:0 40px 36px;">
-              <a href="https://usevoca.com" style="display:inline-block;padding:14px 28px;border-radius:999px;background:#1C1814;color:#F0EAE1;text-decoration:none;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:600;">
+              <a href="https://vokal.work" style="display:inline-block;padding:14px 28px;border-radius:999px;background:#1C1814;color:#F0EAE1;text-decoration:none;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:600;">
                 Back to Voca →
               </a>
             </td>
