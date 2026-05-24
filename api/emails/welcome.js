@@ -17,8 +17,8 @@ export function welcomeEmailHtml({ email }) {
                 Vokal · Early Access
               </div>
               <h1 style="margin:0 0 16px;font-size:32px;line-height:1.15;color:#1C1814;font-weight:400;">
-                Think out loud.<br>
-                <em style="color:#BF3B2A;font-style:italic;">Send something brilliant.</em>
+                Your voice.<br>
+                <em style="color:#BF3B2A;font-style:italic;">Perfectly expressed.</em>
               </h1>
               <p style="margin:0 0 24px;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.65;color:#44392E;">
                 You're on the waitlist. We'll email <strong style="color:#1C1814;">${email}</strong> when early access opens — and reach out personally as we onboard new users.

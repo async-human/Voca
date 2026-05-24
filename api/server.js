@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { welcomeEmailHtml } from './emails/welcome.js';
+import { notifyAdminEmailHtml } from './emails/notify-admin.js';
 
 const app = express();
 const port = Number(process.env.PORT) || 3001;
@@ -122,14 +123,46 @@ app.post('/api/waitlist', waitlistLimiter, async (req, res) => {
     }
 
     if (resend && process.env.RESEND_FROM_EMAIL) {
-      resend.emails
-        .send({
+      const notifyEmail = process.env.NOTIFY_EMAIL || 'info@vokal.work';
+      const signupTime = new Date(data.created_at).toLocaleString('en-US', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+        timeZone: 'UTC',
+      }) + ' UTC';
+
+      const emailPayloads = [
+        {
           from: process.env.RESEND_FROM_EMAIL,
           to: normalizedEmail,
           subject: "You're on the Vokal waitlist",
           html: welcomeEmailHtml({ email: normalizedEmail }),
-        })
-        .catch((err) => console.error('Resend error:', err));
+        },
+        {
+          from: process.env.RESEND_FROM_EMAIL,
+          to: notifyEmail,
+          subject: `New waitlist signup: ${normalizedEmail}`,
+          html: notifyAdminEmailHtml({
+            email: normalizedEmail,
+            useCase: normalizedUseCase,
+            source: String(source).slice(0, 64),
+            referrer: referrer ? String(referrer).slice(0, 512) : null,
+            utm_source: utm_source ? String(utm_source).slice(0, 128) : null,
+            utm_medium: utm_medium ? String(utm_medium).slice(0, 128) : null,
+            utm_campaign: utm_campaign ? String(utm_campaign).slice(0, 128) : null,
+            createdAt: signupTime,
+          }),
+        },
+      ];
+
+      Promise.allSettled(emailPayloads.map((payload) => resend.emails.send(payload))).then(
+        (results) => {
+          results.forEach((result, index) => {
+            if (result.status === 'rejected') {
+              console.error(`Resend error (${index === 0 ? 'welcome' : 'notify'}):`, result.reason);
+            }
+          });
+        }
+      );
     }
 
     res.status(201).json({
