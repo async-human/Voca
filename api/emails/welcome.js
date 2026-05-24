@@ -4,7 +4,7 @@ export function welcomeEmailHtml({ email }) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>You're on the Voca waitlist</title>
+  <title>You're on the Vokal waitlist</title>
 </head>
 <body style="margin:0;padding:0;background:#F0EAE1;font-family:Georgia,'Times New Roman',serif;">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#F0EAE1;padding:48px 20px;">
@@ -14,7 +14,7 @@ export function welcomeEmailHtml({ email }) {
           <tr>
             <td style="padding:40px 40px 28px;">
               <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#BF3B2A;margin-bottom:18px;">
-                Voca · Early Access
+                Vokal · Early Access
               </div>
               <h1 style="margin:0 0 16px;font-size:32px;line-height:1.15;color:#1C1814;font-weight:400;">
                 Think out loud.<br>
@@ -36,13 +36,13 @@ export function welcomeEmailHtml({ email }) {
           <tr>
             <td style="padding:0 40px 36px;">
               <a href="https://vokal.work" style="display:inline-block;padding:14px 28px;border-radius:999px;background:#1C1814;color:#F0EAE1;text-decoration:none;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:600;">
-                Back to Voca →
+                Back to Vokal →
               </a>
             </td>
           </tr>
         </table>
         <p style="margin:24px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#897D72;">
-          No spam · Free to join · © 2026 Voca
+          No spam · Free to join · © 2026 Vokal
         </p>
       </td>
     </tr>

@@ -126,7 +126,7 @@ app.post('/api/waitlist', waitlistLimiter, async (req, res) => {
         .send({
           from: process.env.RESEND_FROM_EMAIL,
           to: normalizedEmail,
-          subject: "You're on the Voca waitlist",
+          subject: "You're on the Vokal waitlist",
           html: welcomeEmailHtml({ email: normalizedEmail }),
         })
         .catch((err) => console.error('Resend error:', err));
