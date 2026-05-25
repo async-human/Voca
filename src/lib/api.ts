@@ -101,9 +101,16 @@ export async function deliverSession(
 }
 
 export async function listConnections(token: string): Promise<PlatformConnection[]> {
-  const res = await fetch(`${API}/api/v1/connections`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API}/api/v1/connections`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  } catch {
+    throw new Error(
+      'Could not reach the API. If you use www.vokal.work, ensure Railway CORS_ORIGINS includes it and the API is redeployed.',
+    );
+  }
   const data = await res.json();
   if (!res.ok) throw new Error(parseApiError(data, 'Failed to load connections'));
   return data.connections ?? [];

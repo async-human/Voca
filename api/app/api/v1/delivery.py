@@ -23,10 +23,21 @@ from app.services.delivery.oauth import (
 from app.services.sessions import get_session_with_generation
 from app.utils.auth import get_current_user
 from app.services.supabase import get_supabase_client
+from app.utils.errors import format_api_error
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1", tags=["connections"])
+
+
+def _delivery_db_error(exc: Exception) -> HTTPException | None:
+    message = format_api_error(exc).lower()
+    if "platform_connections" in message or "delivery_attempts" in message or "does not exist" in message:
+        return HTTPException(
+            status_code=503,
+            detail="Delivery tables missing — run migration 006_delivery_schema.sql in Supabase.",
+        )
+    return None
 
 
 def _frontend_connections_url(query: str = "") -> str:
@@ -40,8 +51,17 @@ def get_connections(
     user=Depends(get_current_user),
     supabase: Client = Depends(get_supabase_client),
 ):
-    rows = list_connections(supabase, user.id)
-    return {"connections": [serialize_connection(r) for r in rows]}
+    try:
+        rows = list_connections(supabase, user.id)
+        return {"connections": [serialize_connection(r) for r in rows]}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.exception("List connections error")
+        mapped = _delivery_db_error(exc)
+        if mapped:
+            raise mapped from exc
+        raise HTTPException(status_code=500, detail="Could not fetch connections") from exc
 
 
 @router.post("/connections/zapier", status_code=201)
@@ -53,20 +73,28 @@ def connect_zapier(
     if not payload.webhook_url.startswith("https://"):
         raise HTTPException(status_code=400, detail="Webhook URL must use HTTPS")
 
-    insert = (
-        supabase.table("platform_connections")
-        .insert(
-            {
-                "user_id": user.id,
-                "platform": "zapier",
-                "label": payload.label,
-                "credentials_encrypted": encrypt_credentials({"webhook_url": payload.webhook_url}),
-                "metadata": {"webhook_url": payload.webhook_url, "label": payload.label},
-            }
+    try:
+        insert = (
+            supabase.table("platform_connections")
+            .insert(
+                {
+                    "user_id": user.id,
+                    "platform": "zapier",
+                    "label": payload.label,
+                    "credentials_encrypted": encrypt_credentials({"webhook_url": payload.webhook_url}),
+                    "metadata": {"webhook_url": payload.webhook_url, "label": payload.label},
+                }
+            )
+            .select("id, platform, label, metadata, connected_at, updated_at")
+            .execute()
         )
-        .select("id, platform, label, metadata, connected_at, updated_at")
-        .execute()
-    )
+    except Exception as exc:
+        logger.exception("Zapier connect error")
+        mapped = _delivery_db_error(exc)
+        if mapped:
+            raise mapped from exc
+        raise HTTPException(status_code=500, detail="Could not save Zapier connection") from exc
+
     rows = insert.data or []
     if not rows:
         raise HTTPException(status_code=500, detail="Could not save Zapier connection")
