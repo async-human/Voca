@@ -454,6 +454,22 @@ nav.scrolled{
 body.has-ph-bar nav{top:42px;}
 body.has-ph-bar .hero{padding-top:130px;}
 
+.ph-badge{
+  display:inline-block;line-height:0;
+  transition:transform .25s cubic-bezier(.34,1.56,.64,1),opacity .2s;
+}
+.ph-badge:hover{transform:translateY(-2px);opacity:.92;}
+.ph-badge img{display:block;width:250px;height:54px;}
+.hero-ph{
+  margin-top:22px;
+  opacity:0;animation:riseIn .9s .48s ease both;
+}
+.final-ph{
+  display:flex;justify-content:center;
+  margin:0 0 28px;
+}
+.foot-ph{margin-top:20px;}
+
 /* ─── DIFFERENTIATION ─── */
 .different{
   background:var(--paper2);
@@ -1339,6 +1355,7 @@ footer{
   .hero-nots{justify-content:center;}
   .hero-chips{justify-content:center;}
   .hero-cta-row{justify-content:center;}
+  .hero-ph{display:flex;justify-content:center;}
   footer .foot-inner{padding:0 20px;}
   .foot-grid{grid-template-columns:1fr 1fr;}
   .foot-col{border-right:none;border-bottom:1px solid var(--faint2);padding:28px 20px;}
@@ -1375,8 +1392,8 @@ footer{
 <body class="has-ph-bar">
 
 <div class="ph-bar">
-  <span>🚀 <strong>Launching on Product Hunt</strong> — voice in, polished writing out, in your voice</span>
-  <a href="#waitlist">Join the waitlist →</a>
+  <span>🚀 <strong>Live on Product Hunt</strong> — support us with a review</span>
+  <a href="https://www.producthunt.com/products/vokal-your-voice-perfectly-expressed/reviews/new?utm_source=badge-product_review&utm_medium=badge" target="_blank" rel="noopener noreferrer">Review on Product Hunt →</a>
 </div>
 
 <!-- Custom cursor -->
@@ -1422,6 +1439,9 @@ footer{
         <a href="#waitlist" class="hero-cta">Join the waitlist →</a>
         <span class="hero-count-note"><strong id="heroCountNum">847</strong>+ on the waitlist</span>
       </div>
+      <a class="ph-badge hero-ph" href="https://www.producthunt.com/products/vokal-your-voice-perfectly-expressed/reviews/new?utm_source=badge-product_review&utm_medium=badge" target="_blank" rel="noopener noreferrer">
+        <img src="https://api.producthunt.com/widgets/embed-image/v1/product_review.svg?product_id=1232512&theme=light" alt="Review Vokal on Product Hunt" width="250" height="54">
+      </a>
     </div>
 
     <div class="hero-vis" id="heroVis">
@@ -1709,6 +1729,11 @@ footer{
   <div class="final-cta-inner">
     <h2 class="final-h">Your voice.<br><em>Perfectly expressed.</em></h2>
     <p class="final-sub">Join from Product Hunt for early access. We're onboarding personally — your feedback shapes what we build next.</p>
+    <div class="final-ph">
+      <a class="ph-badge" href="https://www.producthunt.com/products/vokal-your-voice-perfectly-expressed/reviews/new?utm_source=badge-product_review&utm_medium=badge" target="_blank" rel="noopener noreferrer">
+        <img src="https://api.producthunt.com/widgets/embed-image/v1/product_review.svg?product_id=1232512&theme=dark" alt="Review Vokal on Product Hunt" width="250" height="54">
+      </a>
+    </div>
     <div class="final-form" id="finalForm">
       <input class="final-input" type="email" placeholder="your@email.com" id="finalEmail" autocomplete="email">
       <div class="custom-select" id="finalUseCaseWrap" data-prefer-up="true">
@@ -1774,6 +1799,9 @@ footer{
         </a>
         <p class="foot-tagline">Think out loud. Send something brilliant — voice to polished professional writing, in your voice.</p>
         <a href="#waitlist" class="foot-pill">Join the waitlist</a>
+        <a class="ph-badge foot-ph" href="https://www.producthunt.com/products/vokal-your-voice-perfectly-expressed/reviews/new?utm_source=badge-product_review&utm_medium=badge" target="_blank" rel="noopener noreferrer">
+          <img src="https://api.producthunt.com/widgets/embed-image/v1/product_review.svg?product_id=1232512&theme=light" alt="Review Vokal on Product Hunt" width="250" height="54">
+        </a>
       </div>
       <div class="foot-col">
         <div class="foot-col-title">Product</div>
@@ -2003,7 +2031,7 @@ function animRing(){
   requestAnimationFrame(animRing);
 }
 animRing();
-document.querySelectorAll('a,button,.fpill,.mode-btn,.hero-chip,.custom-select-trigger,.custom-select-option').forEach(el=>{
+document.querySelectorAll('a,button,.fpill,.mode-btn,.hero-chip,.custom-select-trigger,.custom-select-option,.ph-badge').forEach(el=>{
   el.addEventListener('mouseenter',()=>{cur.classList.add('hover');ring.classList.add('hover');});
   el.addEventListener('mouseleave',()=>{cur.classList.remove('hover');ring.classList.remove('hover');});
 });
