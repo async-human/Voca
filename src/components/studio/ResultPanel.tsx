@@ -14,9 +14,18 @@ interface ResultPanelProps {
   onRegenerate: (format: OutputFormat) => void;
   regenerating?: boolean;
   copied?: boolean;
+  historyMode?: boolean;
 }
 
-export function ResultPanel({ data, onCopy, onNew, onRegenerate, regenerating, copied }: ResultPanelProps) {
+export function ResultPanel({
+  data,
+  onCopy,
+  onNew,
+  onRegenerate,
+  regenerating,
+  copied,
+  historyMode,
+}: ResultPanelProps) {
   const [showWhy, setShowWhy] = useState(true);
   const gen = data.generation;
   if (!gen) return null;
@@ -27,10 +36,13 @@ export function ResultPanel({ data, onCopy, onNew, onRegenerate, regenerating, c
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={historyMode ? false : { opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      className="overflow-hidden rounded-[22px] border border-faint-2 bg-[#faf7f2]/95 shadow-[0_24px_64px_rgba(28,24,20,.08)]"
+      className={cn(
+        'overflow-hidden border border-faint-2 bg-[#faf7f2]/95',
+        historyMode ? 'rounded-[18px]' : 'rounded-[22px] shadow-[0_24px_64px_rgba(28,24,20,.08)]',
+      )}
     >
       <div className="h-0.5 bg-gradient-to-r from-accent-3 via-accent-2 to-accent" />
 
@@ -133,18 +145,28 @@ export function ResultPanel({ data, onCopy, onNew, onRegenerate, regenerating, c
           ))}
         </div>
         <div className="flex flex-wrap items-center gap-4">
-          <Link
-            href="/app/voice/"
-            className="text-[13px] font-medium text-accent no-underline underline-offset-4 transition-colors hover:underline"
-          >
-            Your voice updated →
-          </Link>
+          {!historyMode && (
+            <Link
+              href="/app/history/"
+              className="text-[13px] font-medium text-muted no-underline underline-offset-4 transition-colors hover:text-ink hover:underline"
+            >
+              View history →
+            </Link>
+          )}
+          {!historyMode && (
+            <Link
+              href="/app/voice/"
+              className="text-[13px] font-medium text-accent no-underline underline-offset-4 transition-colors hover:underline"
+            >
+              Your voice updated →
+            </Link>
+          )}
           <button
             type="button"
             onClick={onNew}
             className="cursor-pointer text-[13px] font-medium text-muted underline-offset-4 transition-colors hover:text-ink hover:underline"
           >
-            New recording →
+            {historyMode ? 'Close' : 'New recording →'}
           </button>
         </div>
       </div>

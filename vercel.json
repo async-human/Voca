@@ -7,6 +7,8 @@
     { "source": "/app", "destination": "/app/index.html" },
     { "source": "/app/", "destination": "/app/index.html" },
     { "source": "/app.html", "destination": "/app/index.html" },
+    { "source": "/app/history", "destination": "/app/history/index.html" },
+    { "source": "/app/history/", "destination": "/app/history/index.html" },
     { "source": "/app/voice", "destination": "/app/voice/index.html" },
     { "source": "/app/voice/", "destination": "/app/voice/index.html" },
     { "source": "/auth/callback", "destination": "/auth/callback/index.html" },

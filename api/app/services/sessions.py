@@ -27,6 +27,32 @@ def get_session_with_generation(supabase: Client, session_id: str, user_id: str)
     return recording
 
 
+def _latest_generation(generations: list[dict] | None) -> dict | None:
+    if not generations:
+        return None
+    return max(generations, key=lambda g: g.get("created_at") or "")
+
+
+def serialize_session_list_item(record: dict) -> dict:
+    generation = _latest_generation(record.get("generations"))
+    output_text = generation.get("output_text") if generation else None
+    preview = output_text
+    if preview and len(preview) > 180:
+        preview = preview[:180].rstrip() + "…"
+
+    return {
+        "id": record["id"],
+        "format": record["format"],
+        "status": record["status"],
+        "duration_ms": record.get("duration_ms"),
+        "clarity_score": record.get("clarity_score"),
+        "created_at": record.get("created_at"),
+        "output_preview": preview,
+        "generation_format": generation.get("format") if generation else None,
+        "output_meta": (generation.get("output_meta") or {}) if generation else {},
+    }
+
+
 def serialize_session(record: dict) -> dict:
     generation = record.get("generation")
     return {

@@ -13,6 +13,7 @@ interface NavProps {
 
 const APP_TABS = [
   { href: '/app/', label: 'Studio', match: (path: string) => path === '/app' || path === '/app/' },
+  { href: '/app/history/', label: 'History', match: (path: string) => path.startsWith('/app/history') },
   { href: '/app/voice/', label: 'Your voice', match: (path: string) => path.startsWith('/app/voice') },
 ] as const;
 
@@ -49,7 +50,7 @@ export function Nav({ email, signedIn, onSignOut }: NavProps) {
                   key={href}
                   href={href}
                   className={cn(
-                    'rounded-full px-3 py-1.5 text-[12px] font-medium no-underline transition-all duration-200 md:px-4',
+                    'rounded-full px-2.5 py-1.5 text-[11px] font-medium no-underline transition-all duration-200 md:px-3.5 md:text-[12px]',
                     active
                       ? 'bg-ink text-paper shadow-sm'
                       : 'text-muted hover:text-ink',

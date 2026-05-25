@@ -18,7 +18,7 @@ from app.services.insights import send_weekly_insights
 from app.services.profiles import ensure_user_profile
 from app.services.rate_limit import rate_limit_regenerate, rate_limit_voice_process
 from app.services.redis_cache import cache_get, cache_set
-from app.services.sessions import get_session_with_generation, serialize_session
+from app.services.sessions import get_session_with_generation, serialize_session, serialize_session_list_item
 from app.services.supabase import get_supabase_client
 from app.services.tasks import submit_pipeline
 from app.utils.audio import is_allowed_audio_mime, normalize_audio_mime
@@ -241,20 +241,27 @@ async def process_voice(
 @router.get("/sessions")
 def list_sessions(
     limit: int = 20,
+    status: str | None = None,
     user=Depends(get_current_user),
     supabase: Client = Depends(get_supabase_client),
 ):
     try:
         capped = min(max(limit, 1), 50)
-        result = (
+        query = (
             supabase.table("recordings")
-            .select("id, format, status, pipeline_step, duration_ms, clarity_score, error_message, created_at, updated_at")
+            .select(
+                "id, format, status, pipeline_step, duration_ms, clarity_score, error_message, created_at, updated_at, "
+                "generations(format, output_text, output_meta, created_at)"
+            )
             .eq("user_id", user.id)
             .order("created_at", desc=True)
             .limit(capped)
-            .execute()
         )
-        return {"sessions": result.data or []}
+        if status:
+            query = query.eq("status", status)
+        result = query.execute()
+        sessions = [serialize_session_list_item(row) for row in (result.data or [])]
+        return {"sessions": sessions}
     except Exception as exc:
         logger.exception("List sessions error")
         raise HTTPException(status_code=500, detail="Could not fetch sessions") from exc

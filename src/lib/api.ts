@@ -1,4 +1,4 @@
-import type { SessionResult, UserProfile } from './types';
+import type { SessionResult, SessionSummary, UserProfile } from './types';
 
 const API = process.env.NEXT_PUBLIC_VOCA_API_URL || 'http://localhost:3001';
 
@@ -57,6 +57,22 @@ export async function regenerateSession(
   });
   const data = await res.json();
   if (!res.ok) throw new Error(parseApiError(data));
+}
+
+export async function listSessions(
+  token: string,
+  options?: { limit?: number; status?: SessionResult['status'] },
+): Promise<SessionSummary[]> {
+  const params = new URLSearchParams();
+  if (options?.limit) params.set('limit', String(options.limit));
+  if (options?.status) params.set('status', options.status);
+  const qs = params.toString();
+  const res = await fetch(`${API}/api/v1/sessions${qs ? `?${qs}` : ''}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(parseApiError(data, 'Failed to load history'));
+  return data.sessions ?? [];
 }
 
 export async function getProfile(token: string): Promise<UserProfile> {

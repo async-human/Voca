@@ -14,11 +14,29 @@ export interface Generation {
 }
 
 export interface SessionResult {
+  id?: string;
+  format?: OutputFormat;
   status: 'pending' | 'processing' | 'complete' | 'failed';
   pipeline_step?: PipelineStep | 'failed';
   clarity_score?: number;
   error_message?: string;
+  raw_transcript?: string;
+  clean_transcript?: string;
+  created_at?: string;
+  updated_at?: string;
   generation?: Generation;
+}
+
+export interface SessionSummary {
+  id: string;
+  format: OutputFormat;
+  status: SessionResult['status'];
+  duration_ms?: number;
+  clarity_score?: number;
+  created_at?: string;
+  output_preview?: string | null;
+  generation_format?: OutputFormat | null;
+  output_meta?: { subject?: string };
 }
 
 export interface VoiceTraits {
