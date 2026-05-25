@@ -9,6 +9,16 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://vokal.work">
 <title>Vokal — Your voice. Perfectly expressed.</title>
+<script>
+(function(){
+  var p=location.pathname;
+  if(p.indexOf('/auth/callback')!==-1)return;
+  var h=location.hash||'',s=location.search||'';
+  if(h.indexOf('access_token')!==-1||h.indexOf('error=')!==-1||s.indexOf('code=')!==-1||s.indexOf('token_hash=')!==-1){
+    location.replace('/auth/callback?next='+encodeURIComponent('/app/')+(s?('&'+s.slice(1)):'' )+h);
+  }
+})();
+</script>
 <script src="/config.js"></script>
 <script>
 window.dataLayer = window.dataLayer || [];

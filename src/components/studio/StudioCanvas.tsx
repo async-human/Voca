@@ -162,6 +162,7 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
     <>
       <div
         className="pointer-events-none fixed inset-0 z-0"
+        aria-hidden
         style={{
           backgroundImage: 'radial-gradient(rgba(28,24,20,.038) 1px, transparent 1px)',
           backgroundSize: '22px 22px',

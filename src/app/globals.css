@@ -23,10 +23,53 @@ html {
 }
 
 body {
-  font-family: var(--font-sans);
+  font-family: var(--font-sans), "Instrument Sans", system-ui, sans-serif;
   background-color: var(--color-paper);
   color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
+}
+
+.font-serif {
+  font-family: var(--font-serif), "Libre Baskerville", Georgia, serif;
+}
+
+.font-mono {
+  font-family: var(--font-mono), "DM Mono", ui-monospace, monospace;
+}
+
+/* Paper dot grid + grain — matches landing */
+.studio-bg {
+  position: relative;
+  min-height: 100vh;
+  background-color: var(--color-paper);
+}
+.studio-bg::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: radial-gradient(rgba(28, 24, 20, 0.038) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+.studio-bg::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.45;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+/* Kill Chrome autofill blue box */
+.studio-input:-webkit-autofill,
+.studio-input:-webkit-autofill:hover,
+.studio-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #faf7f2 inset !important;
+  -webkit-text-fill-color: #1c1814 !important;
+  caret-color: #1c1814;
+  transition: background-color 9999s ease-out;
 }
 
 @keyframes card-glow {
@@ -48,6 +91,11 @@ body {
   50% { box-shadow: 0 12px 48px rgba(191,59,42,.55), 0 0 0 12px rgba(191,59,42,0); }
 }
 
+@keyframes wb-idle {
+  0%, 100% { height: 3px; opacity: 0.25; }
+  50% { height: var(--mh, 20px); opacity: 0.7; }
+}
+
 .studio-card-glow {
   animation: card-glow 6s ease-in-out infinite;
 }
@@ -58,4 +106,30 @@ body {
 
 .rec-pulse {
   animation: rec-pulse 1.4s ease infinite;
+}
+
+.auth-wb {
+  width: 3px;
+  border-radius: 3px;
+  background: linear-gradient(to top, var(--color-accent-3), var(--color-accent-2));
+  animation: wb-idle var(--d, 0.7s) ease-in-out infinite alternate;
+  animation-delay: var(--dl, 0s);
+}
+
+.eyebrow-line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-mono), "DM Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+.eyebrow-line::before,
+.eyebrow-line::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--color-faint-2);
 }

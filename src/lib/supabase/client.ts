@@ -1,15 +1,23 @@
-import { createBrowserClient } from '@supabase/ssr';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
 export function createClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '';
 
+  const options = {
+    auth: {
+      persistSession: true,
+      detectSessionInUrl: true,
+      flowType: 'pkce' as const,
+      autoRefreshToken: true,
+    },
+  };
+
   if (!url || !key) {
-    // Build-time / missing env — client only initializes after hydration with real vars
-    return createBrowserClient('https://placeholder.supabase.co', 'placeholder-key');
+    return createSupabaseClient('https://placeholder.supabase.co', 'placeholder-key', options);
   }
 
-  return createBrowserClient(url, key);
+  return createSupabaseClient(url, key, options);
 }
 
 export function hasSupabaseConfig() {

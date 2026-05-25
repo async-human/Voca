@@ -5,7 +5,10 @@
   "rewrites": [
     { "source": "/", "destination": "/index.html" },
     { "source": "/app", "destination": "/app/index.html" },
-    { "source": "/app.html", "destination": "/app/index.html" }
+    { "source": "/app/", "destination": "/app/index.html" },
+    { "source": "/app.html", "destination": "/app/index.html" },
+    { "source": "/auth/callback", "destination": "/auth/callback/index.html" },
+    { "source": "/auth/callback/", "destination": "/auth/callback/index.html" }
   ],
   "headers": [
     {
