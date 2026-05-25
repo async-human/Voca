@@ -9,13 +9,17 @@ class Settings(BaseSettings):
 
     openai_api_key: str | None = None
     openai_transcribe_model: str = "whisper-1"
-    openai_generation_model: str = "gpt-4o-mini"
+    openai_generation_model: str = "gpt-4o"
+    openai_fast_model: str = "gpt-4o-mini"
+
+    deepgram_api_key: str | None = None
+    deepgram_model: str = "nova-2"
 
     resend_api_key: str | None = None
     resend_from_email: str | None = None
     notify_email: str = "info@vokal.work"
 
-    cors_origins: str = "http://localhost:3000,http://127.0.0.1:5500"
+    cors_origins: str = "http://localhost:3000,http://127.0.0.1:5500,https://vokal.work,https://www.vokal.work"
     port: int = 3001
 
     @property

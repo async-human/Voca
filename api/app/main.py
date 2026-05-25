@@ -3,12 +3,13 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.legacy import legacy
+from app.api.v1.router import router as v1_router
 from app.config import settings
-from app.routes import me, recordings, waitlist
 
 logging.basicConfig(level=logging.INFO)
 
-app = FastAPI(title="Vokal API", version="2.0.0")
+app = FastAPI(title="Vokal API", version="3.0.0", docs_url="/docs", redoc_url="/redoc")
 
 app.add_middleware(
     CORSMiddleware,
@@ -18,11 +19,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(waitlist.router)
-app.include_router(me.router)
-app.include_router(recordings.router)
+app.include_router(v1_router)
+app.include_router(legacy)
 
 
 @app.get("/")
 def health():
-    return {"ok": True, "service": "voca-api", "version": "2.0.0"}
+    return {"ok": True, "service": "vokal-api", "version": "3.0.0"}

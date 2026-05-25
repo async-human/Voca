@@ -1,6 +1,6 @@
 import re
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, field_validator
 
 
 EMAIL_PATTERN = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
@@ -29,7 +29,3 @@ class WaitlistResponse(BaseModel):
     ok: bool = True
     message: str
     id: str | None = None
-
-
-class WaitlistCountResponse(BaseModel):
-    count: int
