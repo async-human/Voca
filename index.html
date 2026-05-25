@@ -9,6 +9,20 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://vokal.work">
 <title>Vokal — Your voice. Perfectly expressed.</title>
+<script src="/config.js"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+if(window.GA_MEASUREMENT_ID){
+  const gaId = window.GA_MEASUREMENT_ID;
+  const gaScript = document.createElement('script');
+  gaScript.async = true;
+  gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=' + gaId;
+  document.head.appendChild(gaScript);
+  gtag('js', new Date());
+  gtag('config', gaId);
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
 <style>
@@ -1795,7 +1809,6 @@ footer{
   </div>
 </footer>
 
-<script src="/config.js"></script>
 <script>
 const API_URL = window.VOCA_API_URL || 'http://localhost:3001';
 const WAITLIST_BASE = 847;
