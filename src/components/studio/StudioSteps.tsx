@@ -23,7 +23,7 @@ export function StudioSteps({ phase }: StudioStepsProps) {
   const current = phaseIndex(phase);
 
   return (
-    <div className="mb-8">
+    <div className="mb-9">
       <div className="flex items-center">
         {STEPS.map((step, i) => {
           const done = i < current;
@@ -33,15 +33,21 @@ export function StudioSteps({ phase }: StudioStepsProps) {
               <div className="flex flex-col items-center gap-1.5">
                 <div
                   className={cn(
-                    'flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-semibold transition-all duration-300',
-                    done && 'bg-teal text-white',
-                    active && 'bg-ink text-paper shadow-[0_4px_16px_rgba(28,24,20,.18)]',
-                    !done && !active && 'border border-faint-2 bg-paper text-faint',
+                    'flex h-[22px] w-[22px] items-center justify-center rounded-full text-[10px] font-semibold transition-all duration-300',
+                    done && 'bg-teal/85 text-white shadow-[0_2px_8px_rgba(42,122,114,.22)]',
+                    active && 'bg-ink text-paper shadow-[0_3px_12px_rgba(28,24,20,.2)]',
+                    !done && !active && 'border border-faint-2/80 bg-paper text-faint',
                   )}
                 >
                   {done ? (
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
-                      <path d="M2.5 6l2.5 2.5 4.5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden>
+                      <path
+                        d="M2 5.5l2 2 4-4"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                   ) : (
                     i + 1
@@ -49,9 +55,9 @@ export function StudioSteps({ phase }: StudioStepsProps) {
                 </div>
                 <span
                   className={cn(
-                    'hidden text-[10px] font-medium sm:block',
+                    'hidden text-[9.5px] font-medium sm:block transition-colors duration-300',
                     active && 'text-ink',
-                    done && 'text-muted',
+                    done && 'text-teal/60',
                     !done && !active && 'text-faint',
                   )}
                 >
@@ -59,12 +65,14 @@ export function StudioSteps({ phase }: StudioStepsProps) {
                 </span>
               </div>
               {i < STEPS.length - 1 && (
-                <div
-                  className={cn(
-                    'mx-2 h-px flex-1 transition-colors duration-500',
-                    i < current ? 'bg-teal/40' : 'bg-faint-2',
-                  )}
-                />
+                <div className="relative mx-3 mb-[18px] h-px flex-1 overflow-hidden rounded-full bg-faint-2/50">
+                  <div
+                    className={cn(
+                      'absolute inset-y-0 left-0 rounded-full bg-teal/40 transition-all duration-700 ease-in-out',
+                      i < current ? 'w-full' : 'w-0',
+                    )}
+                  />
+                </div>
               )}
             </div>
           );

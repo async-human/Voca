@@ -166,12 +166,12 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
   }
 
   return (
-    <div className="relative z-10 mx-auto max-w-[680px] px-4 pb-24 pt-[96px] md:px-6">
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-2">
-        <h1 className="font-serif text-[clamp(26px,5vw,34px)] font-bold tracking-tight text-ink">
+    <div className="relative z-10 mx-auto max-w-[680px] px-4 pb-24 pt-[104px] md:px-6">
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-3.5">
+        <h1 className="font-serif text-[clamp(28px,5vw,36px)] font-bold tracking-tight text-ink">
           {phase === 'result' ? 'Done.' : phase === 'processing' ? 'Polishing…' : phase === 'recording' ? 'Listening…' : 'What are you writing?'}
         </h1>
-        <p className="mt-1.5 text-sm text-muted">
+        <p className="mt-2 text-[14px] leading-relaxed text-muted">
           {phase === 'setup' && 'Pick a format, then speak naturally for up to 60 seconds.'}
           {phase === 'recording' && 'Speak like you\'re talking to a colleague. We\'ll handle the rest.'}
           {phase === 'processing' && 'Transcribing, structuring, and refining in your voice.'}
@@ -188,7 +188,7 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="mb-5 overflow-hidden"
+            className="mb-6 overflow-hidden"
           >
             <FormatPicker value={format} onChange={setFormat} variant="light" />
           </motion.div>
@@ -199,10 +199,11 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
       <motion.div
         layout
         className={cn(
-          'studio-card-glow relative overflow-hidden rounded-[24px] bg-ink transition-all duration-500',
+          'studio-card-glow relative overflow-hidden rounded-[26px] border border-white/[0.055] transition-all duration-500',
           phase === 'result' ? 'px-5 py-5 md:px-6 md:py-6' : 'px-6 py-8 md:px-8 md:py-9',
           phase === 'result' && 'opacity-60',
         )}
+        style={{ background: 'linear-gradient(160deg, #231D17 0%, #181210 100%)' }}
       >
         <div
           className="pointer-events-none absolute inset-0 opacity-55"
@@ -219,8 +220,8 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
             </div>
           )}
 
-          <div className={cn('flex items-center justify-between', phase === 'result' ? 'mb-3' : 'mb-7')}>
-            <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/7 px-3.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-white/50">
+          <div className={cn('flex items-center justify-between', phase === 'result' ? 'mb-3' : 'mb-8')}>
+            <div className="flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.055] px-3.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.13em] text-white/40">
               <span className={cn('mode-pip-glow h-[5px] w-[5px] rounded-full', isRecording ? 'bg-red-400' : 'bg-accent-2')} />
               {(isRecording ? 'Recording' : isProcessing ? 'Processing' : 'Ready')} · {modeLabel.name}
             </div>
@@ -249,10 +250,10 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3 }}
-                  className="mt-6 rounded-xl border border-white/8 bg-white/4 px-4 py-3"
+                  className="mt-6 rounded-[14px] border border-white/[0.07] bg-white/[0.035] px-4 py-3.5"
                 >
-                  <p className="font-mono text-[9px] uppercase tracking-[0.1em] text-white/30">Tip</p>
-                  <p className="mt-1 text-[13px] leading-relaxed text-white/45">{FORMAT_TIPS[format]}</p>
+                  <p className="font-mono text-[9px] uppercase tracking-[0.12em] text-white/28">Tip</p>
+                  <p className="mt-1.5 text-[13px] leading-relaxed text-white/42">{FORMAT_TIPS[format]}</p>
                 </motion.div>
               )}
 

@@ -74,10 +74,10 @@ body {
 
 @keyframes card-glow {
   0%, 100% {
-    box-shadow: 0 0 0 1px rgba(255,255,255,.06), 0 28px 90px rgba(28,24,20,.24);
+    box-shadow: 0 0 0 1px rgba(255,255,255,.055), 0 24px 80px rgba(28,24,20,.3), 0 4px 20px rgba(28,24,20,.1);
   }
   50% {
-    box-shadow: 0 0 56px rgba(191,59,42,.1), 0 32px 100px rgba(28,24,20,.3);
+    box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 0 70px rgba(191,59,42,.08), 0 32px 100px rgba(28,24,20,.34), 0 4px 28px rgba(28,24,20,.12);
   }
 }
 
