@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #F0EAE1;
+  --color-paper-2: #E8E1D8;
+  --color-ink: #1C1814;
+  --color-ink-2: #2E2820;
+  --color-ink-3: #44392E;
+  --color-muted: #897D72;
+  --color-faint: #C8BEB4;
+  --color-faint-2: #DDD5CA;
+  --color-accent: #BF3B2A;
+  --color-accent-2: #D94F3C;
+  --color-accent-3: #9A2D1E;
+  --color-teal: #2A7A72;
+  --font-serif: "Libre Baskerville", Georgia, serif;
+  --font-sans: "Instrument Sans", system-ui, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, monospace;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+@keyframes card-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 1px rgba(255,255,255,.06), 0 28px 90px rgba(28,24,20,.24);
+  }
+  50% {
+    box-shadow: 0 0 56px rgba(191,59,42,.1), 0 32px 100px rgba(28,24,20,.3);
+  }
+}
+
+@keyframes pip-glow {
+  0%, 100% { box-shadow: 0 0 6px #BF3B2A; }
+  50% { box-shadow: 0 0 14px #D94F3C, 0 0 24px rgba(191,59,42,.35); }
+}
+
+@keyframes rec-pulse {
+  0%, 100% { box-shadow: 0 8px 32px rgba(191,59,42,.4), 0 0 0 0 rgba(191,59,42,.3); }
+  50% { box-shadow: 0 12px 48px rgba(191,59,42,.55), 0 0 0 12px rgba(191,59,42,0); }
+}
+
+.studio-card-glow {
+  animation: card-glow 6s ease-in-out infinite;
+}
+
+.mode-pip-glow {
+  animation: pip-glow 2s ease-in-out infinite;
+}
+
+.rec-pulse {
+  animation: rec-pulse 1.4s ease infinite;
+}

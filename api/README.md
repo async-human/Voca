@@ -55,7 +55,7 @@ Legacy routes `/api/waitlist`, `/api/recordings` remain for the landing page.
 
 ## Product UI
 
-Deploy frontend to Vercel, then open **`https://vokal.work/app.html`**
+Deploy frontend to Vercel, then open **`https://vokal.work/app`**
 
 Required Vercel env vars:
 ```
@@ -66,4 +66,4 @@ SUPABASE_ANON_KEY=eyJ...
 
 Supabase → Authentication → URL Configuration:
 - Site URL: `https://vokal.work`
-- Redirect URLs: `https://vokal.work/app.html`
+- Redirect URLs: `https://vokal.work/auth/callback`, `https://vokal.work/app`

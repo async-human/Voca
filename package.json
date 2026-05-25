@@ -1,7 +1,31 @@
 {
-  "name": "voca-landing",
+  "name": "voca",
   "private": true,
   "scripts": {
-    "build": "node scripts/inject-env.js"
+    "dev": "node scripts/inject-env.js && next dev",
+    "build": "node scripts/inject-env.js && next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.10.3",
+    "@supabase/supabase-js": "^2.106.2",
+    "@tailwindcss/postcss": "^4.1.7",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.40.0",
+    "next": "^15.5.18",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "tailwind-merge": "^3.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "@types/react": "^19.2.15",
+    "autoprefixer": "^10.5.0",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.6",
+    "postcss": "^8.5.15",
+    "tailwindcss": "^4.3.0",
+    "typescript": "^5.7.3"
   }
 }
