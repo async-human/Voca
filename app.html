@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Instrument+Sans:wght@400;500;600&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
 <script src="/config.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -39,6 +39,10 @@ input[type=email]{width:100%;padding:12px 16px;border:1px solid var(--faint2);bo
 .record-area{text-align:center;padding:24px 0}
 .timer{font-family:'DM Mono',monospace;font-size:32px;margin:16px 0;color:var(--ink)}
 .hint{font-size:13px;color:var(--muted)}
+.auth-msg{font-size:14px;margin-top:12px;line-height:1.5}
+.auth-msg.error{color:var(--accent)}
+.auth-msg.success{color:var(--teal)}
+.auth-msg.info{color:var(--muted)}
 .steps{display:flex;flex-direction:column;gap:8px;margin:16px 0}
 .step{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
 .step.active{color:var(--ink);font-weight:600}
@@ -73,8 +77,8 @@ input[type=email]{width:100%;padding:12px 16px;border:1px solid var(--faint2);bo
     <p class="sub">Early access app. We’ll send a magic link to your email — no password needed.</p>
     <label for="email">Email</label>
     <input type="email" id="email" placeholder="you@company.com" autocomplete="email">
-    <button class="btn btn-primary" id="loginBtn" type="button">Send magic link →</button>
-    <p class="hint" id="authMsg" style="margin-top:12px"></p>
+    <button class="btn btn-primary" id="loginBtn" type="button" disabled>Send magic link →</button>
+    <p class="auth-msg info" id="authMsg">Loading…</p>
   </div>
 
   <!-- App -->
@@ -139,7 +143,14 @@ let timerInterval, seconds = 0, selectedFormat = 'email', currentSessionId = nul
 const authCard = document.getElementById('authCard');
 const appArea = document.getElementById('appArea');
 const authMsg = document.getElementById('authMsg');
+const loginBtn = document.getElementById('loginBtn');
+const emailInput = document.getElementById('email');
 const errorBox = document.getElementById('errorBox');
+
+function setAuthMsg(text, type = 'info'){
+  authMsg.textContent = text;
+  authMsg.className = 'auth-msg ' + type;
+}
 
 function showError(msg){
   errorBox.textContent = msg;
@@ -147,20 +158,49 @@ function showError(msg){
 }
 function clearError(){ errorBox.classList.add('hidden'); }
 
+function getSupabaseCreateClient(){
+  const lib = window.supabase;
+  if(!lib) return null;
+  if(typeof lib.createClient === 'function') return lib.createClient.bind(lib);
+  if(lib.default && typeof lib.default.createClient === 'function') return lib.default.createClient.bind(lib.default);
+  return null;
+}
+
 async function init(){
-  if(!SUPABASE_URL || !SUPABASE_ANON_KEY){
-    authMsg.textContent = 'Missing Supabase config. Set SUPABASE_URL and SUPABASE_ANON_KEY in Vercel env vars.';
-    return;
-  }
-  sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  try{
+    if(!SUPABASE_URL || !SUPABASE_ANON_KEY){
+      setAuthMsg('Missing Supabase config. Add SUPABASE_URL and SUPABASE_ANON_KEY in Vercel, then redeploy.', 'error');
+      return;
+    }
 
-  const { data: { session: s } } = await sbClient.auth.getSession();
-  if(s) onAuth(s);
-  sbClient.auth.onAuthStateChange((_e, s) => { if(s) onAuth(s); });
+    const createClient = getSupabaseCreateClient();
+    if(!createClient){
+      setAuthMsg('Supabase library failed to load. Check your connection or disable ad blockers.', 'error');
+      return;
+    }
 
-  if(window.location.hash.includes('access_token')){
-    await sbClient.auth.getSession();
-    history.replaceState(null, '', window.location.pathname);
+    sbClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const { data: { session: s }, error: sessionError } = await sbClient.auth.getSession();
+    if(sessionError) console.warn('Session check:', sessionError.message);
+
+    if(window.location.hash.includes('access_token') || window.location.search.includes('code=')){
+      setAuthMsg('Completing sign-in…', 'info');
+      const { data: { session: hashSession }, error: hashError } = await sbClient.auth.getSession();
+      if(hashError) setAuthMsg(hashError.message, 'error');
+      else if(hashSession) onAuth(hashSession);
+      history.replaceState(null, '', window.location.pathname);
+    } else if(s){
+      onAuth(s);
+    } else {
+      setAuthMsg('Enter your email and we\'ll send a sign-in link.', 'info');
+      loginBtn.disabled = false;
+    }
+
+    sbClient.auth.onAuthStateChange((_event, s) => { if(s) onAuth(s); });
+  }catch(err){
+    console.error('Init failed:', err);
+    setAuthMsg(err.message || 'Failed to initialize sign-in.', 'error');
   }
 }
 
@@ -171,15 +211,45 @@ function onAuth(s){
   document.getElementById('userEmail').textContent = s.user.email || '';
 }
 
-document.getElementById('loginBtn').addEventListener('click', async ()=>{
-  const email = document.getElementById('email').value.trim();
-  if(!email) return;
-  authMsg.textContent = 'Sending link…';
-  const { error } = await sbClient.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: window.location.origin + '/app.html' }
-  });
-  authMsg.textContent = error ? error.message : 'Check your email for the magic link.';
+async function sendMagicLink(){
+  const email = emailInput.value.trim();
+  if(!email){
+    setAuthMsg('Please enter your email address.', 'error');
+    emailInput.focus();
+    return;
+  }
+  if(!sbClient){
+    setAuthMsg('Sign-in is not ready yet. Refresh the page and try again.', 'error');
+    return;
+  }
+
+  loginBtn.disabled = true;
+  setAuthMsg('Sending link…', 'info');
+
+  try{
+    const redirectTo = new URL('/app.html', window.location.origin).href;
+    const { error } = await sbClient.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: redirectTo },
+    });
+
+    if(error){
+      setAuthMsg(error.message, 'error');
+      loginBtn.disabled = false;
+      return;
+    }
+
+    setAuthMsg(`Magic link sent to ${email}. Check your inbox (and spam).`, 'success');
+  }catch(err){
+    console.error('Magic link error:', err);
+    setAuthMsg(err.message || 'Could not send magic link.', 'error');
+    loginBtn.disabled = false;
+  }
+}
+
+loginBtn.addEventListener('click', sendMagicLink);
+emailInput.addEventListener('keydown', e=>{
+  if(e.key === 'Enter') sendMagicLink();
 });
 
 document.getElementById('formats').addEventListener('click', e=>{
