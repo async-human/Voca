@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 import { useState } from 'react';
 import { cn } from '@/lib/cn';
 import type { SessionResult } from '@/lib/types';
@@ -131,13 +132,21 @@ export function ResultPanel({ data, onCopy, onNew, onRegenerate, regenerating, c
             </button>
           ))}
         </div>
-        <button
-          type="button"
-          onClick={onNew}
-          className="cursor-pointer text-[13px] font-medium text-muted underline-offset-4 transition-colors hover:text-ink hover:underline"
-        >
-          New recording →
-        </button>
+        <div className="flex flex-wrap items-center gap-4">
+          <Link
+            href="/app/voice/"
+            className="text-[13px] font-medium text-accent no-underline underline-offset-4 transition-colors hover:underline"
+          >
+            Your voice updated →
+          </Link>
+          <button
+            type="button"
+            onClick={onNew}
+            className="cursor-pointer text-[13px] font-medium text-muted underline-offset-4 transition-colors hover:text-ink hover:underline"
+          >
+            New recording →
+          </button>
+        </div>
       </div>
     </motion.div>
   );

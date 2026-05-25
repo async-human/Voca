@@ -1,15 +1,23 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/cn';
 
 interface NavProps {
   email?: string;
+  signedIn?: boolean;
   onSignOut?: () => void;
 }
 
-export function Nav({ email, onSignOut }: NavProps) {
+const APP_TABS = [
+  { href: '/app/', label: 'Studio', match: (path: string) => path === '/app' || path === '/app/' },
+  { href: '/app/voice/', label: 'Your voice', match: (path: string) => path.startsWith('/app/voice') },
+] as const;
+
+export function Nav({ email, signedIn, onSignOut }: NavProps) {
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -26,10 +34,35 @@ export function Nav({ email, onSignOut }: NavProps) {
         scrolled ? 'border-b border-faint-2 bg-paper/92' : 'border-b border-transparent bg-paper/72',
       )}
     >
-      <Link href="/" className="flex items-baseline gap-1 no-underline">
-        <span className="font-serif text-[21px] font-bold tracking-tight text-ink">Vokal</span>
-        <span className="mb-0.5 h-[5px] w-[5px] rounded-full bg-accent" />
-      </Link>
+      <div className="flex items-center gap-5 md:gap-8">
+        <Link href="/" className="flex items-baseline gap-1 no-underline">
+          <span className="font-serif text-[21px] font-bold tracking-tight text-ink">Vokal</span>
+          <span className="mb-0.5 h-[5px] w-[5px] rounded-full bg-accent" />
+        </Link>
+
+        {signedIn && (
+          <nav className="flex items-center rounded-full border border-faint-2 bg-white/50 p-0.5">
+            {APP_TABS.map(({ href, label, match }) => {
+              const active = match(pathname);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={cn(
+                    'rounded-full px-3 py-1.5 text-[12px] font-medium no-underline transition-all duration-200 md:px-4',
+                    active
+                      ? 'bg-ink text-paper shadow-sm'
+                      : 'text-muted hover:text-ink',
+                  )}
+                >
+                  {label}
+                </Link>
+              );
+            })}
+          </nav>
+        )}
+      </div>
+
       <div className="flex items-center gap-3 md:gap-4">
         {email && (
           <span className="hidden max-w-[200px] truncate rounded-full border border-faint-2 bg-white/50 px-3.5 py-1.5 text-xs text-muted sm:inline">
@@ -48,12 +81,6 @@ export function Nav({ email, onSignOut }: NavProps) {
             Sign out
           </button>
         )}
-        <a
-          href="#your-voice"
-          className="hidden text-[13px] font-medium text-muted no-underline transition-colors hover:text-ink sm:inline"
-        >
-          Your voice
-        </a>
       </div>
     </header>
   );
