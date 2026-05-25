@@ -15,7 +15,9 @@ api/app/
     orchestrator.py       # Runs full pipeline
     steps.py              # Individual LLM steps
   prompts/                # Prompt templates
-  services/               # Supabase, Deepgram, OpenAI, email, sessions
+  services/               # Supabase, Deepgram, OpenAI, email, sessions, redis, pinecone
+  services/tasks.py         # Thread-pool pipeline runner (non-blocking)
+  services/voice_profile.py # Deep trait tracking + longitudinal patterns
   models/                 # Pydantic schemas
   utils/auth.py           # JWT verification
 ```
@@ -29,12 +31,24 @@ Audio → STT (Deepgram → Whisper fallback)
      → Generate draft (GPT-4o)
      → Self-critique (GPT-4o-mini)
      → Explain changes (GPT-4o)
-     → Save + update voice profile
+     → Save + update voice profile (traits, patterns, clarity trends)
+     → Upsert vector memory (Pinecone, optional)
+     → Delete audio from storage (privacy + cost)
 ```
+
+Pipeline runs in a **thread pool** so sync I/O does not block the FastAPI event loop.
+
+## Optional infrastructure
+
+| Service | Env vars | Purpose |
+|---------|----------|---------|
+| Redis | `REDIS_URL` | Session/profile cache, rate limits (in-memory fallback) |
+| Pinecone | `PINECONE_API_KEY`, `PINECONE_INDEX` | Vector memory for similar past sessions |
+| Cron | `CRON_SECRET` | `POST /api/v1/cron/weekly-insights` weekly email digest |
 
 ## Setup
 
-1. Run migrations: `001_waitlist.sql`, `002_core_product.sql`, `003_pipeline_fields.sql`
+1. Run migrations: `001`–`005` in Supabase
 2. Enable Supabase Email auth
 3. `pip install -r requirements.txt`
 4. Copy `.env.example` → `.env`
@@ -47,9 +61,10 @@ Audio → STT (Deepgram → Whisper fallback)
 | POST | `/api/v1/voice/process` | Yes |
 | GET | `/api/v1/sessions/{id}` | Yes |
 | GET | `/api/v1/sessions/{id}/events` | Yes (SSE) |
-| POST | `/api/v1/sessions/{id}/regenerate` | Yes |
+| POST | `/api/v1/sessions/{id}/regenerate` | Yes (rate limited) |
 | GET | `/api/v1/me` | Yes |
 | POST | `/api/v1/waitlist` | No |
+| POST | `/api/v1/cron/weekly-insights` | `X-Cron-Secret` header |
 
 Legacy routes `/api/waitlist`, `/api/recordings` remain for the landing page.
 

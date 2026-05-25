@@ -8,6 +8,20 @@ from app.prompts import (
     INTENT_PROMPT,
 )
 from app.services.openai_client import chat_json
+from app.services.voice_profile import format_voice_profile_for_prompt
+
+
+def _format_memory_context(memory_context: list[dict] | None) -> str:
+    if not memory_context:
+        return ""
+    lines = []
+    for item in memory_context:
+        meta = item.get("metadata") or {}
+        fmt = meta.get("format", "unknown")
+        score = meta.get("clarity_score")
+        suffix = f" (clarity {score})" if score else ""
+        lines.append(f"- Past {fmt} session{suffix}, relevance {item.get('score', 0):.2f}")
+    return "Similar past sessions:\n" + "\n".join(lines)
 
 
 def clean_transcript(transcript: str) -> str:
@@ -33,10 +47,21 @@ def extract_intent(*, transcript: str, output_format: str) -> dict:
     return result
 
 
-def generate_draft(*, clean_transcript: str, intent: dict, voice_profile: dict, output_format: str) -> dict:
+def generate_draft(
+    *,
+    clean_transcript: str,
+    intent: dict,
+    voice_profile: dict,
+    output_format: str,
+    memory_context: list[dict] | None = None,
+) -> dict:
     import json
 
-    profile_text = voice_profile.get("summary") or "No prior sessions — infer style from transcript."
+    profile_text = format_voice_profile_for_prompt(voice_profile)
+    memory_text = _format_memory_context(memory_context)
+    if memory_text:
+        profile_text = profile_text + "\n\n" + memory_text
+
     format_guide = FORMAT_GUIDES.get(output_format, FORMAT_GUIDES["email"])
 
     result = chat_json(
@@ -57,7 +82,7 @@ def generate_draft(*, clean_transcript: str, intent: dict, voice_profile: dict, 
 
 
 def critique_draft(*, draft: str, voice_profile: dict, output_format: str) -> dict:
-    profile_text = voice_profile.get("summary") or "Match the speaker's natural tone."
+    profile_text = format_voice_profile_for_prompt(voice_profile)
     result = chat_json(
         system="Return only valid JSON.",
         user=CRITIQUE_PROMPT.format(

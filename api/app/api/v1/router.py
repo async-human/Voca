@@ -4,20 +4,24 @@ import logging
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, Header, HTTPException, UploadFile, status
 from fastapi.responses import StreamingResponse
 from supabase import Client
 
 from app.config import settings
 from app.constants import FORMATS, MAX_AUDIO_BYTES, STORAGE_BUCKET, USE_CASES
-from app.utils.audio import is_allowed_audio_mime, normalize_audio_mime
 from app.models.session import RegenerateRequest
 from app.models.waitlist import WaitlistResponse, WaitlistSignup
-from app.pipeline.orchestrator import run_pipeline, run_regenerate
+from app.pipeline.orchestrator import run_regenerate
 from app.services.email import send_waitlist_emails
+from app.services.insights import send_weekly_insights
 from app.services.profiles import ensure_user_profile
+from app.services.rate_limit import rate_limit_regenerate, rate_limit_voice_process
+from app.services.redis_cache import cache_get, cache_set
 from app.services.sessions import get_session_with_generation, serialize_session
 from app.services.supabase import get_supabase_client
+from app.services.tasks import submit_pipeline
+from app.utils.audio import is_allowed_audio_mime, normalize_audio_mime
 from app.utils.auth import get_current_user
 from app.utils.errors import format_api_error
 
@@ -100,14 +104,21 @@ def waitlist_signup(
 @router.get("/me")
 def get_profile(user=Depends(get_current_user), supabase: Client = Depends(get_supabase_client)):
     try:
+        cache_key = f"profile:{user.id}"
+        cached = cache_get(cache_key)
+        if cached:
+            return cached
+
         result = supabase.table("profiles").select("id, email, voice_profile, created_at, updated_at").eq("id", user.id).maybe_single().execute()
         profile = result.data or {}
-        return {
+        payload = {
             "id": user.id,
             "email": user.email,
             "voice_profile": profile.get("voice_profile") or {},
             "created_at": profile.get("created_at"),
         }
+        cache_set(cache_key, payload, ttl_seconds=60)
+        return payload
     except Exception as exc:
         logger.exception("Profile error")
         raise HTTPException(status_code=500, detail="Could not fetch profile") from exc
@@ -174,7 +185,7 @@ async def _create_session_from_audio(
         raise HTTPException(status_code=500, detail="Could not create session")
 
     session = rows[0]
-    background_tasks.add_task(run_pipeline, supabase, recording_id)
+    submit_pipeline(supabase, recording_id)
     return session
 
 
@@ -186,6 +197,7 @@ async def process_voice(
     duration_ms: int | None = Form(default=None),
     user=Depends(get_current_user),
     supabase: Client = Depends(get_supabase_client),
+    _rate=Depends(rate_limit_voice_process),
 ):
     if not is_allowed_audio_mime(audio.content_type):
         raise HTTPException(status_code=400, detail=f"Unsupported audio type: {audio.content_type}")
@@ -302,6 +314,7 @@ def regenerate_session(
     payload: RegenerateRequest,
     user=Depends(get_current_user),
     supabase: Client = Depends(get_supabase_client),
+    _rate=Depends(rate_limit_regenerate),
 ):
     if not settings.openai_api_key:
         raise HTTPException(status_code=503, detail="AI processing is not configured yet.")
@@ -335,3 +348,19 @@ def regenerate_session(
             "created_at": generation.get("created_at"),
         },
     }
+
+
+# ─── Cron (weekly insights) ───
+
+@router.post("/cron/weekly-insights")
+def cron_weekly_insights(
+    x_cron_secret: str | None = Header(default=None),
+    supabase: Client = Depends(get_supabase_client),
+):
+    if not settings.cron_secret or x_cron_secret != settings.cron_secret:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    try:
+        return send_weekly_insights(supabase)
+    except Exception as exc:
+        logger.exception("Weekly insights cron error")
+        raise HTTPException(status_code=500, detail=str(exc)) from exc

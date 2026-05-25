@@ -102,7 +102,13 @@ Return JSON:
   ],
   "clarity_score": 85,
   "voice_signals": "1-2 sentence summary of this user's communication style",
-  "patterns_flagged": ["lead_burial", "hedging"]
+  "patterns_flagged": ["lead_burial", "hedging"],
+  "trait_scores": {{
+    "directness": 0.72,
+    "conciseness": 0.65,
+    "warmth": 0.58,
+    "formality": 0.61
+  }}
 }}
 
 Output format: {output_format}
