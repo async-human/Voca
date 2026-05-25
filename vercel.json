@@ -1,6 +1,12 @@
 {
   "buildCommand": "npm run build",
   "installCommand": "npm install",
+  "outputDirectory": "out",
+  "rewrites": [
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/app", "destination": "/app/index.html" },
+    { "source": "/app.html", "destination": "/app/index.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",

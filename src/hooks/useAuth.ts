@@ -31,7 +31,7 @@ export function useAuth() {
   }, [supabase]);
 
   async function signInWithEmail(email: string) {
-    const redirectTo = `${window.location.origin}/auth/callback?next=/app`;
+    const redirectTo = `${window.location.origin}/auth/callback?next=/app/`;
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: redirectTo },
