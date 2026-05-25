@@ -310,6 +310,13 @@ function stopRecording(){
   mediaRecorder?.stream?.getTracks().forEach(t=>t.stop());
 }
 
+function parseApiError(data, fallback = 'Request failed'){
+  if(!data?.detail) return fallback;
+  if(typeof data.detail === 'string') return data.detail;
+  if(Array.isArray(data.detail)) return data.detail.map(d => d.msg || d).join(', ');
+  return String(data.detail);
+}
+
 async function uploadRecording(blob){
   document.getElementById('resultCard').classList.add('hidden');
   renderSteps('transcribing');
@@ -330,7 +337,7 @@ async function uploadRecording(blob){
       body: fd
     });
     const data = await res.json();
-    if(!res.ok) throw new Error(data.detail || data.error || 'Upload failed');
+    if(!res.ok) throw new Error(parseApiError(data, 'Upload failed'));
     currentSessionId = data.session_id;
     pollSession(data.session_id);
   }catch(err){

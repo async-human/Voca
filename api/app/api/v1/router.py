@@ -15,9 +15,11 @@ from app.models.session import RegenerateRequest
 from app.models.waitlist import WaitlistResponse, WaitlistSignup
 from app.pipeline.orchestrator import run_pipeline, run_regenerate
 from app.services.email import send_waitlist_emails
+from app.services.profiles import ensure_user_profile
 from app.services.sessions import get_session_with_generation, serialize_session
 from app.services.supabase import get_supabase_client
 from app.utils.auth import get_current_user
+from app.utils.errors import format_api_error
 
 logger = logging.getLogger(__name__)
 
@@ -129,6 +131,17 @@ async def _create_session_from_audio(
     recording_id = str(uuid.uuid4())
     storage_path = f"{user_id}/{recording_id}.webm"
 
+    insert_payload = {
+        "id": recording_id,
+        "user_id": user_id,
+        "storage_path": storage_path,
+        "mime_type": content_type,
+        "duration_ms": duration_ms if duration_ms and duration_ms > 0 else None,
+        "format": output_format,
+        "status": "pending",
+        "pipeline_step": "queued",
+    }
+
     try:
         supabase.storage.from_(STORAGE_BUCKET).upload(
             storage_path,
@@ -137,28 +150,24 @@ async def _create_session_from_audio(
         )
     except Exception as exc:
         logger.exception("Storage upload error")
-        raise HTTPException(status_code=500, detail="Could not store audio file") from exc
+        raise HTTPException(status_code=500, detail=f"Could not store audio file: {format_api_error(exc)}") from exc
 
     try:
         result = (
             supabase.table("recordings")
-            .insert({
-                "id": recording_id,
-                "user_id": user_id,
-                "storage_path": storage_path,
-                "mime_type": content_type,
-                "duration_ms": duration_ms if duration_ms and duration_ms > 0 else None,
-                "format": output_format,
-                "status": "pending",
-                "pipeline_step": "queued",
-            })
+            .insert(insert_payload)
             .select("id, format, status, pipeline_step, created_at")
             .execute()
         )
     except Exception as exc:
         supabase.storage.from_(STORAGE_BUCKET).remove([storage_path])
         logger.exception("Insert recording error")
-        raise HTTPException(status_code=500, detail="Could not create session") from exc
+        message = format_api_error(exc)
+        if "pipeline_step" in message.lower() or "column" in message.lower():
+            message += " — run migration 003_pipeline_fields.sql in Supabase."
+        elif "foreign key" in message.lower() or "profiles" in message.lower():
+            message += " — profile missing for this user."
+        raise HTTPException(status_code=500, detail=f"Could not create session: {message}") from exc
 
     rows = result.data or []
     if not rows:
@@ -192,6 +201,8 @@ async def process_voice(
         raise HTTPException(status_code=400, detail="Audio file is empty.")
 
     mime_type = normalize_audio_mime(audio.content_type) or "audio/webm"
+
+    ensure_user_profile(supabase, user.id, user.email)
 
     session = await _create_session_from_audio(
         supabase=supabase,
