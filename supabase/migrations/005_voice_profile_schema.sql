@@ -1,18 +1,30 @@
--- Voice profile schema documentation (stored in profiles.voice_profile JSONB)
--- No DDL changes required — application writes this shape after migration 002.
+-- Run in Supabase SQL Editor after 002_core_product.sql (and 003, 004 if used)
+-- Migration 005: Deep voice profile schema
 --
--- {
---   "summary": "string",
---   "sessions_count": 0,
---   "traits": { "directness": 0.0, "conciseness": 0.0, "warmth": 0.0, "formality": 0.0 },
---   "pattern_counts": { "lead_burial": 3, "hedging": 5 },
---   "weak_patterns": ["lead_burial"],
---   "format_usage": { "email": 10, "slack": 4 },
---   "clarity_history": [82, 85, 88],
---   "avg_clarity_score": 85.0,
---   "longitudinal_insights": ["Recurring pattern (5x): hedging"],
---   "last_weekly_insight_at": "2026-05-25T00:00:00Z",
---   "updated_at": "2026-05-25T00:00:00Z"
--- }
+-- No new columns required — voice_profile is already jsonb on profiles.
+-- This backfills existing rows with the new nested shape the API expects.
 
-SELECT 1;
+-- Document the expected schema on the column
+comment on column public.profiles.voice_profile is
+  'User voice memory: summary, sessions_count, traits (directness/conciseness/warmth/formality), pattern_counts, format_usage, clarity_history, avg_clarity_score, longitudinal_insights, last_weekly_insight_at, weak_patterns, updated_at';
+
+-- Backfill existing profiles — preserve existing keys, add missing defaults
+update public.profiles
+set
+  voice_profile = voice_profile
+    || jsonb_build_object(
+      'traits', coalesce(voice_profile->'traits', '{}'::jsonb),
+      'pattern_counts', coalesce(voice_profile->'pattern_counts', '{}'::jsonb),
+      'format_usage', coalesce(voice_profile->'format_usage', '{}'::jsonb),
+      'clarity_history', coalesce(voice_profile->'clarity_history', '[]'::jsonb),
+      'longitudinal_insights', coalesce(voice_profile->'longitudinal_insights', '[]'::jsonb),
+      'weak_patterns', coalesce(voice_profile->'weak_patterns', '[]'::jsonb),
+      'sessions_count', coalesce((voice_profile->>'sessions_count')::int, 0)
+    ),
+  updated_at = now()
+where voice_profile is not null;
+
+-- Optional: index for users with active sessions (weekly insights query)
+create index if not exists profiles_voice_sessions_idx
+  on public.profiles (((voice_profile->>'sessions_count')::int))
+  where (voice_profile->>'sessions_count') is not null;

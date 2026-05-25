@@ -26,6 +26,10 @@ class Settings(BaseSettings):
 
     cron_secret: str | None = None
 
+    weekly_insights_enabled: bool = True
+    weekly_insights_day: str = "mon"  # mon,tue,... or mon-fri
+    weekly_insights_hour: int = 9  # UTC
+
     cors_origins: str = "http://localhost:3000,http://127.0.0.1:5500,https://vokal.work,https://www.vokal.work"
     port: int = 3001
 

@@ -1,4 +1,4 @@
-import type { SessionResult } from './types';
+import type { SessionResult, UserProfile } from './types';
 
 const API = process.env.NEXT_PUBLIC_VOCA_API_URL || 'http://localhost:3001';
 
@@ -57,4 +57,13 @@ export async function regenerateSession(
   });
   const data = await res.json();
   if (!res.ok) throw new Error(parseApiError(data));
+}
+
+export async function getProfile(token: string): Promise<UserProfile> {
+  const res = await fetch(`${API}/api/v1/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(parseApiError(data, 'Failed to load profile'));
+  return data;
 }

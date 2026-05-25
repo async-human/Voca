@@ -80,7 +80,6 @@ def cache_delete(key: str) -> None:
 
 
 def rate_limit_check(key: str, limit: int, window_seconds: int) -> tuple[bool, int]:
-    """Return (allowed, retry_after_seconds)."""
     client = _get_redis()
     if client:
         try:
@@ -107,3 +106,25 @@ def rate_limit_check(key: str, limit: int, window_seconds: int) -> tuple[bool, i
     if count > limit:
         return False, max(int(expires_at - now), 1)
     return True, 0
+
+
+def run_with_lock(lock_key: str, ttl_seconds: int, fn) -> bool:
+    """Run fn if lock acquired. Returns True if fn ran. Prevents duplicate jobs across replicas."""
+    client = _get_redis()
+    full_key = f"lock:{lock_key}"
+
+    if client:
+        try:
+            acquired = client.set(full_key, "1", nx=True, ex=ttl_seconds)
+            if not acquired:
+                return False
+            try:
+                fn()
+            finally:
+                client.delete(full_key)
+            return True
+        except Exception as exc:
+            logger.warning("Lock failed, running anyway: %s", exc)
+
+    fn()
+    return True

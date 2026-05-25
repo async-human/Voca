@@ -7,11 +7,13 @@ import { getSession, processVoice, regenerateSession } from '@/lib/api';
 import { formatMeta, type OutputFormat, type PipelineStep } from '@/lib/constants';
 import type { SessionResult } from '@/lib/types';
 import { useRecorder } from '@/hooks/useRecorder';
+import { useVoiceProfile } from '@/hooks/useVoiceProfile';
 import { FormatPicker, FORMAT_TIPS } from './FormatPicker';
 import { PipelineProgress } from './PipelineProgress';
 import { RecordButton } from './RecordButton';
 import { ResultPanel } from './ResultPanel';
 import { StudioSteps, getStudioPhase } from './StudioSteps';
+import { VoiceInsightsPanel } from './VoiceInsightsPanel';
 import { Waveform } from './Waveform';
 
 interface StudioCanvasProps {
@@ -32,9 +34,12 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
   const [result, setResult] = useState<SessionResult | null>(null);
   const [pipelineStep, setPipelineStep] = useState<PipelineStep | null>(null);
   const [regenerating, setRegenerating] = useState(false);
+  const [profileRefreshKey, setProfileRefreshKey] = useState(0);
   const sessionIdRef = useRef<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const setPhaseRef = useRef<(phase: 'idle' | 'recording' | 'processing') => void>(() => {});
+
+  const { profile, loading: profileLoading } = useVoiceProfile(accessToken, profileRefreshKey);
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -57,6 +62,7 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
           if (data.status === 'complete') {
             setResult(data);
             finishProcessing();
+            setProfileRefreshKey((k) => k + 1);
             return;
           }
           if (data.status === 'failed') {
@@ -158,6 +164,7 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
       const data = await getSession(accessToken, id);
       setResult(data);
       showToast(`Switched to ${formatMeta(nextFormat).name}`);
+      setProfileRefreshKey((k) => k + 1);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Regenerate failed');
     } finally {
@@ -178,6 +185,13 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
           {phase === 'result' && 'Review, copy, or try a different format from the same recording.'}
         </p>
       </motion.div>
+
+      <div id="your-voice">
+        <VoiceInsightsPanel
+          voiceProfile={profile?.voice_profile ?? {}}
+          loading={profileLoading}
+        />
+      </div>
 
       <StudioSteps phase={phase} />
 

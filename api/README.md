@@ -44,7 +44,9 @@ Pipeline runs in a **thread pool** so sync I/O does not block the FastAPI event 
 |---------|----------|---------|
 | Redis | `REDIS_URL` | Session/profile cache, rate limits (in-memory fallback) |
 | Pinecone | `PINECONE_API_KEY`, `PINECONE_INDEX` | Vector memory for similar past sessions |
-| Cron | `CRON_SECRET` | `POST /api/v1/cron/weekly-insights` weekly email digest |
+| Cron | `CRON_SECRET` | Optional manual trigger for weekly insights endpoint |
+
+**Weekly insights run automatically** every Monday 09:00 UTC via APScheduler when `WEEKLY_INSIGHTS_ENABLED=true` (default). No external cron job required. Set `REDIS_URL` if you run multiple Railway replicas so only one instance sends emails.
 
 ## Setup
 

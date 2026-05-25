@@ -48,6 +48,12 @@ export function Nav({ email, onSignOut }: NavProps) {
             Sign out
           </button>
         )}
+        <a
+          href="#your-voice"
+          className="hidden text-[13px] font-medium text-muted no-underline transition-colors hover:text-ink sm:inline"
+        >
+          Your voice
+        </a>
       </div>
     </header>
   );

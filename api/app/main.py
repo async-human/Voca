@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 import logging
 
 from fastapi import FastAPI
@@ -6,10 +7,25 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.legacy import legacy
 from app.api.v1.router import router as v1_router
 from app.config import settings
+from app.services.scheduler import start_scheduler, stop_scheduler
 
 logging.basicConfig(level=logging.INFO)
 
-app = FastAPI(title="Vokal API", version="3.0.0", docs_url="/docs", redoc_url="/redoc")
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    start_scheduler()
+    yield
+    stop_scheduler()
+
+
+app = FastAPI(
+    title="Vokal API",
+    version="3.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    lifespan=lifespan,
+)
 
 app.add_middleware(
     CORSMiddleware,
