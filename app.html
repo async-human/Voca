@@ -133,7 +133,7 @@ const STEP_LABELS = {
   critiquing:'Self-critique pass', explaining:'Explaining changes', complete:'Done'
 };
 
-let supabase, session, mediaRecorder, chunks = [], recording = false;
+let sbClient, session, mediaRecorder, chunks = [], recording = false;
 let timerInterval, seconds = 0, selectedFormat = 'email', currentSessionId = null;
 
 const authCard = document.getElementById('authCard');
@@ -152,14 +152,14 @@ async function init(){
     authMsg.textContent = 'Missing Supabase config. Set SUPABASE_URL and SUPABASE_ANON_KEY in Vercel env vars.';
     return;
   }
-  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const { data: { session: s } } = await supabase.auth.getSession();
+  const { data: { session: s } } = await sbClient.auth.getSession();
   if(s) onAuth(s);
-  supabase.auth.onAuthStateChange((_e, s) => { if(s) onAuth(s); });
+  sbClient.auth.onAuthStateChange((_e, s) => { if(s) onAuth(s); });
 
   if(window.location.hash.includes('access_token')){
-    await supabase.auth.getSession();
+    await sbClient.auth.getSession();
     history.replaceState(null, '', window.location.pathname);
   }
 }
@@ -175,7 +175,7 @@ document.getElementById('loginBtn').addEventListener('click', async ()=>{
   const email = document.getElementById('email').value.trim();
   if(!email) return;
   authMsg.textContent = 'Sending link…';
-  const { error } = await supabase.auth.signInWithOtp({
+  const { error } = await sbClient.auth.signInWithOtp({
     email,
     options: { emailRedirectTo: window.location.origin + '/app.html' }
   });
