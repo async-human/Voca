@@ -33,6 +33,18 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:3000,http://127.0.0.1:5500,https://vokal.work,https://www.vokal.work"
     port: int = 3001
 
+    app_frontend_url: str = "https://vokal.work"
+    credentials_encryption_key: str | None = None
+
+    google_client_id: str | None = None
+    google_client_secret: str | None = None
+    google_redirect_uri: str | None = None
+
+    notion_client_id: str | None = None
+    notion_client_secret: str | None = None
+    notion_redirect_uri: str | None = None
+    notion_api_version: str = "2022-06-28"
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

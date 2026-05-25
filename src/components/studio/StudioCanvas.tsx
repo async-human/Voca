@@ -3,10 +3,13 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/cn';
-import { getSession, processVoice, regenerateSession } from '@/lib/api';
+import { getSession, processVoice, regenerateSession, deliverSession } from '@/lib/api';
 import { formatMeta, type OutputFormat, type PipelineStep } from '@/lib/constants';
+import type { DeliveryDestination } from '@/lib/delivery';
 import type { SessionResult } from '@/lib/types';
+import { useConnections } from '@/hooks/useConnections';
 import { useRecorder } from '@/hooks/useRecorder';
+import { DestinationPicker, destinationSummary } from './DestinationPicker';
 import { FormatPicker, FORMAT_TIPS } from './FormatPicker';
 import { PipelineProgress } from './PipelineProgress';
 import { RecordButton } from './RecordButton';
@@ -32,9 +35,16 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
   const [result, setResult] = useState<SessionResult | null>(null);
   const [pipelineStep, setPipelineStep] = useState<PipelineStep | null>(null);
   const [regenerating, setRegenerating] = useState(false);
+  const [delivering, setDelivering] = useState(false);
+  const [delivered, setDelivered] = useState(false);
+  const [deliveryDestination, setDeliveryDestination] = useState<DeliveryDestination | null>(null);
+  const [recipientEmail, setRecipientEmail] = useState('');
+  const [editedOutput, setEditedOutput] = useState('');
   const sessionIdRef = useRef<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const setPhaseRef = useRef<(phase: 'idle' | 'recording' | 'processing') => void>(() => {});
+
+  const { connections } = useConnections(accessToken);
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -56,6 +66,8 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
           }
           if (data.status === 'complete') {
             setResult(data);
+            setEditedOutput(data.generation?.output_text ?? '');
+            setDelivered(false);
             finishProcessing();
             return;
           }
@@ -80,6 +92,8 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
       setError('');
       setResult(null);
       setCopied(false);
+      setDelivered(false);
+      setEditedOutput('');
       setPipelineStep('transcribing');
       try {
         const { session_id } = await processVoice(accessToken, blob, format, durationMs);
@@ -131,12 +145,14 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
     setPipelineStep(null);
     setError('');
     setCopied(false);
+    setDelivered(false);
+    setEditedOutput('');
     recorder.reset();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   async function handleCopy() {
-    const text = result?.generation?.output_text;
+    const text = editedOutput || result?.generation?.output_text;
     if (!text) return;
     try {
       await navigator.clipboard.writeText(text);
@@ -157,11 +173,40 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
       await regenerateSession(accessToken, id, nextFormat);
       const data = await getSession(accessToken, id);
       setResult(data);
+      setEditedOutput(data.generation?.output_text ?? '');
       showToast(`Switched to ${formatMeta(nextFormat).name}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Regenerate failed');
     } finally {
       setRegenerating(false);
+    }
+  }
+
+  async function handleDeliver() {
+    const id = sessionIdRef.current;
+    if (!id || !deliveryDestination) return;
+    if (deliveryDestination.platform === 'gmail' && !deliveryDestination.to?.trim()) {
+      setError('Enter a recipient email for Gmail');
+      return;
+    }
+
+    setDelivering(true);
+    setError('');
+    try {
+      const { connection_id, platform: _p, ...destFields } = deliveryDestination;
+      const res = await deliverSession(
+        accessToken,
+        id,
+        connection_id,
+        destFields,
+        editedOutput || result?.generation?.output_text,
+      );
+      setDelivered(true);
+      showToast(res.message || 'Sent!');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Send failed');
+    } finally {
+      setDelivering(false);
     }
   }
 
@@ -175,7 +220,9 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
           {phase === 'setup' && 'Pick a format, then speak naturally for up to 60 seconds.'}
           {phase === 'recording' && 'Speak like you\'re talking to a colleague. We\'ll handle the rest.'}
           {phase === 'processing' && 'Transcribing, structuring, and refining in your voice.'}
-          {phase === 'result' && 'Review, copy, or try a different format from the same recording.'}
+          {phase === 'result' && (deliveryDestination
+            ? `Review your draft, then send to ${destinationSummary(deliveryDestination, recipientEmail) ?? 'your destination'}.`
+            : 'Review, copy, send to a connected app, or try another format.')}
         </p>
       </motion.div>
 
@@ -291,10 +338,24 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
           <div className="mt-5">
             <ResultPanel
               data={result}
+              format={result.generation?.format ?? format}
+              connections={connections}
+              outputText={editedOutput}
+              onOutputChange={setEditedOutput}
+              deliveryDestination={deliveryDestination}
+              onDestinationChange={(dest) => {
+                setDeliveryDestination(dest);
+                setDelivered(false);
+              }}
+              recipientEmail={recipientEmail}
+              onRecipientEmailChange={setRecipientEmail}
               onCopy={handleCopy}
               onNew={handleNew}
               onRegenerate={handleRegenerate}
+              onDeliver={deliveryDestination ? handleDeliver : undefined}
               regenerating={regenerating}
+              delivering={delivering}
+              delivered={delivered}
               copied={copied}
             />
           </div>

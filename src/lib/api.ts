@@ -1,4 +1,5 @@
 import type { SessionResult, SessionSummary, UserProfile } from './types';
+import type { DeliverResult, DeliveryDestination, PlatformConnection } from './delivery';
 
 const API = process.env.NEXT_PUBLIC_VOCA_API_URL || 'http://localhost:3001';
 
@@ -73,6 +74,91 @@ export async function listSessions(
   const data = await res.json();
   if (!res.ok) throw new Error(parseApiError(data, 'Failed to load history'));
   return data.sessions ?? [];
+}
+
+export async function deliverSession(
+  token: string,
+  sessionId: string,
+  connectionId: string,
+  destination: Omit<DeliveryDestination, 'connection_id' | 'platform'>,
+  outputText?: string,
+): Promise<DeliverResult> {
+  const res = await fetch(`${API}/api/v1/sessions/${sessionId}/deliver`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      connection_id: connectionId,
+      destination,
+      output_text: outputText,
+    }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(parseApiError(data, 'Delivery failed'));
+  return data;
+}
+
+export async function listConnections(token: string): Promise<PlatformConnection[]> {
+  const res = await fetch(`${API}/api/v1/connections`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(parseApiError(data, 'Failed to load connections'));
+  return data.connections ?? [];
+}
+
+export async function connectZapier(token: string, webhookUrl: string, label = 'Zapier'): Promise<PlatformConnection> {
+  const res = await fetch(`${API}/api/v1/connections/zapier`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ webhook_url: webhookUrl, label }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(parseApiError(data));
+  return data;
+}
+
+export async function startOAuth(token: string, platform: 'gmail' | 'notion'): Promise<string> {
+  const res = await fetch(`${API}/api/v1/connections/oauth/${platform}/start`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(parseApiError(data));
+  return data.url;
+}
+
+export async function disconnectConnection(token: string, connectionId: string): Promise<void> {
+  const res = await fetch(`${API}/api/v1/connections/${connectionId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(parseApiError(data));
+  }
+}
+
+export async function updateNotionDatabase(
+  token: string,
+  connectionId: string,
+  databaseId: string,
+): Promise<PlatformConnection> {
+  const res = await fetch(`${API}/api/v1/connections/${connectionId}/notion`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ database_id: databaseId }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(parseApiError(data));
+  return data;
 }
 
 export async function getProfile(token: string): Promise<UserProfile> {
