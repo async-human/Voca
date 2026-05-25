@@ -7,9 +7,11 @@ import { getSession, processVoice, regenerateSession } from '@/lib/api';
 import { formatMeta, type OutputFormat, type PipelineStep } from '@/lib/constants';
 import type { SessionResult } from '@/lib/types';
 import { useRecorder } from '@/hooks/useRecorder';
-import { FormatPicker, FormatPickerMotion } from './FormatPicker';
+import { FormatPicker, FORMAT_TIPS } from './FormatPicker';
 import { PipelineProgress } from './PipelineProgress';
+import { RecordButton } from './RecordButton';
 import { ResultPanel } from './ResultPanel';
+import { StudioSteps, getStudioPhase } from './StudioSteps';
 import { Waveform } from './Waveform';
 
 interface StudioCanvasProps {
@@ -26,6 +28,7 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
   const [format, setFormat] = useState<OutputFormat>('email');
   const [error, setError] = useState('');
   const [toast, setToast] = useState('');
+  const [copied, setCopied] = useState(false);
   const [result, setResult] = useState<SessionResult | null>(null);
   const [pipelineStep, setPipelineStep] = useState<PipelineStep | null>(null);
   const [regenerating, setRegenerating] = useState(false);
@@ -76,6 +79,7 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
     async (blob: Blob, durationMs: number) => {
       setError('');
       setResult(null);
+      setCopied(false);
       setPipelineStep('transcribing');
       try {
         const { session_id } = await processVoice(accessToken, blob, format, durationMs);
@@ -102,6 +106,7 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
   const modeLabel = formatMeta(format);
   const isRecording = recorder.phase === 'recording';
   const isProcessing = recorder.phase === 'processing' || pipelineStep !== null;
+  const phase = getStudioPhase(isRecording, isProcessing, !!result);
 
   async function handleRecordClick() {
     if (isProcessing) return;
@@ -111,6 +116,7 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
     }
     setError('');
     setResult(null);
+    setCopied(false);
     setPipelineStep(null);
     try {
       await recorder.startRecording();
@@ -124,6 +130,7 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
     setResult(null);
     setPipelineStep(null);
     setError('');
+    setCopied(false);
     recorder.reset();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -133,7 +140,9 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
     if (!text) return;
     try {
       await navigator.clipboard.writeText(text);
+      setCopied(true);
       showToast('Copied to clipboard');
+      setTimeout(() => setCopied(false), 2500);
     } catch {
       showToast('Copy failed');
     }
@@ -143,12 +152,12 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
     const id = sessionIdRef.current;
     if (!id) return;
     setRegenerating(true);
-    showToast('Regenerating…');
+    setCopied(false);
     try {
       await regenerateSession(accessToken, id, nextFormat);
       const data = await getSession(accessToken, id);
       setResult(data);
-      showToast('Updated');
+      showToast(`Switched to ${formatMeta(nextFormat).name}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Regenerate failed');
     } finally {
@@ -156,129 +165,150 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
     }
   }
 
-  const hint = isRecording ? 'Tap to stop' : isProcessing ? 'Processing…' : 'Tap to record';
-
   return (
-    <>
-      <div
-        className="pointer-events-none fixed inset-0 z-0"
-        aria-hidden
-        style={{
-          backgroundImage: 'radial-gradient(rgba(28,24,20,.038) 1px, transparent 1px)',
-          backgroundSize: '22px 22px',
-        }}
-      />
+    <div className="relative z-10 mx-auto max-w-[680px] px-4 pb-24 pt-[96px] md:px-6">
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-2">
+        <h1 className="font-serif text-[clamp(26px,5vw,34px)] font-bold tracking-tight text-ink">
+          {phase === 'result' ? 'Done.' : phase === 'processing' ? 'Polishing…' : phase === 'recording' ? 'Listening…' : 'What are you writing?'}
+        </h1>
+        <p className="mt-1.5 text-sm text-muted">
+          {phase === 'setup' && 'Pick a format, then speak naturally for up to 60 seconds.'}
+          {phase === 'recording' && 'Speak like you\'re talking to a colleague. We\'ll handle the rest.'}
+          {phase === 'processing' && 'Transcribing, structuring, and refining in your voice.'}
+          {phase === 'result' && 'Review, copy, or try a different format from the same recording.'}
+        </p>
+      </motion.div>
 
-      <div className="relative z-10 mx-auto max-w-[1040px] px-4 pb-20 pt-[100px] md:px-6">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-          <h1 className="font-serif text-[clamp(24px,4vw,32px)] font-bold tracking-tight">Studio</h1>
-          <p className="mt-2 text-sm leading-relaxed text-muted">
-            Speak naturally for up to 60 seconds. Vokal handles structure, tone, and clarity.
-          </p>
-        </motion.div>
+      <StudioSteps phase={phase} />
 
-        <div className="grid items-start gap-5 lg:grid-cols-[220px_1fr]">
-          <FormatPickerMotion value={format} onChange={setFormat} disabled={isRecording || isProcessing} />
+      {/* Format picker — visible in setup & result (to switch before re-record) */}
+      <AnimatePresence>
+        {(phase === 'setup' || phase === 'result') && !isRecording && !isProcessing && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mb-5 overflow-hidden"
+          >
+            <FormatPicker value={format} onChange={setFormat} variant="light" />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-          <div>
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.12, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-              className="studio-card-glow relative overflow-hidden rounded-[24px] bg-ink px-6 py-8 md:px-8 md:py-9"
-            >
-              <div
-                className="pointer-events-none absolute inset-0 rounded-[24px] opacity-55"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E")`,
-                }}
+      {/* Main studio card */}
+      <motion.div
+        layout
+        className={cn(
+          'studio-card-glow relative overflow-hidden rounded-[24px] bg-ink transition-all duration-500',
+          phase === 'result' ? 'px-5 py-5 md:px-6 md:py-6' : 'px-6 py-8 md:px-8 md:py-9',
+          phase === 'result' && 'opacity-60',
+        )}
+      >
+        <div
+          className="pointer-events-none absolute inset-0 opacity-55"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E")`,
+          }}
+        />
+
+        <div className="relative z-10">
+          {/* Format on dark card during recording/processing */}
+          {(phase === 'recording' || phase === 'processing') && (
+            <div className="mb-5">
+              <FormatPicker value={format} onChange={setFormat} disabled variant="dark" />
+            </div>
+          )}
+
+          <div className={cn('flex items-center justify-between', phase === 'result' ? 'mb-3' : 'mb-7')}>
+            <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/7 px-3.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-white/50">
+              <span className={cn('mode-pip-glow h-[5px] w-[5px] rounded-full', isRecording ? 'bg-red-400' : 'bg-accent-2')} />
+              {(isRecording ? 'Recording' : isProcessing ? 'Processing' : 'Ready')} · {modeLabel.name}
+            </div>
+            <div className={cn(
+              'font-serif tracking-wide text-white/92 transition-all duration-300',
+              phase === 'result' ? 'text-xl' : 'text-[32px]',
+              isRecording && 'text-accent-2',
+            )}>
+              {formatTime(recorder.seconds)}
+            </div>
+          </div>
+
+          {phase !== 'result' && (
+            <>
+              <Waveform levels={recorder.levels} live={isRecording} />
+
+              <RecordButton
+                recording={isRecording}
+                processing={isProcessing}
+                onClick={handleRecordClick}
               />
 
-              <div className="relative z-10">
-                <div className="mb-5 hidden md:block">
-                  <FormatPicker
-                    variant="inline"
-                    value={format}
-                    onChange={setFormat}
-                    disabled={isRecording || isProcessing}
-                  />
-                </div>
-
-                <div className="mb-7 flex items-center justify-between">
-                  <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/7 px-3.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-white/50">
-                    <span className={cn('mode-pip-glow h-[5px] w-[5px] rounded-full bg-accent-2', isRecording && 'bg-red-400')} />
-                    {(isRecording ? 'Recording' : isProcessing ? 'Processing' : 'Ready')} · {modeLabel.name}
-                  </div>
-                  <div className={cn('font-serif text-[32px] tracking-wide text-white/92 transition-colors', isRecording && 'text-accent-2')}>
-                    {formatTime(recorder.seconds)}
-                  </div>
-                </div>
-
-                <Waveform levels={recorder.levels} live={isRecording} />
-
-                <div className="flex flex-col items-center gap-3.5">
-                  <button
-                    type="button"
-                    aria-label={isRecording ? 'Stop recording' : 'Start recording'}
-                    disabled={isProcessing}
-                    onClick={handleRecordClick}
-                    className={cn(
-                      'flex h-[72px] w-[72px] cursor-pointer items-center justify-center rounded-full border-none',
-                      'bg-gradient-to-br from-accent-2 to-accent shadow-[0_8px_32px_rgba(191,59,42,.4),inset_0_0_0_1px_rgba(255,255,255,.12)]',
-                      'transition-transform hover:scale-105 active:scale-[0.98]',
-                      isRecording && 'rec-pulse',
-                      isProcessing && 'cursor-not-allowed opacity-60',
-                    )}
-                  >
-                    {isRecording ? (
-                      <span className="block h-4 w-4 rounded-[3px] bg-white" />
-                    ) : (
-                      <span className="block h-4 w-4 rounded-full bg-white" />
-                    )}
-                  </button>
-                  <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-white/35">{hint}</span>
-                </div>
-
-                <AnimatePresence>{pipelineStep && <PipelineProgress current={pipelineStep} />}</AnimatePresence>
-              </div>
-            </motion.div>
-
-            <AnimatePresence>
-              {error && (
+              {/* Contextual tip */}
+              {phase === 'setup' && (
                 <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="mt-4 rounded-[14px] border border-accent/15 bg-accent/8 px-[18px] py-3.5 text-sm leading-relaxed text-accent-2"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  className="mt-6 rounded-xl border border-white/8 bg-white/4 px-4 py-3"
                 >
-                  {error}
+                  <p className="font-mono text-[9px] uppercase tracking-[0.1em] text-white/30">Tip</p>
+                  <p className="mt-1 text-[13px] leading-relaxed text-white/45">{FORMAT_TIPS[format]}</p>
                 </motion.div>
               )}
-            </AnimatePresence>
 
-            <AnimatePresence>
-              {result && (
-                <ResultPanel
-                  data={result}
-                  onCopy={handleCopy}
-                  onNew={handleNew}
-                  onRegenerate={handleRegenerate}
-                  regenerating={regenerating}
-                />
-              )}
-            </AnimatePresence>
-          </div>
+              <AnimatePresence>
+                {pipelineStep && <PipelineProgress current={pipelineStep} />}
+              </AnimatePresence>
+            </>
+          )}
+
+          {phase === 'result' && (
+            <p className="text-center font-mono text-[10px] uppercase tracking-[0.1em] text-white/30">
+              Recording complete · {formatTime(recorder.seconds || 0)}
+            </p>
+          )}
         </div>
-      </div>
+      </motion.div>
 
+      {/* Error */}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="mt-4 rounded-[14px] border border-accent/15 bg-accent/8 px-4 py-3.5 text-sm leading-relaxed text-accent-2"
+          >
+            {error}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Result */}
+      <AnimatePresence>
+        {result && (
+          <div className="mt-5">
+            <ResultPanel
+              data={result}
+              onCopy={handleCopy}
+              onNew={handleNew}
+              onRegenerate={handleRegenerate}
+              regenerating={regenerating}
+              copied={copied}
+            />
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Toast */}
       <div
         className={cn(
-          'fixed bottom-7 left-1/2 z-[300] -translate-x-1/2 rounded-full bg-ink px-[22px] py-2.5 text-[13px] font-medium text-paper shadow-[0_12px_40px_rgba(28,24,20,.2)] transition-all duration-300',
+          'fixed bottom-7 left-1/2 z-[300] -translate-x-1/2 rounded-full bg-ink px-5 py-2.5 text-[13px] font-medium text-paper shadow-[0_12px_40px_rgba(28,24,20,.2)] transition-all duration-300',
           toast ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-5 opacity-0',
         )}
       >
         {toast}
       </div>
-    </>
+    </div>
   );
 }
