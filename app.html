@@ -318,7 +318,8 @@ async function uploadRecording(blob){
   if(!token){ showError('Not signed in.'); return; }
 
   const fd = new FormData();
-  fd.append('audio', blob, 'recording.webm');
+  const file = new File([blob], 'recording.webm', { type: 'audio/webm' });
+  fd.append('audio', file);
   fd.append('format', selectedFormat);
   fd.append('duration_ms', String(seconds * 1000));
 

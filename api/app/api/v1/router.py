@@ -9,7 +9,8 @@ from fastapi.responses import StreamingResponse
 from supabase import Client
 
 from app.config import settings
-from app.constants import ALLOWED_AUDIO_TYPES, FORMATS, MAX_AUDIO_BYTES, STORAGE_BUCKET, USE_CASES
+from app.constants import FORMATS, MAX_AUDIO_BYTES, STORAGE_BUCKET, USE_CASES
+from app.utils.audio import is_allowed_audio_mime, normalize_audio_mime
 from app.models.session import RegenerateRequest
 from app.models.waitlist import WaitlistResponse, WaitlistSignup
 from app.pipeline.orchestrator import run_pipeline, run_regenerate
@@ -177,7 +178,7 @@ async def process_voice(
     user=Depends(get_current_user),
     supabase: Client = Depends(get_supabase_client),
 ):
-    if not audio.content_type or audio.content_type not in ALLOWED_AUDIO_TYPES:
+    if not is_allowed_audio_mime(audio.content_type):
         raise HTTPException(status_code=400, detail=f"Unsupported audio type: {audio.content_type}")
 
     normalized_format = format.lower()
@@ -190,11 +191,13 @@ async def process_voice(
     if not audio_bytes:
         raise HTTPException(status_code=400, detail="Audio file is empty.")
 
+    mime_type = normalize_audio_mime(audio.content_type) or "audio/webm"
+
     session = await _create_session_from_audio(
         supabase=supabase,
         user_id=user.id,
         audio_bytes=audio_bytes,
-        content_type=audio.content_type,
+        content_type=mime_type,
         output_format=normalized_format,
         duration_ms=duration_ms,
         background_tasks=background_tasks,
