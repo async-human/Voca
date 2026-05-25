@@ -1,0 +1,26 @@
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    supabase_url: str
+    supabase_service_role_key: str
+
+    openai_api_key: str | None = None
+    openai_transcribe_model: str = "whisper-1"
+    openai_generation_model: str = "gpt-4o-mini"
+
+    resend_api_key: str | None = None
+    resend_from_email: str | None = None
+    notify_email: str = "info@vokal.work"
+
+    cors_origins: str = "http://localhost:3000,http://127.0.0.1:5500"
+    port: int = 3001
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+
+settings = Settings()
