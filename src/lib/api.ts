@@ -1,6 +1,7 @@
 import type { SessionResult, SessionSummary, UserProfile } from './types';
 import type { DeliverResult, DeliveryDestination, PlatformConnection } from './delivery';
 import { audioFileFromBlob } from './audio';
+import type { StoredUser } from './auth';
 
 const API = process.env.NEXT_PUBLIC_VOCA_API_URL || 'http://localhost:3001';
 
@@ -167,6 +168,36 @@ export async function updateNotionDatabase(
   const data = await res.json();
   if (!res.ok) throw new Error(parseApiError(data));
   return data;
+}
+
+export async function getGoogleAuthStartUrl(next = '/app/'): Promise<string> {
+  const res = await fetch(`${API}/api/v1/auth/google/start?next=${encodeURIComponent(next)}`);
+  const data = await res.json();
+  if (!res.ok) throw new Error(parseApiError(data, 'Could not start Google sign-in'));
+  return data.url as string;
+}
+
+export async function completeGoogleAuth(
+  code: string,
+  state: string | null,
+): Promise<{ access_token: string; user: StoredUser; next: string }> {
+  const res = await fetch(`${API}/api/v1/auth/google/complete`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code, state }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(parseApiError(data, 'Google sign-in failed'));
+  return data;
+}
+
+export async function fetchAuthMe(token: string): Promise<StoredUser> {
+  const res = await fetch(`${API}/api/v1/auth/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(parseApiError(data));
+  return data as StoredUser;
 }
 
 export async function getProfile(token: string): Promise<UserProfile> {

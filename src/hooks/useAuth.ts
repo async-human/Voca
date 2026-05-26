@@ -1,78 +1,67 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import type { Session } from '@supabase/supabase-js';
-import { createClient, hasSupabaseConfig } from '@/lib/supabase/client';
-import { authCallbackUrl } from '@/lib/site';
+import { useCallback, useEffect, useState } from 'react';
+import { completeGoogleAuth, fetchAuthMe, getGoogleAuthStartUrl } from '@/lib/api';
+import { clearSession, getAccessToken, getStoredUser, setSession, type StoredUser } from '@/lib/auth';
 
-function redirectToAuthCallback() {
-  const params = new URLSearchParams({ next: '/app/' });
-  const search = window.location.search.startsWith('?') ? window.location.search.slice(1) : window.location.search;
-  if (search) {
-    new URLSearchParams(search).forEach((v, k) => {
-      if (k !== 'next') params.set(k, v);
-    });
-  }
-  const dest = `/auth/callback?${params.toString()}${window.location.hash}`;
-  window.location.replace(dest);
+export interface AuthSession {
+  access_token: string;
+  user: StoredUser;
 }
 
 export function useAuth() {
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSessionState] = useState<AuthSession | null>(null);
   const [loading, setLoading] = useState(true);
-  const [authMsg, setAuthMsg] = useState('Loading…');
-  const supabase = useMemo(() => createClient(), []);
+  const [authMsg, setAuthMsg] = useState('');
+
+  const applySession = useCallback((accessToken: string, user: StoredUser) => {
+    setSession(accessToken, user);
+    setSessionState({ access_token: accessToken, user });
+  }, []);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && !window.location.pathname.includes('/auth/callback')) {
-      const hash = window.location.hash || '';
-      const search = window.location.search || '';
-      if (
-        hash.includes('access_token') ||
-        search.includes('code=') ||
-        search.includes('token_hash=')
-      ) {
-        redirectToAuthCallback();
-        return;
-      }
-    }
-
-    if (!hasSupabaseConfig()) {
-      setAuthMsg('Missing Supabase config. Add env vars in Vercel and redeploy.');
+    const token = getAccessToken();
+    const stored = getStoredUser();
+    if (!token) {
       setLoading(false);
       return;
     }
 
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
-      setAuthMsg('');
-      setLoading(false);
-    });
+    if (stored) {
+      setSessionState({ access_token: token, user: stored });
+    }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
-      setSession(s);
-      if (s) setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [supabase]);
+    fetchAuthMe(token)
+      .then((user) => {
+        applySession(token, user);
+        setAuthMsg('');
+      })
+      .catch(() => {
+        clearSession();
+        setSessionState(null);
+        setAuthMsg('Session expired. Sign in again.');
+      })
+      .finally(() => setLoading(false));
+  }, [applySession]);
 
   async function signInWithGoogle() {
-    const redirectTo = authCallbackUrl('/app/');
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo,
-        queryParams: { prompt: 'select_account' },
-      },
-    });
-    if (error) throw error;
+    const url = await getGoogleAuthStartUrl('/app/');
+    if (url.includes('supabase.co')) {
+      throw new Error(
+        'This site is still using old Supabase login. Redeploy Vercel from the latest code.',
+      );
+    }
+    if (!url.includes('accounts.google.com')) {
+      throw new Error('Invalid sign-in URL from API. Check NEXT_PUBLIC_VOCA_API_URL and Railway JWT_SECRET.');
+    }
+    window.location.href = url;
   }
 
-  async function signOut() {
-    await supabase.auth.signOut();
+  function signOut() {
+    clearSession();
+    setSessionState(null);
     setAuthMsg('');
   }
 
-  return { session, loading, authMsg, setAuthMsg, signInWithGoogle, signOut };
+  return { session, loading, authMsg, setAuthMsg, signInWithGoogle, signOut, applySession };
 }

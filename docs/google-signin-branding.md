@@ -1,56 +1,59 @@
-# Show "Vokal" / vokal.work on Google sign-in (not supabase.co)
+# Google sign-in for Vokal Studio (Option B — implemented)
 
-When you use **Supabase Google OAuth**, Google shows **"Sign in to `your-project.supabase.co`"** because the OAuth redirect URL is:
+Studio login uses **your Google OAuth client** and redirects to **`https://www.vokal.work/auth/callback`** (not Supabase). Google should show **vokal.work** on the consent screen.
 
+## Flow
+
+1. User clicks **Sign in with Google** on `/app/`
+2. Browser opens Google with `redirect_uri=https://www.vokal.work/auth/callback`
+3. Google returns to `/auth/callback?code=...`
+4. Frontend calls `POST /api/v1/auth/google/complete` on Railway
+5. API creates/finds user in Supabase `auth.users`, returns **JWT**
+6. Frontend stores JWT and opens Studio
+
+Gmail **Connect** still uses a separate redirect: `…/api/v1/connections/oauth/gmail/callback`.
+
+## Google Cloud — one Web client, two redirect URIs
+
+| URI | Purpose |
+|-----|---------|
+| `https://www.vokal.work/auth/callback` | Studio login |
+| `https://YOUR-API.up.railway.app/api/v1/connections/oauth/gmail/callback` | Send via Gmail |
+
+**Authorized JavaScript origins:** `https://www.vokal.work`, `https://vokal.work`, `http://localhost:3000`
+
+**Branding:** App name `Vokal`, authorized domain `vokal.work`
+
+## Railway env vars
+
+```env
+JWT_SECRET=<random 48+ chars>
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+APP_FRONTEND_URL=https://www.vokal.work
+GOOGLE_LOGIN_REDIRECT_URI=https://www.vokal.work/auth/callback
+GOOGLE_REDIRECT_URI=https://YOUR-API.up.railway.app/api/v1/connections/oauth/gmail/callback
 ```
-https://<project-ref>.supabase.co/auth/v1/callback
+
+Generate JWT secret:
+
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(48))"
 ```
 
-That is expected. To brand it as **Vokal**, do the following.
+Redeploy API after setting env vars.
 
-## 1. Google Cloud Console — OAuth consent screen
+## Vercel
 
-1. Open [Google Cloud Console](https://console.cloud.google.com/) → your project → **APIs & Services** → **OAuth consent screen**.
-2. Set **App name** to `Vokal` (this is what users see as the app name).
-3. Upload an **App logo** (square, 120×120+).
-4. Add **Authorized domains**: `vokal.work` (and `www.vokal.work` if you use www).
-5. Add your support email and save.
+```env
+NEXT_PUBLIC_VOCA_API_URL=https://YOUR-API.up.railway.app
+NEXT_PUBLIC_SITE_URL=https://www.vokal.work
+```
 
-## 2. Supabase — use your own Google OAuth client
+Supabase anon keys are **not** required for Studio login anymore (API still uses service role on Railway).
 
-1. **Google Cloud** → **Credentials** → **Create OAuth client ID** → **Web application**.
-2. **Authorized redirect URIs** (exact):
-   ```
-   https://ixkfqddkwqlxfbuehbsa.supabase.co/auth/v1/callback
-   ```
-   Replace with your real Supabase project ref from **Supabase → Project Settings → API**.
-3. Copy **Client ID** and **Client secret**.
-4. **Supabase** → **Authentication** → **Providers** → **Google**:
-   - Enable Google
-   - Paste **Client ID** and **Client secret** (do not use Supabase’s shared Google app)
-   - Save
+## Verify redirect URI
 
-The consent screen will show **App name: Vokal**, but the domain line may still say `*.supabase.co` until step 3.
+`GET https://YOUR-API.up.railway.app/api/v1/auth/google/redirect-uri`
 
-## 3. (Best) Supabase Auth custom domain — shows vokal.work
-
-On **Supabase Pro**, add an **Auth custom domain** so OAuth runs on your domain, e.g. `auth.vokal.work`:
-
-- [Supabase: Auth custom domains](https://supabase.com/docs/guides/auth/auth-custom-domains)
-
-Then Google can show **Sign in to vokal.work** because the redirect host is yours.
-
-DNS: CNAME `auth` → Supabase’s target; add that host in Supabase Auth settings.
-
-## 4. Full control (later): your own Google OAuth on Railway
-
-If you skip Supabase Auth and implement `GET /api/v1/auth/google/start` on your API with redirect `https://www.vokal.work/auth/callback`, Google shows **your** domain. That requires JWT/session code on the API (larger change).
-
-## Checklist
-
-| Step | Effect |
-|------|--------|
-| OAuth consent screen app name + logo | "Vokal" branding, logo on Google UI |
-| Own Google client in Supabase | Your Google project, not Supabase shared |
-| Auth custom domain `auth.vokal.work` | Domain line shows **vokal.work** |
-| Own API OAuth | Full control, no Supabase in login |
+Should return `https://www.vokal.work/auth/callback`.

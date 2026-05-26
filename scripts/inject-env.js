@@ -2,6 +2,7 @@ const { writeFileSync, copyFileSync, mkdirSync, existsSync } = require('fs');
 const { join } = require('path');
 
 const apiUrl = process.env.VOCA_API_URL || process.env.NEXT_PUBLIC_VOCA_API_URL || 'http://localhost:3001';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
 const gaId = process.env.GA_MEASUREMENT_ID || '';
 const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
@@ -16,6 +17,7 @@ if (supabaseAnonKey) content += `window.SUPABASE_ANON_KEY = '${escape(supabaseAn
 
 const nextEnv = [
   `NEXT_PUBLIC_VOCA_API_URL=${apiUrl}`,
+  siteUrl ? `NEXT_PUBLIC_SITE_URL=${siteUrl}` : '',
   supabaseUrl ? `NEXT_PUBLIC_SUPABASE_URL=${supabaseUrl}` : '',
   supabaseAnonKey ? `NEXT_PUBLIC_SUPABASE_ANON_KEY=${supabaseAnonKey}` : '',
 ].filter(Boolean).join('\n') + '\n';

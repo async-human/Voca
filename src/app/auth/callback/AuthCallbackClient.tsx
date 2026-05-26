@@ -2,16 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
-
-function hasAuthParams(search: string, hash: string) {
-  return (
-    hash.includes('access_token') ||
-    hash.includes('error=') ||
-    search.includes('code=') ||
-    search.includes('token_hash=')
-  );
-}
+import { completeGoogleAuth } from '@/lib/api';
+import { setSession } from '@/lib/auth';
 
 export default function AuthCallbackClient() {
   const router = useRouter();
@@ -19,8 +11,7 @@ export default function AuthCallbackClient() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const next = searchParams.get('next') ?? '/app/';
-    const supabase = createClient();
+    const nextFromUrl = searchParams.get('next') ?? '/app/';
 
     async function finish() {
       try {
@@ -29,50 +20,16 @@ export default function AuthCallbackClient() {
           throw new Error(oauthError);
         }
 
-        if (typeof window !== 'undefined' && window.location.hash.includes('access_token')) {
-          await supabase.auth.getSession();
-        }
-
-        const tokenHash = searchParams.get('token_hash');
-        const type = searchParams.get('type');
-        if (tokenHash && type) {
-          const { error: otpError } = await supabase.auth.verifyOtp({
-            token_hash: tokenHash,
-            type: type as 'email' | 'magiclink' | 'signup' | 'recovery' | 'invite',
-          });
-          if (otpError) throw otpError;
-        }
-
         const code = searchParams.get('code');
-        if (code) {
-          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-          if (exchangeError) {
-            const pkce =
-              exchangeError.message.includes('PKCE') ||
-              exchangeError.message.includes('code verifier');
-            if (pkce) {
-              const { data: { session: existing } } = await supabase.auth.getSession();
-              if (!existing) {
-                throw new Error(
-                  'Sign-in could not be completed. Try again from https://www.vokal.work/app/ in the same browser.',
-                );
-              }
-            } else {
-              throw exchangeError;
-            }
-          }
-        }
-
-        // Allow Supabase client to persist session from URL
-        await new Promise((r) => setTimeout(r, 150));
-
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        if (sessionError) throw sessionError;
-        if (!session) {
-          setError('Sign-in expired or invalid. Go back to Studio and try again.');
+        if (!code) {
+          setError('Sign-in link invalid or expired. Try again from Studio.');
           return;
         }
 
+        const result = await completeGoogleAuth(code, searchParams.get('state'));
+        setSession(result.access_token, result.user);
+
+        const next = result.next || nextFromUrl;
         window.history.replaceState(null, '', next);
         router.replace(next);
       } catch (err) {
@@ -100,5 +57,3 @@ export default function AuthCallbackClient() {
     </div>
   );
 }
-
-export { hasAuthParams };

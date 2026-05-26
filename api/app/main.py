@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api.legacy import legacy
+from app.api.v1.auth import router as auth_router
 from app.api.v1.delivery import router as delivery_router
 from app.api.v1.router import router as v1_router
 from app.config import settings
@@ -49,10 +50,17 @@ async def unhandled_exception_handler(_request: Request, exc: Exception):
 
 
 app.include_router(v1_router)
+app.include_router(auth_router)
 app.include_router(delivery_router)
 app.include_router(legacy)
 
 
 @app.get("/")
 def health():
-    return {"ok": True, "service": "vokal-api", "version": "3.0.0"}
+    return {
+        "ok": True,
+        "service": "vokal-api",
+        "version": "3.1.0",
+        "auth": "google-jwt",
+        "auth_routes": ["/api/v1/auth/google/start", "/api/v1/auth/google/complete"],
+    }

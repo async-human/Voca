@@ -37,9 +37,13 @@ class Settings(BaseSettings):
     app_frontend_url: str = "https://vokal.work"
     credentials_encryption_key: str | None = None
 
+    jwt_secret: str | None = None
+
     google_client_id: str | None = None
     google_client_secret: str | None = None
     google_redirect_uri: str | None = None
+    # Studio login — Google redirects here (vokal.work, not Supabase)
+    google_login_redirect_uri: str | None = None
 
     notion_client_id: str | None = None
     notion_client_secret: str | None = None

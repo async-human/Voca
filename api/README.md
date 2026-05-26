@@ -85,9 +85,7 @@ Supabase → Authentication → URL Configuration (use your Vercel **primary** d
 - Site URL: `https://www.vokal.work` (or `https://vokal.work` if apex is primary)
 - Redirect URLs: `https://www.vokal.work/auth/callback`, `https://www.vokal.work/app`
 
-Supabase → Authentication → Providers → **Google** (Studio sign-in):
-1. Create a **separate** Google Cloud OAuth client (Web) for Supabase Auth — not the Railway Gmail delivery client.
-2. Authorized redirect URI: `https://<project-ref>.supabase.co/auth/v1/callback`
-3. Paste Client ID + Secret into Supabase Google provider and enable it.
-4. Vercel: `NEXT_PUBLIC_SITE_URL=https://www.vokal.work` (match your primary domain)
-5. **Google branding:** see `docs/google-signin-branding.md` — OAuth consent screen app name **Vokal**; for `vokal.work` instead of `supabase.co` on the prompt, use Supabase **Auth custom domain** (Pro) or your own API OAuth.
+**Studio Google sign-in** uses the API (not Supabase Auth). See `docs/google-signin-branding.md`:
+- Google redirect: `https://www.vokal.work/auth/callback`
+- Railway: `JWT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `APP_FRONTEND_URL`
+- Gmail connect still uses `GOOGLE_REDIRECT_URI` on the API
