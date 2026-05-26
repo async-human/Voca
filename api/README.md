@@ -89,4 +89,5 @@ Supabase → Authentication → Providers → **Google** (Studio sign-in):
 1. Create a **separate** Google Cloud OAuth client (Web) for Supabase Auth — not the Railway Gmail delivery client.
 2. Authorized redirect URI: `https://<project-ref>.supabase.co/auth/v1/callback`
 3. Paste Client ID + Secret into Supabase Google provider and enable it.
-4. Vercel: `NEXT_PUBLIC_SITE_URL=https://vokal.work`
+4. Vercel: `NEXT_PUBLIC_SITE_URL=https://www.vokal.work` (match your primary domain)
+5. **Google branding:** see `docs/google-signin-branding.md` — OAuth consent screen app name **Vokal**; for `vokal.work` instead of `supabase.co` on the prompt, use Supabase **Auth custom domain** (Pro) or your own API OAuth.

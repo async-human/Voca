@@ -45,7 +45,7 @@ export function useAuth() {
 
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s);
-      setAuthMsg(s ? '' : 'Sign in with Google to open Studio.');
+      setAuthMsg('');
       setLoading(false);
     });
 
@@ -61,14 +61,17 @@ export function useAuth() {
     const redirectTo = authCallbackUrl('/app/');
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo },
+      options: {
+        redirectTo,
+        queryParams: { prompt: 'select_account' },
+      },
     });
     if (error) throw error;
   }
 
   async function signOut() {
     await supabase.auth.signOut();
-    setAuthMsg('Signed out. Sign in with Google to continue.');
+    setAuthMsg('');
   }
 
   return { session, loading, authMsg, setAuthMsg, signInWithGoogle, signOut };
