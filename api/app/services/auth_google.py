@@ -8,6 +8,7 @@ import hmac
 import json
 import logging
 import secrets
+from types import SimpleNamespace
 from typing import Any
 from urllib.parse import urlencode
 
@@ -104,23 +105,79 @@ def exchange_google_code(code: str) -> tuple[dict[str, Any], dict[str, Any]]:
     return tokens, profile
 
 
-def _find_user_by_email(supabase: Client, email: str):
+def _normalize_auth_user(user: Any) -> SimpleNamespace:
+    if isinstance(user, dict):
+        return SimpleNamespace(id=user.get("id"), email=user.get("email"))
+    return SimpleNamespace(id=getattr(user, "id", None), email=getattr(user, "email", None))
+
+
+def _find_user_by_email(supabase: Client, email: str) -> SimpleNamespace | None:
+    """Look up auth.users by email via Admin API (handles existing magic-link accounts)."""
+    normalized = email.lower().strip()
+    base = settings.supabase_url.rstrip("/")
+    headers = {
+        "Authorization": f"Bearer {settings.supabase_service_role_key}",
+        "apikey": settings.supabase_service_role_key,
+    }
+
+    # Prefer SDK list (fast path)
+    try:
+        page = 1
+        while page <= 30:
+            result = supabase.auth.admin.list_users(page=page, per_page=200)
+            users = getattr(result, "users", None)
+            if users is None and isinstance(result, dict):
+                users = result.get("users", [])
+            if users is None:
+                users = []
+            for user in users:
+                u = _normalize_auth_user(user)
+                if (u.email or "").lower() == normalized:
+                    return u
+            if len(users) < 200:
+                break
+            page += 1
+    except Exception as exc:
+        logger.warning("SDK list_users failed, falling back to HTTP: %s", exc)
+
+    # HTTP fallback — same Admin API, explicit JSON parsing
     page = 1
-    while page <= 20:
-        result = supabase.auth.admin.list_users(page=page, per_page=200)
-        users = getattr(result, "users", None) or []
-        for user in users:
-            if (user.email or "").lower() == email.lower():
-                return user
-        if len(users) < 200:
-            break
-        page += 1
+    with httpx.Client(timeout=30.0) as client:
+        while page <= 30:
+            resp = client.get(
+                f"{base}/auth/v1/admin/users",
+                headers=headers,
+                params={"page": page, "per_page": 200},
+            )
+            resp.raise_for_status()
+            users = resp.json().get("users") or []
+            for row in users:
+                if (row.get("email") or "").lower() == normalized:
+                    return SimpleNamespace(id=row.get("id"), email=row.get("email"))
+            if len(users) < 200:
+                break
+            page += 1
     return None
+
+
+def _is_duplicate_user_error(exc: Exception) -> bool:
+    msg = str(exc).lower()
+    return any(
+        phrase in msg
+        for phrase in (
+            "already been registered",
+            "already registered",
+            "already exists",
+            "duplicate",
+            "user_already_exists",
+        )
+    )
 
 
 def get_or_create_auth_user(supabase: Client, *, email: str, name: str | None, picture: str | None, google_sub: str | None):
     existing = _find_user_by_email(supabase, email)
-    if existing:
+    if existing and existing.id:
+        logger.info("Google login: existing user %s for %s", existing.id, email)
         return existing
 
     metadata = {
@@ -138,12 +195,14 @@ def get_or_create_auth_user(supabase: Client, *, email: str, name: str | None, p
                 "user_metadata": metadata,
             }
         )
-        return created.user
+        return _normalize_auth_user(created.user)
     except Exception as exc:
-        logger.warning("create_user failed for %s: %s", email, exc)
-        again = _find_user_by_email(supabase, email)
-        if again:
-            return again
+        if _is_duplicate_user_error(exc):
+            existing = _find_user_by_email(supabase, email)
+            if existing and existing.id:
+                logger.info("Google login: linked existing user %s after duplicate", existing.id)
+                return existing
+        logger.exception("create_user failed for %s", email)
         raise
 
 
@@ -161,6 +220,8 @@ def complete_google_login(supabase: Client, code: str) -> tuple[str, dict[str, A
         google_sub=profile.get("id"),
     )
     user_id = str(user.id)
+    if not user_id or user_id == "None":
+        raise ValueError("Could not resolve user account for this email")
     ensure_user_profile(supabase, user_id, email)
 
     access_token = create_access_token(user_id=user_id, email=email)
