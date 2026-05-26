@@ -7,7 +7,8 @@ from app.prompts import (
     GENERATE_PROMPT,
     INTENT_PROMPT,
 )
-from app.prompts.structured_facts import STRUCTURED_FACTS_PROMPT
+from app.prompts.structured_facts import format_structured_facts_prompt
+from app.skills import SKILL_VOKAL_RICH_OUTPUT, skill_applies
 from app.services.openai_client import chat_json
 from app.services.voice_profile import format_voice_profile_for_prompt
 
@@ -48,10 +49,21 @@ def extract_intent(*, transcript: str, output_format: str) -> dict:
     return result
 
 
-def extract_numerical_facts(*, transcript: str) -> dict:
+def extract_numerical_facts(
+    *,
+    transcript: str,
+    output_format: str | None = None,
+) -> dict:
+    if not skill_applies(
+        SKILL_VOKAL_RICH_OUTPUT,
+        transcript=transcript,
+        output_format=output_format,
+    ):
+        return {"sections": [], "critical_non_numeric": []}
+
     result = chat_json(
         system="Return only valid JSON. Extract only numbers spoken in the transcript; never invent.",
-        user=STRUCTURED_FACTS_PROMPT.format(transcript=transcript),
+        user=format_structured_facts_prompt(transcript),
         model=settings.openai_fast_model,
         temperature=0.0,
     )

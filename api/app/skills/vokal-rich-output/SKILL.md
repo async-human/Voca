@@ -1,94 +1,62 @@
-# Vokal rich output — structured facts & blocks
+---
+name: vokal-rich-output
+description: Extract transcript-only financial metrics into grouped sections and metric_section UI blocks. Use when the clean transcript contains numbers, currency, percentages, fiscal years (FY24), or words like revenue, profit, margin, million, billion.
+---
 
-Product skill used by the Vokal API pipeline when generating outputs with numbers (reports, emails with metrics, etc.).
+# Vokal rich output
+
+Product skill for the Vokal API pipeline when generating outputs with spoken numbers (reports, emails with metrics, etc.).
+
+## When to Use
+
+- After `clean_transcript` is available and the recording likely contains metrics.
+- Do **not** run full extraction when the transcript has no digits, currency, %, or fiscal-year language (pipeline skips via `skill_applies`).
+- **Source of truth** is always the **clean transcript** — never polished `output_text` alone for numbers.
 
 ## Core rules
 
-1. **Source of truth** is the **clean transcript** from the voice recording — never the polished `output_text` alone for extracting numbers.
-2. **Never invent** a figure, fiscal year, percentage, or date not clearly stated in the transcript.
-3. **Never duplicate** the same metric in conflicting values (e.g. FY26 as $2.03M and $5B).
-4. **Group metrics by category** — do not dump all KPI cards into one grid.
+1. **Never invent** a figure, fiscal year, percentage, or date not clearly stated in the transcript.
+2. **Never duplicate** the same metric in conflicting values (e.g. FY26 as $2.03M and $5B).
+3. **Group metrics by category** — separate `metric_section` blocks per category (revenue vs profit, etc.).
+4. **Max 2 decimal places** on all numeric displays and chart values.
 
-## Extraction output schema
+## Extraction schema
 
-Return JSON with grouped sections:
+Return JSON with grouped `sections[]`. Each section has `category`, `title`, and `metrics[]`.
 
-```json
-{
-  "sections": [
-    {
-      "category": "revenue",
-      "title": "Revenue",
-      "metrics": [
-        {
-          "fiscal_year": "2024",
-          "label": "FY24 Revenue",
-          "value_display": "$15M",
-          "numeric_value": 15,
-          "unit": "M",
-          "source_quote": "exact short phrase from transcript"
-        }
-      ]
-    },
-    {
-      "category": "profit",
-      "title": "Profit",
-      "metrics": []
-    }
-  ],
-  "critical_non_numeric": ["risks, decisions, deadlines without numbers"]
-}
-```
+Each metric must include:
 
-### Categories (use exactly one per section)
+| Field | Rule |
+|--------|------|
+| `fiscal_year` | Four-digit year when spoken (`2024` for "FY24"); `null` only if no year for that number |
+| `label` | `FY{yy} {Category}` e.g. `FY24 Revenue` — not a sentence fragment |
+| `value_display` | Human-readable, max 2 decimals (`$15M`, `$2.04B`, `73%`) |
+| `numeric_value` | Chart scale: millions use `M` base (15 = $15M), billions use `B` base |
+| `unit` | `M`, `B`, `%`, or `count` |
+| `source_quote` | Verbatim substring from transcript proving this metric |
 
-- `revenue` — sales, turnover, top-line
-- `profit` — margin, net income, earnings, bottom-line
-- `cost` — expenses, spend, burn
-- `rate` — growth %, conversion, ratios
-- `headcount` — team size, hires
-- `timeline` — dates, deadlines (non-dollar)
-- `other` — only if it does not fit above
+### Categories (one section per category)
 
-### Metric rules
+`revenue` · `profit` · `cost` · `rate` · `headcount` · `timeline` · `other` (only if nothing else fits)
 
-- **fiscal_year**: four-digit year (`2024`) when spoken ("FY24", "fiscal year 2024", "in 2025"). Use `null` only if no year was said for that specific number.
-- **label**: `FY{yy} {Category}` e.g. `FY24 Revenue` — never a sentence fragment.
-- **value_display**: human-readable, max 2 decimals (`$15M`, `$2.04B`, `73%`).
-- **numeric_value**: chart-scale number; millions use `M` base (15 = $15M), billions use `B` base (2.04 = $2.04B).
-- **unit**: `M`, `B`, `%`, or `count`.
-- **source_quote**: verbatim substring from transcript proving this metric.
+Also return `critical_non_numeric`: risks, decisions, deadlines without numbers.
 
-## UI block schema (output_meta.blocks)
+Full JSON examples: `references/schema-examples.md` (loaded only when this skill is invoked).
 
-Build blocks in this order:
+## UI blocks (`output_meta.blocks`)
 
-1. `heading` + `paragraph` — executive summary / narrative (from polished text, no new numbers).
-2. For **each section** with metrics, emit a `metric_section` block:
+Build in order:
 
-```json
-{
-  "type": "metric_section",
-  "title": "Revenue",
-  "category": "revenue",
-  "items": [{ "label": "FY24 Revenue", "value": "$15M", "hint": "2024" }],
-  "chart": {
-    "title": "Revenue trend",
-    "unit": "M",
-    "items": [{ "label": "FY24", "value": 15 }, { "label": "FY25", "value": 25 }]
-  }
-}
-```
+1. `heading` + `paragraph` — narrative from polished text; **no new numbers**
+2. One `metric_section` per section that has metrics (`title`, `category`, `items`, optional `chart`)
+3. `callout` — one per critical non-numeric point
+4. Plain `output_text` must not introduce numbers absent from the transcript
 
-3. `callout` — one per critical non-numeric point (risks, recommendations).
-4. `output_text` — full plain-text copy; must not introduce numbers absent from transcript.
+Runtime block assembly is implemented in `api/app/services/output_blocks.py` (validates `source_quote` against transcript).
 
 ## Validation checklist
 
-Before returning blocks:
-
 - [ ] Every `numeric_value` has a `source_quote` in the transcript
-- [ ] No metric appears in two sections unless transcript explicitly ties it to both
-- [ ] Profit and revenue are in separate `metric_section` blocks
-- [ ] Chart only includes metrics with a fiscal year (no P1/P2/P3 placeholders)
+- [ ] Revenue and profit are in separate `metric_section` blocks
+- [ ] Chart only includes metrics with a fiscal year (no P1/P2 placeholders)
 - [ ] All numbers rounded to 2 decimal places max

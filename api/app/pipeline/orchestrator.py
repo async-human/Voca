@@ -101,7 +101,10 @@ def run_pipeline(supabase: Client, recording_id: str) -> None:
 
         _set_step(supabase, recording_id, "understanding")
         intent = steps.extract_intent(transcript=clean, output_format=output_format)
-        numerical_facts = steps.extract_numerical_facts(transcript=clean)
+        numerical_facts = steps.extract_numerical_facts(
+            transcript=clean,
+            output_format=output_format,
+        )
         intent["numerical_facts"] = numerical_facts
         _update_recording(supabase, recording_id, intent=intent)
 
@@ -220,7 +223,10 @@ def run_regenerate(
         raise RuntimeError("Transcript not available yet")
 
     intent = recording.get("intent") or steps.extract_intent(transcript=clean, output_format=format)
-    numerical_facts = (intent.get("numerical_facts") if isinstance(intent, dict) else None) or steps.extract_numerical_facts(transcript=clean)
+    numerical_facts = (intent.get("numerical_facts") if isinstance(intent, dict) else None) or steps.extract_numerical_facts(
+        transcript=clean,
+        output_format=format,
+    )
     if isinstance(intent, dict):
         intent["numerical_facts"] = numerical_facts
     voice_profile = load_voice_profile(supabase, user_id)
