@@ -134,13 +134,21 @@ def run_pipeline(supabase: Client, recording_id: str) -> None:
 
         from app.config import settings
 
+        from app.services.output_blocks import ensure_report_blocks
+
+        output_meta = ensure_report_blocks(
+            revised["output_text"],
+            revised.get("output_meta") or draft_result.get("output_meta") or {},
+            output_format,
+        )
+
         save_generation(
             supabase,
             recording_id=recording_id,
             user_id=user_id,
             format=output_format,
             output_text=revised["output_text"],
-            output_meta=revised.get("output_meta") or draft_result.get("output_meta") or {},
+            output_meta=output_meta,
             explanations=explanation.get("explanations") or [],
             model_version=f"{settings.openai_generation_model}+{stt_provider}",
         )
@@ -231,13 +239,21 @@ def run_regenerate(
 
     from app.config import settings
 
+    from app.services.output_blocks import ensure_report_blocks
+
+    output_meta = ensure_report_blocks(
+        revised["output_text"],
+        revised.get("output_meta") or draft.get("output_meta") or {},
+        format,
+    )
+
     generation = save_generation(
         supabase,
         recording_id=recording_id,
         user_id=user_id,
         format=format,
         output_text=revised["output_text"],
-        output_meta=revised.get("output_meta") or draft.get("output_meta") or {},
+        output_meta=output_meta,
         explanations=explanation.get("explanations") or [],
         model_version=f"{settings.openai_generation_model}+regenerate",
     )

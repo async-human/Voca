@@ -7,6 +7,7 @@ import { cn } from '@/lib/cn';
 import { PLATFORM_LABELS, type DeliveryDestination, type PlatformConnection } from '@/lib/delivery';
 import type { SessionResult } from '@/lib/types';
 import { FORMATS, formatMeta, type OutputFormat } from '@/lib/constants';
+import { reportHasVisuals, resolveReportBlocks } from '@/lib/reportBlocks';
 import { DestinationPicker, destinationSummary } from './DestinationPicker';
 import { OutputBlocks } from './OutputBlocks';
 
@@ -62,8 +63,13 @@ export function ResultPanel({
   const others = FORMATS.filter((f) => f.id !== gen.format);
   const explanations = gen.explanations ?? [];
   const displayText = outputText ?? gen.output_text;
-  const blocks = gen.output_meta?.blocks;
-  const hasRichBlocks = Array.isArray(blocks) && blocks.length > 0;
+  const effectiveBlocks = resolveReportBlocks(
+    gen.output_meta?.blocks,
+    displayText,
+    resolvedFormat,
+  );
+  const hasRichBlocks =
+    resolvedFormat === 'report' && reportHasVisuals(effectiveBlocks);
   const showRichView = hasRichBlocks && !plainEdit;
   const editable = !!onOutputChange && !historyMode;
 
@@ -155,9 +161,9 @@ export function ResultPanel({
           </p>
         )}
 
-        {showRichView && blocks && (
+        {showRichView && (
           <>
-            <OutputBlocks blocks={blocks} />
+            <OutputBlocks blocks={effectiveBlocks} />
             {editable && (
               <button
                 type="button"
@@ -193,10 +199,15 @@ export function ResultPanel({
           </div>
         ) : null}
 
-        {showRichView && !editable && (
-          <p className="mt-5 rounded-xl border border-dashed border-faint-2 bg-paper-2/60 px-4 py-3 font-mono text-[10px] leading-relaxed text-muted">
-            Charts and KPI cards are generated from numbers in your voice note. Copy still uses the plain-text version below the visuals.
-          </p>
+        {showRichView && (
+          <details className="mt-5 group">
+            <summary className="cursor-pointer font-mono text-[10px] uppercase tracking-[0.1em] text-muted transition-colors hover:text-ink">
+              View plain text for copy
+            </summary>
+            <p className="mt-3 rounded-[14px] border border-faint-2 bg-white/60 px-4 py-3 font-serif text-[14px] leading-[1.75] whitespace-pre-wrap text-ink-2">
+              {displayText}
+            </p>
+          </details>
         )}
       </div>
 

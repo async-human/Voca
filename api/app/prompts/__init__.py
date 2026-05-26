@@ -39,13 +39,12 @@ FORMAT_GUIDES = {
     "slack": "Concise Slack message. Conversational, short paragraphs or bullets.",
     "report": (
         "Executive report with sections: Executive Summary, Key Points, Risks/Recommendations. "
-        "When the transcript includes numerical data (revenue, margins, %, counts, timelines), "
-        "populate output_meta.blocks with visual blocks AND keep output_text as a full plain-text "
-        "version for copy/paste (same facts, no markdown). "
-        "Block types: heading {text}, paragraph {text}, kpi_grid {items:[{label,value,hint?}]}, "
-        "bar_chart {title?, unit?, items:[{label, value:number}]}, "
-        "callout {title, body, variant?: default|insight|risk}. "
-        "Use 2-4 KPI cards and 1 bar_chart when numbers support it. Never invent figures."
+        "REQUIRED when transcript has ANY numbers: output_meta.blocks MUST be a non-empty array with "
+        "at least one kpi_grid (2-4 items) AND one bar_chart (3+ points) using exact figures from speech. "
+        "Also keep output_text as full plain text for copy (same facts, no markdown). "
+        "Block types (use these exact type strings): heading, paragraph, kpi_grid, bar_chart, callout. "
+        "Example kpi_grid item: {\"label\":\"FY25 Revenue\",\"value\":\"$35M\"}. "
+        "Example bar_chart item: {\"label\":\"FY24\",\"value\":20}. Never invent figures."
     ),
     "linkedin": "LinkedIn post with strong hook, 2-4 short paragraphs, readable line breaks.",
     "journal": "Reflective first-person journal entry. Organize raw thoughts, surface themes.",
