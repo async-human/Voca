@@ -61,9 +61,10 @@ Transcript:
 RICH_OUTPUT_RULES = """
 Rich output (not plain transcription): output_meta.blocks MUST capture EVERY fact from the transcript — especially all numbers, fiscal years, dates, percentages, and dollar amounts. Nothing critical may be omitted.
 
-Block types (exact strings): heading, paragraph, kpi_grid, bar_chart, callout.
-- kpi_grid items: {\"label\": \"FY24 Revenue\", \"value\": \"$15M\", \"hint\": \"2024\"} — label MUST include fiscal year when spoken.
-- bar_chart items: {\"label\": \"FY24\", \"value\": 15} — value is a number in millions (max 2 decimals), label is FYxx.
+Block types (exact strings): heading, paragraph, metric_section, callout (legacy: kpi_grid, bar_chart).
+- metric_section: {\"type\":\"metric_section\",\"title\":\"Revenue\",\"category\":\"revenue\",\"items\":[...],\"chart\":{...}} — one section per category (revenue, profit, etc.). Never mix categories in one section.
+- items: {\"label\": \"FY24 Revenue\", \"value\": \"$15M\", \"hint\": \"2024\"} — label MUST include fiscal year when spoken.
+- chart items: {\"label\": \"FY24\", \"value\": 15} — only metrics with a fiscal year; max 2 decimals.
 - Use callout for risks, decisions, deadlines without numbers.
 - output_text: full plain-text version for copy (same facts, no markdown).
 

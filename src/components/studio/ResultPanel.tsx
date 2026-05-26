@@ -68,6 +68,7 @@ export function ResultPanel({
     displayText,
     resolvedFormat,
     data.clean_transcript || data.raw_transcript,
+    gen.output_meta?.structured_facts,
   );
   const hasRichBlocks = hasMixedContent(effectiveBlocks);
   const showRichView = hasRichBlocks && !plainEdit;

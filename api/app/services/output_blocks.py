@@ -142,6 +142,8 @@ def extract_facts_from_transcript(text: str) -> dict[str, Any]:
 
 def _has_visuals(blocks: list[dict]) -> bool:
     for b in blocks:
+        if b.get("type") == "metric_section" and b.get("items"):
+            return True
         if b.get("type") == "kpi_grid" and b.get("items"):
             return True
         if b.get("type") == "bar_chart" and len(b.get("items") or []) >= 2:
@@ -214,6 +216,31 @@ def normalize_blocks(raw: Any) -> list[dict]:
                     block["unit"] = str(item["unit"])
                 else:
                     block["unit"] = "M"
+                out.append(block)
+        elif kind == "metric_section":
+            items_raw = item.get("items") or []
+            items = []
+            if isinstance(items_raw, list):
+                for row in items_raw:
+                    if not isinstance(row, dict):
+                        continue
+                    label = str(row.get("label") or "").strip()
+                    value = str(row.get("value") or "").strip()
+                    if label and value:
+                        entry = {"label": label[:48], "value": value}
+                        if row.get("hint"):
+                            entry["hint"] = str(row["hint"])
+                        items.append(entry)
+            chart = item.get("chart") if isinstance(item.get("chart"), dict) else None
+            if items:
+                block = {
+                    "type": "metric_section",
+                    "title": str(item.get("title") or "Metrics"),
+                    "category": item.get("category") or "other",
+                    "items": items,
+                }
+                if chart and isinstance(chart.get("items"), list) and len(chart["items"]) >= 2:
+                    block["chart"] = chart
                 out.append(block)
         elif kind in ("callout", "note", "insight", "risk"):
             body = str(item.get("body") or item.get("text") or item.get("content") or "").strip()
@@ -351,6 +378,179 @@ def _merge_llm_facts(extracted: dict[str, Any], llm: dict[str, Any] | None) -> d
     return {"facts": facts, "highlights": highlights}
 
 
+_SECTION_ORDER = ["revenue", "profit", "cost", "rate", "headcount", "timeline", "other"]
+
+
+def _quote_in_transcript(quote: str, transcript: str) -> bool:
+    if not quote or not transcript:
+        return False
+    q = re.sub(r"\s+", " ", quote.lower().strip())
+    t = re.sub(r"\s+", " ", transcript.lower())
+    if len(q) < 4:
+        return False
+    if q in t:
+        return True
+    # Allow minor punctuation drift
+    q2 = re.sub(r"[^a-z0-9$%.\s]", "", q)
+    t2 = re.sub(r"[^a-z0-9$%.\s]", "", t)
+    return q2 in t2
+
+
+def _normalize_structured_facts(data: dict[str, Any] | None) -> dict[str, Any]:
+    if not data:
+        return {"sections": [], "critical_non_numeric": []}
+    if data.get("sections"):
+        return data
+
+    by_cat: dict[str, dict] = {}
+    for f in data.get("facts") or []:
+        if not isinstance(f, dict):
+            continue
+        cat = str(f.get("category") or "other").lower()
+        sec = by_cat.setdefault(
+            cat,
+            {"category": cat, "title": cat.title(), "metrics": []},
+        )
+        sec["metrics"].append({
+            "fiscal_year": f.get("fiscal_year"),
+            "label": f.get("label"),
+            "value_display": f.get("value"),
+            "numeric_value": f.get("numeric_value"),
+            "unit": f.get("unit") or "M",
+            "source_quote": f.get("source_quote") or "",
+        })
+    return {
+        "sections": list(by_cat.values()),
+        "critical_non_numeric": data.get("critical_non_numeric") or [],
+    }
+
+
+def _filter_structured_to_transcript(structured: dict[str, Any], transcript: str) -> dict[str, Any]:
+    """Drop metrics that cannot be verified in the transcript (anti-hallucination)."""
+    if not transcript.strip():
+        return structured
+
+    filtered_sections: list[dict] = []
+    for section in structured.get("sections") or []:
+        if not isinstance(section, dict):
+            continue
+        metrics = []
+        seen_years: set[str] = set()
+        for m in section.get("metrics") or []:
+            if not isinstance(m, dict):
+                continue
+            quote = str(m.get("source_quote") or "").strip()
+            value_display = str(m.get("value_display") or m.get("value") or "")
+            verified = (quote and _quote_in_transcript(quote, transcript)) or (
+                value_display
+                and re.sub(r"[^0-9.]", "", value_display)
+                in re.sub(r"[^0-9.]", "", transcript)
+            )
+            if not verified:
+                continue
+            fy = m.get("fiscal_year")
+            if fy:
+                key = f"{section.get('category')}|{fy}"
+                if key in seen_years:
+                    continue
+                seen_years.add(key)
+            val = m.get("value_display") or m.get("value")
+            if not val:
+                continue
+            metrics.append(m)
+        if metrics:
+            filtered_sections.append({**section, "metrics": metrics})
+
+    return {
+        "sections": filtered_sections,
+        "critical_non_numeric": structured.get("critical_non_numeric") or [],
+    }
+
+
+def build_blocks_from_sections(
+    structured: dict[str, Any],
+    output_text: str,
+    output_format: str,
+) -> list[dict]:
+    blocks: list[dict] = []
+    sections = structured.get("sections") or []
+    sections = sorted(
+        sections,
+        key=lambda s: _SECTION_ORDER.index(str(s.get("category") or "other").lower())
+        if str(s.get("category") or "other").lower() in _SECTION_ORDER
+        else 99,
+    )
+
+    for section in sections:
+        metrics = section.get("metrics") or []
+        if not metrics:
+            continue
+        items = []
+        chart_items = []
+        for m in metrics:
+            label = str(m.get("label") or "").strip()[:48]
+            value = str(m.get("value_display") or m.get("value") or "").strip()
+            if not label or not value:
+                continue
+            fy = m.get("fiscal_year")
+            entry = {"label": label, "value": value}
+            if fy:
+                entry["hint"] = str(fy)
+            items.append(entry)
+
+            if fy:
+                num = _round2(float(m.get("numeric_value") or 0))
+                if num > 0 and num <= 500:
+                    fy_str = str(fy)
+                    chart_label = f"FY{fy_str[-2:]}" if len(fy_str) >= 2 else fy_str
+                    unit = str(m.get("unit") or "M").upper()
+                    chart_items.append({
+                        "label": chart_label,
+                        "value": num,
+                        "unit": unit,
+                    })
+
+        if not items:
+            continue
+
+        block: dict[str, Any] = {
+            "type": "metric_section",
+            "title": str(section.get("title") or section.get("category") or "Metrics").title(),
+            "category": section.get("category") or "other",
+            "items": items,
+        }
+
+        if len(chart_items) >= 2:
+            dedup: dict[str, dict] = {}
+            for c in chart_items:
+                dedup[c["label"]] = c
+            sorted_chart = sorted(dedup.values(), key=lambda x: x["label"])
+            block["chart"] = {
+                "title": f"{block['title']} trend",
+                "unit": sorted_chart[0].get("unit") or "M",
+                "items": [{"label": c["label"], "value": c["value"]} for c in sorted_chart],
+            }
+        blocks.append(block)
+
+    for point in (structured.get("critical_non_numeric") or [])[:4]:
+        if point:
+            blocks.append({
+                "type": "callout",
+                "title": "Key point",
+                "body": str(point)[:280],
+                "variant": "insight",
+            })
+
+    if output_text:
+        paras = [p.strip() for p in re.split(r"\n\s*\n", _strip_markdown(output_text)) if len(p.strip()) > 40]
+        if paras and not any(b.get("type") == "paragraph" for b in blocks):
+            blocks.insert(0, {"type": "paragraph", "text": paras[0][:1200]})
+        if output_format == "report" and not any(b.get("type") == "heading" for b in blocks):
+            blocks.insert(0, {"type": "heading", "text": "Executive summary"})
+
+    return blocks
+
+
 def ensure_output_blocks(
     output_text: str,
     output_meta: dict | None,
@@ -359,27 +559,33 @@ def ensure_output_blocks(
     source_transcript: str = "",
     numerical_facts: dict | None = None,
 ) -> dict:
+    """Build blocks from transcript-verified structured facts only (not polished output_text)."""
     meta = dict(output_meta or {})
-    llm_blocks = normalize_blocks(meta.get("blocks"))
-    extracted = _merge_llm_facts(
-        _merge_extracted(
-            extract_facts_from_transcript(source_transcript or ""),
-            extract_facts_from_transcript(output_text or ""),
-        ),
-        numerical_facts,
+    transcript = (source_transcript or "").strip()
+
+    structured = _filter_structured_to_transcript(
+        _normalize_structured_facts(numerical_facts),
+        transcript,
     )
-    fact_blocks = build_blocks_from_facts(extracted, output_text or "", output_format)
+    section_blocks = build_blocks_from_sections(structured, output_text or "", output_format)
 
-    if _has_visuals(llm_blocks):
-        meta["blocks"] = merge_blocks(llm_blocks, fact_blocks)
-    elif extracted.get("facts") or _has_visuals(fact_blocks):
-        meta["blocks"] = merge_blocks(llm_blocks, fact_blocks)
-    elif llm_blocks:
-        meta["blocks"] = llm_blocks
-    else:
-        meta["blocks"] = fact_blocks
+    llm_blocks = normalize_blocks(meta.get("blocks"))
+    narrative = [b for b in llm_blocks if b.get("type") in ("heading", "paragraph", "callout")]
 
-    meta["facts_captured"] = len(extracted.get("facts") or [])
+    merged: list[dict] = []
+    for b in narrative:
+        if b.get("type") == "heading" and any(x.get("type") == "heading" for x in merged):
+            continue
+        merged.append(b)
+
+    merged.extend(section_blocks)
+
+    if not _has_visuals(merged) and section_blocks:
+        merged = section_blocks + [b for b in narrative if b.get("type") != "heading"]
+
+    meta["blocks"] = merged if merged else llm_blocks
+    meta["structured_facts"] = structured
+    meta["facts_captured"] = sum(len(s.get("metrics") or []) for s in structured.get("sections") or [])
     return meta
 
 

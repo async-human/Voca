@@ -6,12 +6,27 @@ export interface Explanation {
   text?: string;
 }
 
+export type MetricItem = { label: string; value: string; hint?: string };
+
+export type BarChartData = {
+  title?: string;
+  unit?: string;
+  items: { label: string; value: number }[];
+};
+
 export type OutputBlock =
   | { type: 'heading'; text: string }
   | { type: 'paragraph'; text: string }
   | {
+      type: 'metric_section';
+      title: string;
+      category?: string;
+      items: MetricItem[];
+      chart?: BarChartData;
+    }
+  | {
       type: 'kpi_grid';
-      items: { label: string; value: string; hint?: string }[];
+      items: MetricItem[];
     }
   | {
       type: 'bar_chart';
@@ -26,12 +41,33 @@ export type OutputBlock =
       variant?: 'default' | 'insight' | 'risk';
     };
 
+export interface StructuredFactsSection {
+  category: string;
+  title: string;
+  metrics: {
+    fiscal_year?: string | null;
+    label?: string;
+    value_display?: string;
+    value?: string;
+    numeric_value?: number;
+    unit?: string;
+    source_quote?: string;
+  }[];
+}
+
+export interface StructuredFacts {
+  sections?: StructuredFactsSection[];
+  critical_non_numeric?: string[];
+}
+
 export interface Generation {
   format: OutputFormat;
   output_text: string;
   output_meta?: {
     subject?: string;
     blocks?: OutputBlock[];
+    structured_facts?: StructuredFacts;
+    facts_captured?: number;
   };
   explanations?: Explanation[];
 }

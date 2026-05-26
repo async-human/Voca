@@ -6,8 +6,8 @@ from app.prompts import (
     FORMAT_GUIDES,
     GENERATE_PROMPT,
     INTENT_PROMPT,
-    NUMERICAL_FACTS_PROMPT,
 )
+from app.prompts.structured_facts import STRUCTURED_FACTS_PROMPT
 from app.services.openai_client import chat_json
 from app.services.voice_profile import format_voice_profile_for_prompt
 
@@ -50,12 +50,16 @@ def extract_intent(*, transcript: str, output_format: str) -> dict:
 
 def extract_numerical_facts(*, transcript: str) -> dict:
     result = chat_json(
-        system="Return only valid JSON. Extract every number; never invent.",
-        user=NUMERICAL_FACTS_PROMPT.format(transcript=transcript),
+        system="Return only valid JSON. Extract only numbers spoken in the transcript; never invent.",
+        user=STRUCTURED_FACTS_PROMPT.format(transcript=transcript),
         model=settings.openai_fast_model,
-        temperature=0.1,
+        temperature=0.0,
     )
-    return result if isinstance(result, dict) else {"facts": [], "critical_non_numeric": []}
+    if not isinstance(result, dict):
+        return {"sections": [], "critical_non_numeric": []}
+    if not result.get("sections") and result.get("facts"):
+        return result
+    return result
 
 
 def generate_draft(
