@@ -9,7 +9,7 @@ interface AppShellProps {
 }
 
 export function AppShell({ children }: AppShellProps) {
-  const { session, loading, authMsg, setAuthMsg, signInWithEmail, signOut } = useAuth();
+  const { session, loading, authMsg, signInWithGoogle, signOut } = useAuth();
 
   return (
     <>
@@ -22,10 +22,7 @@ export function AppShell({ children }: AppShellProps) {
         <AuthGate
           loading={loading}
           message={authMsg}
-          onSignIn={async (email) => {
-            setAuthMsg('Sending…');
-            await signInWithEmail(email);
-          }}
+          onSignInWithGoogle={signInWithGoogle}
         />
       ) : (
         children(session.access_token)

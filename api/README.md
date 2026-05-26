@@ -84,3 +84,9 @@ SUPABASE_ANON_KEY=eyJ...
 Supabase → Authentication → URL Configuration:
 - Site URL: `https://vokal.work`
 - Redirect URLs: `https://vokal.work/auth/callback`, `https://vokal.work/app`
+
+Supabase → Authentication → Providers → **Google** (Studio sign-in):
+1. Create a **separate** Google Cloud OAuth client (Web) for Supabase Auth — not the Railway Gmail delivery client.
+2. Authorized redirect URI: `https://<project-ref>.supabase.co/auth/v1/callback`
+3. Paste Client ID + Secret into Supabase Google provider and enable it.
+4. Vercel: `NEXT_PUBLIC_SITE_URL=https://vokal.work`

@@ -24,10 +24,13 @@ export default function AuthCallbackClient() {
 
     async function finish() {
       try {
-        const code = searchParams.get('code');
-        if (code) {
-          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-          if (exchangeError) throw exchangeError;
+        const oauthError = searchParams.get('error_description') ?? searchParams.get('error');
+        if (oauthError) {
+          throw new Error(oauthError);
+        }
+
+        if (typeof window !== 'undefined' && window.location.hash.includes('access_token')) {
+          await supabase.auth.getSession();
         }
 
         const tokenHash = searchParams.get('token_hash');
@@ -40,8 +43,24 @@ export default function AuthCallbackClient() {
           if (otpError) throw otpError;
         }
 
-        if (typeof window !== 'undefined' && window.location.hash.includes('access_token')) {
-          await supabase.auth.getSession();
+        const code = searchParams.get('code');
+        if (code) {
+          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+          if (exchangeError) {
+            const pkce =
+              exchangeError.message.includes('PKCE') ||
+              exchangeError.message.includes('code verifier');
+            if (pkce) {
+              const { data: { session: existing } } = await supabase.auth.getSession();
+              if (!existing) {
+                throw new Error(
+                  'Sign-in could not be completed. Try again from https://vokal.work/app in the same browser.',
+                );
+              }
+            } else {
+              throw exchangeError;
+            }
+          }
         }
 
         // Allow Supabase client to persist session from URL
@@ -50,7 +69,7 @@ export default function AuthCallbackClient() {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         if (sessionError) throw sessionError;
         if (!session) {
-          setError('Sign-in link expired or invalid. Request a new magic link.');
+          setError('Sign-in expired or invalid. Go back to Studio and try again.');
           return;
         }
 

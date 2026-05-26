@@ -1,54 +1,60 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { cn } from '@/lib/cn';
 
 interface AuthGateProps {
-  onSignIn: (email: string) => Promise<void>;
+  onSignInWithGoogle: () => Promise<void>;
   message: string;
   loading: boolean;
 }
 
 const WAVE_HEIGHTS = [12, 20, 28, 16, 24, 14, 22, 30, 10, 26, 18, 32, 14, 24, 20];
 
-export function AuthGate({ onSignIn, message, loading }: AuthGateProps) {
-  const [email, setEmail] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  const [localMsg, setLocalMsg] = useState('');
-  const [sentTo, setSentTo] = useState('');
+function GoogleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden>
+      <path
+        fill="#4285F4"
+        d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c3.42-3.15 5.384-7.785 5.384-13.315z"
+      />
+      <path
+        fill="#34A853"
+        d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"
+      />
+      <path
+        fill="#EA4335"
+        d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"
+      />
+    </svg>
+  );
+}
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const trimmed = email.trim();
-    if (!trimmed) {
-      setStatus('error');
-      setLocalMsg('Enter your email address.');
-      return;
-    }
+export function AuthGate({ onSignInWithGoogle, message, loading }: AuthGateProps) {
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  async function handleGoogleSignIn() {
     setSubmitting(true);
-    setStatus('idle');
-    setLocalMsg('');
+    setErrorMsg('');
     try {
-      await onSignIn(trimmed);
-      setSentTo(trimmed);
-      setStatus('success');
+      await onSignInWithGoogle();
     } catch (err) {
-      setStatus('error');
-      setLocalMsg(err instanceof Error ? err.message : 'Could not send link.');
-    } finally {
+      setErrorMsg(err instanceof Error ? err.message : 'Could not start sign-in.');
       setSubmitting(false);
     }
   }
 
-  const errorMsg = status === 'error' ? localMsg : '';
-  const infoMsg = status === 'idle' && !errorMsg ? message : '';
+  const infoMsg = !errorMsg ? message : '';
 
   return (
     <div className="studio-bg relative z-[1] px-5 pb-16 pt-[108px] md:px-8">
       <div className="relative z-10 mx-auto grid max-w-[980px] items-center gap-12 lg:grid-cols-[1fr_1.05fr] lg:gap-16">
-        {/* Copy */}
         <motion.div
           initial={{ opacity: 0, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
@@ -68,14 +74,12 @@ export function AuthGate({ onSignIn, message, loading }: AuthGateProps) {
           </p>
         </motion.div>
 
-        {/* Form + preview */}
         <motion.div
           initial={{ opacity: 0, y: 32 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.75, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
           className="mx-auto w-full max-w-[420px] lg:max-w-none"
         >
-          {/* Dark preview card */}
           <div className="studio-card-glow relative mb-5 overflow-hidden rounded-[20px] bg-ink px-6 py-5">
             <div
               className="pointer-events-none absolute inset-0 opacity-50"
@@ -87,7 +91,7 @@ export function AuthGate({ onSignIn, message, loading }: AuthGateProps) {
               <div className="mb-4 flex items-center justify-between">
                 <span className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.12em] text-white/45">
                   <span className="mode-pip-glow h-1 w-1 rounded-full bg-accent-2" />
-                  Ready · Email
+                  Ready · Sign in
                 </span>
                 <span className="font-serif text-lg text-white/80">0:00</span>
               </div>
@@ -106,83 +110,31 @@ export function AuthGate({ onSignIn, message, loading }: AuthGateProps) {
             </div>
           </div>
 
-          {/* Form card */}
           <div className="rounded-[22px] border border-faint-2/80 bg-[#faf7f2]/90 p-7 shadow-[0_20px_60px_rgba(28,24,20,.06)] backdrop-blur-md md:p-8">
-            <AnimatePresence mode="wait">
-              {status === 'success' ? (
-                <motion.div
-                  key="success"
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="py-2 text-center"
-                >
-                  <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-full border border-faint-2 bg-paper">
-                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
-                      <path d="M4 9.5l3.5 3.5 6.5-7" stroke="#2A7A72" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </div>
-                  <p className="font-serif text-xl font-bold tracking-tight text-ink">Check your inbox</p>
-                  <p className="mt-2 text-sm leading-relaxed text-muted">
-                    We sent a sign-in link to{' '}
-                    <span className="font-medium text-ink-2">{sentTo}</span>
-                  </p>
-                  <p className="mt-1 text-xs text-faint">Check spam if it doesn&apos;t arrive in a minute.</p>
-                  <button
-                    type="button"
-                    onClick={() => { setStatus('idle'); setLocalMsg(''); }}
-                    className="mt-6 cursor-pointer text-[13px] font-medium text-muted underline-offset-4 transition-colors hover:text-ink hover:underline"
-                  >
-                    Use a different email
-                  </button>
-                </motion.div>
-              ) : (
-                <motion.form
-                  key="form"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  onSubmit={handleSubmit}
-                >
-                  <label htmlFor="email" className="mb-2 block font-mono text-[9px] uppercase tracking-[0.14em] text-muted">
-                    Email address
-                  </label>
-                  <input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@company.com"
-                    autoComplete="email"
-                    disabled={loading || submitting}
-                    className={cn(
-                      'studio-input mb-5 w-full rounded-[14px] border border-faint-2 bg-[#faf7f2] px-4 py-[14px]',
-                      'text-[15px] text-ink outline-none transition-all duration-200',
-                      'placeholder:text-faint/80',
-                      'focus:border-ink/20 focus:ring-2 focus:ring-ink/5',
-                      'disabled:opacity-50',
-                    )}
-                  />
-                  <button
-                    type="submit"
-                    disabled={loading || submitting}
-                    className={cn(
-                      'w-full cursor-pointer rounded-full bg-ink py-3.5 text-[14px] font-semibold text-paper',
-                      'transition-all duration-300 ease-out',
-                      'hover:-translate-y-px hover:bg-accent hover:shadow-[0_10px_32px_rgba(191,59,42,.22)]',
-                      'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-none',
-                    )}
-                  >
-                    {submitting ? 'Sending…' : 'Send magic link →'}
-                  </button>
-
-                  {errorMsg && (
-                    <p className="mt-4 text-center text-[13px] leading-relaxed text-accent">{errorMsg}</p>
-                  )}
-                  {infoMsg && !errorMsg && (
-                    <p className="mt-4 text-center text-[13px] leading-relaxed text-muted">{infoMsg}</p>
-                  )}
-                </motion.form>
+            <p className="mb-5 text-center text-sm leading-relaxed text-muted">
+              One click — you&apos;ll return here signed in. No email link to open.
+            </p>
+            <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={loading || submitting}
+              className={cn(
+                'flex w-full cursor-pointer items-center justify-center gap-3 rounded-full border border-faint-2 bg-paper py-3.5',
+                'text-[14px] font-semibold text-ink transition-all duration-300 ease-out',
+                'hover:-translate-y-px hover:border-ink/15 hover:shadow-[0_10px_32px_rgba(28,24,20,.08)]',
+                'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-none',
               )}
-            </AnimatePresence>
+            >
+              <GoogleIcon />
+              {submitting ? 'Redirecting to Google…' : 'Continue with Google'}
+            </button>
+
+            {errorMsg && (
+              <p className="mt-4 text-center text-[13px] leading-relaxed text-accent">{errorMsg}</p>
+            )}
+            {infoMsg && !errorMsg && (
+              <p className="mt-4 text-center text-[13px] leading-relaxed text-muted">{infoMsg}</p>
+            )}
           </div>
         </motion.div>
       </div>

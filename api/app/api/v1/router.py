@@ -21,7 +21,7 @@ from app.services.redis_cache import cache_get, cache_set
 from app.services.sessions import get_session_with_generation, serialize_session, serialize_session_list_item
 from app.services.supabase import get_supabase_client
 from app.services.tasks import submit_pipeline
-from app.utils.audio import is_allowed_audio_mime, normalize_audio_mime
+from app.utils.audio import extension_for_mime, is_allowed_audio_mime, normalize_audio_mime
 from app.utils.auth import get_current_user
 from app.utils.errors import format_api_error
 
@@ -140,7 +140,8 @@ async def _create_session_from_audio(
         raise HTTPException(status_code=503, detail="AI processing is not configured yet.")
 
     recording_id = str(uuid.uuid4())
-    storage_path = f"{user_id}/{recording_id}.webm"
+    ext = extension_for_mime(content_type)
+    storage_path = f"{user_id}/{recording_id}.{ext}"
 
     insert_payload = {
         "id": recording_id,

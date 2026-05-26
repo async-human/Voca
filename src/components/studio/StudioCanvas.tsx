@@ -95,6 +95,11 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
       setDelivered(false);
       setEditedOutput('');
       setPipelineStep('transcribing');
+      if (blob.size < 1000) {
+        setError('Recording was empty. Hold the mic button, speak for a few seconds, then tap again to finish.');
+        finishProcessing();
+        return;
+      }
       try {
         const { session_id } = await processVoice(accessToken, blob, format, durationMs);
         sessionIdRef.current = session_id;

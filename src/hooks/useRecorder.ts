@@ -65,15 +65,22 @@ export function useRecorder({ maxSeconds = 60, onComplete }: UseRecorderOptions)
       streamRef.current = stream;
       chunksRef.current = [];
 
-      const mime = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
-      const recorder = new MediaRecorder(stream, { mimeType: mime });
+      const preferred = [
+        'audio/webm;codecs=opus',
+        'audio/webm',
+        'audio/mp4',
+        'audio/ogg',
+      ];
+      const mime = preferred.find((t) => MediaRecorder.isTypeSupported(t)) ?? '';
+      const recorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
       mediaRecorderRef.current = recorder;
 
       recorder.ondataavailable = (e) => {
         if (e.data.size) chunksRef.current.push(e.data);
       };
       recorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: recorder.mimeType });
+        const blobType = recorder.mimeType || mime || 'audio/webm';
+        const blob = new Blob(chunksRef.current, { type: blobType });
         onComplete(blob, secondsRef.current * 1000);
       };
 

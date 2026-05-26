@@ -1,5 +1,6 @@
 import type { SessionResult, SessionSummary, UserProfile } from './types';
 import type { DeliverResult, DeliveryDestination, PlatformConnection } from './delivery';
+import { audioFileFromBlob } from './audio';
 
 const API = process.env.NEXT_PUBLIC_VOCA_API_URL || 'http://localhost:3001';
 
@@ -20,7 +21,7 @@ export async function processVoice(
   durationMs: number,
 ): Promise<{ session_id: string }> {
   const fd = new FormData();
-  fd.append('audio', new File([audio], 'recording.webm', { type: 'audio/webm' }));
+  fd.append('audio', audioFileFromBlob(audio));
   fd.append('format', format);
   fd.append('duration_ms', String(durationMs));
 

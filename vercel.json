@@ -1,4 +1,12 @@
 {
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.vokal.work" }],
+      "destination": "https://vokal.work/:path*",
+      "permanent": true
+    }
+  ],
   "buildCommand": "npm run build",
   "installCommand": "npm install",
   "outputDirectory": "out",

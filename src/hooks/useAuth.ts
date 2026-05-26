@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { createClient, hasSupabaseConfig } from '@/lib/supabase/client';
+import { authCallbackUrl } from '@/lib/site';
 
 function redirectToAuthCallback() {
   const params = new URLSearchParams({ next: '/app/' });
@@ -44,7 +45,7 @@ export function useAuth() {
 
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s);
-      setAuthMsg(s ? '' : 'Enter your email for a magic sign-in link.');
+      setAuthMsg(s ? '' : 'Sign in with Google to open Studio.');
       setLoading(false);
     });
 
@@ -56,19 +57,19 @@ export function useAuth() {
     return () => subscription.unsubscribe();
   }, [supabase]);
 
-  async function signInWithEmail(email: string) {
-    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent('/app/')}`;
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: redirectTo },
+  async function signInWithGoogle() {
+    const redirectTo = authCallbackUrl('/app/');
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo },
     });
     if (error) throw error;
   }
 
   async function signOut() {
     await supabase.auth.signOut();
-    setAuthMsg('Signed out. Enter your email to continue.');
+    setAuthMsg('Signed out. Sign in with Google to continue.');
   }
 
-  return { session, loading, authMsg, setAuthMsg, signInWithEmail, signOut };
+  return { session, loading, authMsg, setAuthMsg, signInWithGoogle, signOut };
 }
