@@ -476,19 +476,27 @@ export function resolveOutputBlocks(
   }
 
   if (structuredFacts?.sections?.length) {
-    return buildBlocksFromStructuredFacts(structuredFacts, outputText, format);
+    const rebuilt = buildBlocksFromStructuredFacts(structuredFacts, outputText, format);
+    if (reportHasVisuals(rebuilt)) return rebuilt;
   }
 
-  // Legacy sessions: show saved blocks only — do not infer numbers from polished text (causes hallucinations).
-  if (llmBlocks.length) return llmBlocks;
+  // Legacy saves often have heading/paragraph only — still try transcript (not output_text).
+  if (llmBlocks.length && reportHasVisuals(llmBlocks)) {
+    return llmBlocks;
+  }
 
-  // Last resort: transcript-only regex (no output_text).
   if (sourceTranscript?.trim()) {
-    const extracted = extractFactsFromTranscript(sourceTranscript);
-    return buildBlocksFromFacts(extracted, outputText, format);
+    const factual = buildBlocksFromFacts(
+      extractFactsFromTranscript(sourceTranscript),
+      outputText,
+      format,
+    );
+    if (reportHasVisuals(factual)) {
+      return llmBlocks.length ? mergeBlocks(llmBlocks, factual) : factual;
+    }
   }
 
-  return [];
+  return llmBlocks;
 }
 
 /** @deprecated use resolveOutputBlocks */

@@ -63,12 +63,15 @@ export function ResultPanel({
   const others = FORMATS.filter((f) => f.id !== gen.format);
   const explanations = gen.explanations ?? [];
   const displayText = outputText ?? gen.output_text;
+  const structuredFacts =
+    gen.output_meta?.structured_facts ??
+    data.intent?.numerical_facts;
   const effectiveBlocks = resolveOutputBlocks(
     gen.output_meta?.blocks,
     displayText,
     resolvedFormat,
     data.clean_transcript || data.raw_transcript,
-    gen.output_meta?.structured_facts,
+    structuredFacts,
   );
   const hasRichBlocks = hasMixedContent(effectiveBlocks);
   const showRichView = hasRichBlocks && !plainEdit;

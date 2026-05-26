@@ -81,6 +81,11 @@ export interface SessionResult {
   error_message?: string;
   raw_transcript?: string;
   clean_transcript?: string;
+  /** Pipeline intent; may include numerical_facts for sessions before output_meta.structured_facts. */
+  intent?: {
+    numerical_facts?: StructuredFacts;
+    [key: string]: unknown;
+  };
   created_at?: string;
   updated_at?: string;
   generation?: Generation;
