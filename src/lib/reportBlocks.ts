@@ -10,17 +10,27 @@ function isYear(n: number): boolean {
   return Number.isInteger(n) && n >= 1900 && n <= 2100;
 }
 
-function parseAmount(raw: string, suffix = ''): { value: number; unit: string } {
+function parseAmount(raw: string, suffix = ''): { value: number; unit: string; chartValue: number; chartUnit: string } {
   const n = parseFloat(raw.replace(/,/g, ''));
-  if (Number.isNaN(n) || isYear(n)) return { value: 0, unit: '' };
+  if (Number.isNaN(n) || isYear(n)) return { value: 0, unit: '', chartValue: 0, chartUnit: 'M' };
 
   const s = suffix.toLowerCase().replace(/\.$/, '');
-  if (s === 'b' || s === 'billion') return { value: round2(n * 1000), unit: 'million' };
-  if (s === 'm' || s === 'million') return { value: round2(n), unit: 'million' };
-  if (s === 'k' || s === 'thousand') return { value: round2(n / 1000), unit: 'million' };
-  if (s === '%' || s === 'percent') return { value: round2(n), unit: 'percent' };
-  if (n > 0 && n < 500) return { value: round2(n), unit: 'million' };
-  return { value: 0, unit: '' };
+  if (s === 'b' || s === 'billion') {
+    return { value: n, unit: 'billion', chartValue: round2(n), chartUnit: 'B' };
+  }
+  if (s === 'm' || s === 'million') {
+    return { value: n, unit: 'million', chartValue: round2(n), chartUnit: 'M' };
+  }
+  if (s === 'k' || s === 'thousand') {
+    return { value: n, unit: 'thousand', chartValue: round2(n / 1000), chartUnit: 'M' };
+  }
+  if (s === '%' || s === 'percent') {
+    return { value: n, unit: 'percent', chartValue: round2(n), chartUnit: '%' };
+  }
+  if (n > 0 && n < 500) {
+    return { value: n, unit: 'million', chartValue: round2(n), chartUnit: 'M' };
+  }
+  return { value: 0, unit: '', chartValue: 0, chartUnit: 'M' };
 }
 
 export function formatDisplayValue(n: number, unit = ''): string {
@@ -30,9 +40,13 @@ export function formatDisplayValue(n: number, unit = ''): string {
     const s = r.toFixed(2).replace(/\.?0+$/, '');
     return `${s}%`;
   }
-  if (r >= 1000) {
-    const s = round2(r / 1000).toFixed(2).replace(/\.?0+$/, '');
+  if (u === 'billion' || u === 'b') {
+    const s = r.toFixed(2).replace(/\.?0+$/, '');
     return `$${s}B`;
+  }
+  if (u === 'thousand' || u === 'k') {
+    const s = round2(r * 1000).toFixed(2).replace(/\.?0+$/, '');
+    return `$${s}K`;
   }
   const s = r.toFixed(2).replace(/\.?0+$/, '');
   return `$${s}M`;
@@ -40,16 +54,38 @@ export function formatDisplayValue(n: number, unit = ''): string {
 
 export function formatChartValue(n: number, unit?: string): string {
   const r = round2(n);
-  if (unit === '%') return `${r.toFixed(2).replace(/\.?0+$/, '')}%`;
-  if (unit === 'M' || unit === 'million' || !unit) {
-    return `${r.toFixed(2).replace(/\.?0+$/, '')}M`;
-  }
-  return String(r);
+  const s = r.toFixed(2).replace(/\.?0+$/, '');
+  if (unit === '%') return `${s}%`;
+  if (unit === 'B') return `$${s}B`;
+  return `${s}M`;
 }
 
 const AMOUNT_RE =
   /\$\s*([\d]{1,4}(?:,\d{3})*(?:\.\d{1,2})?)\s*(million|billion|thousand|M|B|K|%)?|([\d]{1,4}(?:,\d{3})*(?:\.\d{1,2})?)\s+(million|billion|thousand)\b/gi;
 const YEAR_RE = /(?:FY\s*['']?|fiscal\s+year\s*)(\d{2,4})\b|(?:in\s+|for\s+|during\s+)(\d{4})\b/gi;
+
+function stripMarkdownForExtraction(text: string): string {
+  return text
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/^[-*•]\s+/gm, '')
+    .replace(/\*\*/g, '')
+    .replace(/\r/g, '');
+}
+
+function mergeExtracted(
+  a: ReturnType<typeof extractFactsFromTranscript>,
+  b: ReturnType<typeof extractFactsFromTranscript>,
+): ReturnType<typeof extractFactsFromTranscript> {
+  const seen = new Set<string>();
+  const facts = [...a.facts, ...b.facts].filter((f) => {
+    const key = `${f.label}|${f.value}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  const highlights = [...a.highlights, ...b.highlights].filter((h, i, arr) => arr.indexOf(h) === i).slice(0, 8);
+  return { facts, highlights };
+}
 
 export function extractFactsFromTranscript(text: string) {
   const facts: {
@@ -63,7 +99,7 @@ export function extractFactsFromTranscript(text: string) {
   const highlights: string[] = [];
   const seen = new Set<string>();
 
-  const sentences = (text || '').split(/(?<=[.!?])\s+|\n+/);
+  const sentences = stripMarkdownForExtraction(text || '').split(/(?<=[.!?])\s+|\n+/);
   for (const sent of sentences) {
     const s = sent.trim();
     if (s.length < 8) continue;
@@ -77,12 +113,26 @@ export function extractFactsFromTranscript(text: string) {
       if (n >= 1900 && n <= 2100) years.push(full.slice(-2));
     }
 
-    const amounts: { value: number; unit: string; display: string }[] = [];
+    const amounts: {
+      value: number;
+      unit: string;
+      display: string;
+      chartValue: number;
+      chartUnit: string;
+    }[] = [];
     for (const m of s.matchAll(AMOUNT_RE)) {
       const raw = m[1] || m[3];
       const suf = m[2] || m[4] || '';
-      const { value, unit } = parseAmount(raw, suf);
-      if (value > 0) amounts.push({ value, unit, display: formatDisplayValue(value, unit) });
+      const parsed = parseAmount(raw, suf);
+      if (parsed.value > 0) {
+        amounts.push({
+          value: parsed.value,
+          unit: parsed.unit,
+          display: formatDisplayValue(parsed.value, parsed.unit),
+          chartValue: parsed.chartValue,
+          chartUnit: parsed.chartUnit,
+        });
+      }
     }
 
     let category = 'metric';
@@ -111,8 +161,8 @@ export function extractFactsFromTranscript(text: string) {
           fiscal_year: yr.startsWith('P') ? null : yr.length === 2 ? `20${yr}` : yr,
           label,
           value: amt.display,
-          numeric_value: amt.value,
-          unit: amt.unit,
+          numeric_value: amt.chartValue,
+          unit: amt.chartUnit,
         });
       }
     } else if (
@@ -168,7 +218,7 @@ export function normalizeBlocks(raw: unknown): OutputBlock[] {
           const val = row.value ?? row.amount ?? row.y;
           let num =
             typeof val === 'number' ? round2(val) : parseAmount(String(val).replace(/[$,%]/g, ''), '').value;
-          if (isYear(num) || num <= 0 || num > 10_000) return null;
+          if (isYear(num) || num <= 0 || num > 500) return null;
           return { label, value: num };
         })
         .filter((row): row is { label: string; value: number } => !!row && !!row.label);
@@ -286,8 +336,13 @@ export function reportHasVisuals(blocks: OutputBlock[]): boolean {
 
 export function hasMixedContent(blocks: OutputBlock[]): boolean {
   if (reportHasVisuals(blocks)) return true;
-  const prose = blocks.filter((b) => b.type === 'heading' || b.type === 'paragraph' || b.type === 'callout');
-  return prose.length >= 2 || (prose.length >= 1 && reportHasVisuals(blocks));
+  return blocks.some(
+    (b) =>
+      b.type === 'kpi_grid' ||
+      b.type === 'bar_chart' ||
+      b.type === 'callout' ||
+      b.type === 'heading',
+  );
 }
 
 export function resolveOutputBlocks(
@@ -296,12 +351,17 @@ export function resolveOutputBlocks(
   format: string,
   sourceTranscript?: string,
 ): OutputBlock[] {
-  const transcript = (sourceTranscript || outputText || '').trim();
-  const extracted = extractFactsFromTranscript(transcript);
-  const factBlocks = buildBlocksFromFacts(extracted, outputText, format);
   const llmBlocks = normalizeBlocks(rawBlocks);
+  const extracted = mergeExtracted(
+    extractFactsFromTranscript(sourceTranscript || ''),
+    extractFactsFromTranscript(outputText || ''),
+  );
+  const factBlocks = buildBlocksFromFacts(extracted, outputText, format);
 
-  if (extracted.facts.length || factBlocks.length) {
+  if (reportHasVisuals(llmBlocks)) {
+    return mergeBlocks(llmBlocks, factBlocks);
+  }
+  if (extracted.facts.length || reportHasVisuals(factBlocks)) {
     return mergeBlocks(llmBlocks, factBlocks);
   }
   return llmBlocks.length ? llmBlocks : factBlocks;

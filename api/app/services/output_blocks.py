@@ -32,27 +32,27 @@ def _format_display_value(n: float, unit: str = "") -> str:
     return f"${s}" if "$" not in unit else s
 
 
-def _parse_amount(raw: str, suffix: str = "") -> tuple[float, str]:
+def _parse_amount(raw: str, suffix: str = "") -> tuple[float, str, float, str]:
+    """Returns (display_value, display_unit, chart_value, chart_unit)."""
     try:
         n = float(raw.replace(",", ""))
     except ValueError:
-        return 0.0, ""
+        return 0.0, "", 0.0, "M"
     if _is_year(n):
-        return 0.0, ""
+        return 0.0, "", 0.0, "M"
 
     s = (suffix or "").lower().rstrip(".")
     if s in ("b", "billion"):
-        return _round2(n * 1000), "million"
+        return _round2(n), "billion", _round2(n), "B"
     if s in ("m", "million"):
-        return _round2(n), "million"
+        return _round2(n), "million", _round2(n), "M"
     if s in ("k", "thousand"):
-        return _round2(n / 1000), "million"
+        return _round2(n), "thousand", _round2(n / 1000), "M"
     if s in ("%", "percent"):
-        return _round2(n), "percent"
-    # Bare number: only treat as millions if reasonably sized
-    if n > 0 and n < 500:
-        return _round2(n), "million"
-    return 0.0, ""
+        return _round2(n), "percent", _round2(n), "%"
+    if 0 < n < 500:
+        return _round2(n), "million", _round2(n), "M"
+    return 0.0, "", 0.0, "M"
 
 
 _AMOUNT_RE = re.compile(
@@ -86,13 +86,13 @@ def extract_facts_from_transcript(text: str) -> dict[str, Any]:
                 if 1900 <= int(label) <= 2100:
                     years.append(label[-2:] if len(label) == 4 else label)
 
-        amounts: list[tuple[float, str, str]] = []
+        amounts: list[tuple[float, str, str, float, str]] = []
         for m in _AMOUNT_RE.finditer(s):
             raw = m.group(1) or m.group(3)
             suf = m.group(2) or m.group(4) or ""
-            val, unit = _parse_amount(raw, suf)
+            val, unit, chart_val, chart_unit = _parse_amount(raw, suf)
             if val > 0:
-                amounts.append((val, unit, _format_display_value(val, unit)))
+                amounts.append((val, unit, _format_display_value(val, unit), chart_val, chart_unit))
 
         category = "metric"
         if re.search(r"revenue|sales|turnover", s, re.I):
@@ -112,7 +112,8 @@ def extract_facts_from_transcript(text: str) -> dict[str, Any]:
             else:
                 pairs = [(f"P{i + 1}", amounts[i]) for i in range(len(amounts))]
 
-            for yr, (val, unit, display) in pairs:
+            for yr, row in pairs:
+                val, unit, display, chart_val, chart_unit = row
                 fy = yr if yr.startswith("P") else f"FY{yr}"
                 cat_label = category.replace("_", " ").title()
                 label = f"{fy} {cat_label}" if not yr.startswith("P") else f"{cat_label} ({yr})"
@@ -125,8 +126,8 @@ def extract_facts_from_transcript(text: str) -> dict[str, Any]:
                     "fiscal_year": None if yr.startswith("P") else f"20{yr}" if len(yr) == 2 else yr,
                     "label": label,
                     "value": display,
-                    "numeric_value": val,
-                    "unit": unit,
+                    "numeric_value": chart_val,
+                    "unit": chart_unit,
                 })
         elif re.search(
             r"risk|recommend|decision|launch|deadline|blocker|concern|plan|strategy",
@@ -199,8 +200,9 @@ def normalize_blocks(raw: Any) -> list[dict]:
                 if isinstance(val, (int, float)):
                     num = _round2(float(val))
                 else:
-                    num, _ = _parse_amount(re.sub(r"[$,%]", "", str(val)), "")
-                if _is_year(num) or num <= 0 or num > 10_000:
+                    num, _, chart_val, _ = _parse_amount(re.sub(r"[$,%]", "", str(val)), "")
+                    num = chart_val
+                if _is_year(num) or num <= 0 or num > 500:
                     continue
                 if label and num > 0:
                     bars.append({"label": label, "value": num})
@@ -358,13 +360,19 @@ def ensure_output_blocks(
     numerical_facts: dict | None = None,
 ) -> dict:
     meta = dict(output_meta or {})
-    transcript = (source_transcript or output_text or "").strip()
-
-    extracted = _merge_llm_facts(extract_facts_from_transcript(transcript), numerical_facts)
-    fact_blocks = build_blocks_from_facts(extracted, output_text or "", output_format)
     llm_blocks = normalize_blocks(meta.get("blocks"))
+    extracted = _merge_llm_facts(
+        _merge_extracted(
+            extract_facts_from_transcript(source_transcript or ""),
+            extract_facts_from_transcript(output_text or ""),
+        ),
+        numerical_facts,
+    )
+    fact_blocks = build_blocks_from_facts(extracted, output_text or "", output_format)
 
-    if extracted.get("facts") or fact_blocks:
+    if _has_visuals(llm_blocks):
+        meta["blocks"] = merge_blocks(llm_blocks, fact_blocks)
+    elif extracted.get("facts") or _has_visuals(fact_blocks):
         meta["blocks"] = merge_blocks(llm_blocks, fact_blocks)
     elif llm_blocks:
         meta["blocks"] = llm_blocks
