@@ -1,5 +1,7 @@
 {
-  "outputDirectory": ".next",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "outputDirectory": "out",
   "redirects": [
     {
       "source": "/:path*",
@@ -9,7 +11,18 @@
     }
   ],
   "rewrites": [
-    { "source": "/", "destination": "/index.html" }
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/app", "destination": "/app/index.html" },
+    { "source": "/app/", "destination": "/app/index.html" },
+    { "source": "/app.html", "destination": "/app/index.html" },
+    { "source": "/app/connections", "destination": "/app/connections/index.html" },
+    { "source": "/app/connections/", "destination": "/app/connections/index.html" },
+    { "source": "/app/history", "destination": "/app/history/index.html" },
+    { "source": "/app/history/", "destination": "/app/history/index.html" },
+    { "source": "/app/voice", "destination": "/app/voice/index.html" },
+    { "source": "/app/voice/", "destination": "/app/voice/index.html" },
+    { "source": "/auth/callback", "destination": "/auth/callback/index.html" },
+    { "source": "/auth/callback/", "destination": "/auth/callback/index.html" }
   ],
   "headers": [
     {

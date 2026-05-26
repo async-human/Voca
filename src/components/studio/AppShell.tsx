@@ -11,22 +11,24 @@ interface AppShellProps {
 export function AppShell({ children }: AppShellProps) {
   const { session, loading, authMsg, signInWithGoogle, signOut } = useAuth();
 
+  if (!session) {
+    return (
+      <AuthGate
+        loading={loading}
+        message={authMsg}
+        onSignInWithGoogle={signInWithGoogle}
+      />
+    );
+  }
+
   return (
     <>
       <Nav
-        email={session?.user.email}
-        signedIn={!!session}
-        onSignOut={session ? signOut : undefined}
+        email={session.user.email}
+        signedIn
+        onSignOut={signOut}
       />
-      {!session ? (
-        <AuthGate
-          loading={loading}
-          message={authMsg}
-          onSignInWithGoogle={signInWithGoogle}
-        />
-      ) : (
-        children(session.access_token)
-      )}
+      {children(session.access_token)}
     </>
   );
 }
