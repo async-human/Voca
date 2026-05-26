@@ -77,6 +77,15 @@ export function OutputBlocks({ blocks, className }: OutputBlocksProps) {
               </p>
             );
 
+          case 'bullet_list':
+            return (
+              <ul key={i} className="list-disc space-y-2 pl-5 font-serif text-[15px] leading-[1.75] text-ink-2">
+                {block.items.map((item, j) => (
+                  <li key={j}>{item}</li>
+                ))}
+              </ul>
+            );
+
           case 'metric_section':
             return (
               <section key={i} className="space-y-3">

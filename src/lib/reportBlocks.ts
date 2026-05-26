@@ -1,4 +1,4 @@
-import type { BarChartData, OutputBlock, StructuredFacts } from './types';
+import type { BarChartData, OutputBlock, StructuredFacts, StructuredFactsSection } from './types';
 
 type LooseBlock = Record<string, unknown>;
 
@@ -61,8 +61,9 @@ export function formatChartValue(n: number, unit?: string): string {
 }
 
 const AMOUNT_RE =
-  /\$\s*([\d]{1,4}(?:,\d{3})*(?:\.\d{1,2})?)\s*(million|billion|thousand|M|B|K|%)?|([\d]{1,4}(?:,\d{3})*(?:\.\d{1,2})?)\s+(million|billion|thousand)\b/gi;
-const YEAR_RE = /(?:FY\s*['']?|fiscal\s+year\s*)(\d{2,4})\b|(?:in\s+|for\s+|during\s+)(\d{4})\b/gi;
+  /(?:~|≈|about\s+)?\$\s*([\d]{1,4}(?:,\d{3})*(?:\.\d{1,3})?)\s*(million|billion|thousand|M|B|K|%)?|([\d]{1,4}(?:,\d{3})*(?:\.\d{1,3})?)\s+(million|billion|thousand)\b/gi;
+const YEAR_RE =
+  /(?:FY\s*['']?|fiscal\s+year\s*)(\d{2,4})\b|(?:in\s+|for\s+|during\s+)(20\d{2})\b|\b(20\d{2})\s*(?:\(|[~$]|:|,|\s+(?:was|is|at)\b)/gi;
 
 function stripMarkdownForExtraction(text: string): string {
   return text
@@ -70,6 +71,92 @@ function stripMarkdownForExtraction(text: string): string {
     .replace(/^[-*•]\s+/gm, '')
     .replace(/\*\*/g, '')
     .replace(/\r/g, '');
+}
+
+/** Remove inline markdown (bold, heading prefixes) for display text. */
+export function stripInlineMarkdown(text: string): string {
+  return text
+    .replace(/^#{1,6}\s+/, '')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\*([^*]+)\*/g, '$1')
+    .replace(/__([^_]+)__/g, '$1')
+    .trim();
+}
+
+/** Turn LLM markdown output_text into heading / paragraph / bullet_list blocks. */
+export function parseMarkdownOutput(text: string): OutputBlock[] {
+  const blocks: OutputBlock[] = [];
+  const lines = (text || '').replace(/\r/g, '').split('\n');
+  let paraBuf: string[] = [];
+  let listBuf: string[] = [];
+
+  const flushPara = () => {
+    const t = stripInlineMarkdown(paraBuf.join(' '));
+    if (t.length > 0) blocks.push({ type: 'paragraph', text: t });
+    paraBuf = [];
+  };
+
+  const flushList = () => {
+    if (listBuf.length) {
+      blocks.push({
+        type: 'bullet_list',
+        items: listBuf.map((item) => stripInlineMarkdown(item)),
+      });
+    }
+    listBuf = [];
+  };
+
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line) {
+      flushPara();
+      flushList();
+      continue;
+    }
+
+    const heading = line.match(/^(#{1,6})\s+(.+)$/);
+    if (heading) {
+      flushPara();
+      flushList();
+      blocks.push({ type: 'heading', text: stripInlineMarkdown(heading[2]) });
+      continue;
+    }
+
+    const bullet = line.match(/^[-*•]\s+(.+)$/);
+    if (bullet) {
+      flushPara();
+      listBuf.push(bullet[1]);
+      continue;
+    }
+
+    flushList();
+    paraBuf.push(line);
+  }
+
+  flushPara();
+  flushList();
+  return blocks;
+}
+
+/** Narrative blocks from output; omit Key Points when metrics/charts already cover numbers. */
+export function narrativeBlocksFromOutput(
+  outputText: string,
+  skipKeyPoints: boolean,
+): OutputBlock[] {
+  const all = parseMarkdownOutput(outputText);
+  if (!skipKeyPoints) return all;
+
+  const out: OutputBlock[] = [];
+  let omit = false;
+  for (const b of all) {
+    if (b.type === 'heading' && /key\s*points/i.test(b.text)) {
+      omit = true;
+      continue;
+    }
+    if (b.type === 'heading') omit = false;
+    if (!omit) out.push(b);
+  }
+  return out;
 }
 
 function mergeExtracted(
@@ -106,7 +193,7 @@ export function extractFactsFromTranscript(text: string) {
 
     const years: string[] = [];
     for (const m of s.matchAll(YEAR_RE)) {
-      const y = m[1] || m[2];
+      const y = m[1] || m[2] || m[3];
       if (!y) continue;
       const full = y.length === 4 ? y : `20${y}`;
       const n = parseInt(full, 10);
@@ -176,6 +263,130 @@ export function extractFactsFromTranscript(text: string) {
   return { facts, highlights };
 }
 
+function factVerifiableInTranscript(
+  fact: { value: string; numeric_value: number },
+  transcript: string,
+): boolean {
+  const digitsOnly = transcript.replace(/[^0-9.]/g, '');
+  const core = String(fact.numeric_value).replace(/\.?0+$/, '');
+  if (core && digitsOnly.includes(core)) return true;
+  const fromValue = fact.value.replace(/[^0-9.]/g, '');
+  return fromValue.length >= 1 && digitsOnly.includes(fromValue);
+}
+
+/** Pull metrics from transcript; if sparse, add output_text facts verified against transcript. */
+export function extractLegacyMetrics(
+  transcript: string | undefined,
+  outputText: string,
+): ReturnType<typeof extractFactsFromTranscript> {
+  const t = transcript?.trim() || '';
+  const o = outputText?.trim() || '';
+
+  if (!t && !o) return { facts: [], highlights: [] };
+
+  let base = extractFactsFromTranscript(t || o);
+  if (!base.facts.length && o) {
+    base = extractFactsFromTranscript(o);
+  } else if (t && o) {
+    const fromOutput = extractFactsFromTranscript(o);
+    const verified = fromOutput.facts.filter((f) => factVerifiableInTranscript(f, t));
+    if (verified.length) {
+      base = mergeExtracted(base, { facts: verified, highlights: fromOutput.highlights });
+    }
+  }
+  return base;
+}
+
+export function normalizeStructuredFacts(data: unknown): StructuredFacts | undefined {
+  if (!data || typeof data !== 'object') return undefined;
+  const o = data as Record<string, unknown>;
+  if (Array.isArray(o.sections) && o.sections.length) {
+    return o as StructuredFacts;
+  }
+  const facts = o.facts;
+  if (!Array.isArray(facts) || !facts.length) return undefined;
+
+  const byCat = new Map<string, StructuredFactsSection>();
+  for (const raw of facts) {
+    if (!raw || typeof raw !== 'object') continue;
+    const f = raw as Record<string, unknown>;
+    const cat = String(f.category || 'other').toLowerCase();
+    let section = byCat.get(cat);
+    if (!section) {
+      section = { category: cat, title: cat.charAt(0).toUpperCase() + cat.slice(1), metrics: [] };
+      byCat.set(cat, section);
+    }
+    section.metrics.push({
+      fiscal_year: f.fiscal_year != null ? String(f.fiscal_year) : null,
+      label: f.label != null ? String(f.label) : undefined,
+      value_display: String(f.value_display || f.value || ''),
+      numeric_value: typeof f.numeric_value === 'number' ? f.numeric_value : undefined,
+      unit: f.unit != null ? String(f.unit) : undefined,
+      source_quote: f.source_quote != null ? String(f.source_quote) : undefined,
+    });
+  }
+  return {
+    sections: [...byCat.values()],
+    critical_non_numeric: Array.isArray(o.critical_non_numeric)
+      ? (o.critical_non_numeric as string[])
+      : [],
+  };
+}
+
+function factsToStructuredFacts(
+  extracted: ReturnType<typeof extractFactsFromTranscript>,
+): StructuredFacts {
+  const byCat = new Map<string, StructuredFactsSection>();
+  for (const f of extracted.facts) {
+    const cat = f.category || 'other';
+    let section = byCat.get(cat);
+    if (!section) {
+      section = {
+        category: cat,
+        title: cat.charAt(0).toUpperCase() + cat.slice(1),
+        metrics: [],
+      };
+      byCat.set(cat, section);
+    }
+    section.metrics.push({
+      fiscal_year: f.fiscal_year,
+      label: f.label,
+      value_display: f.value,
+      numeric_value: f.numeric_value,
+      unit: f.unit,
+    });
+  }
+  return {
+    sections: [...byCat.values()],
+    critical_non_numeric: extracted.highlights,
+  };
+}
+
+function mergeWithStructuredRebuild(
+  narrative: OutputBlock[],
+  rebuilt: OutputBlock[],
+  outputText: string,
+): OutputBlock[] {
+  const hasMetrics = rebuilt.some((b) => b.type === 'metric_section');
+  const parsed = narrativeBlocksFromOutput(outputText, hasMetrics);
+  if (parsed.length) {
+    const sections = rebuilt.filter((b) => b.type === 'metric_section');
+    const callouts = rebuilt.filter((b) => b.type === 'callout');
+    return [...parsed, ...sections, ...callouts];
+  }
+  const narrativeOnly = narrative.filter(
+    (b) =>
+      b.type === 'heading' ||
+      b.type === 'paragraph' ||
+      b.type === 'bullet_list' ||
+      b.type === 'callout',
+  );
+  if (!narrativeOnly.length) return rebuilt;
+  const sections = rebuilt.filter((b) => b.type === 'metric_section');
+  const callouts = rebuilt.filter((b) => b.type === 'callout');
+  return [...narrativeOnly, ...sections, ...callouts];
+}
+
 export function normalizeBlocks(raw: unknown): OutputBlock[] {
   if (!Array.isArray(raw)) return [];
 
@@ -187,11 +398,23 @@ export function normalizeBlocks(raw: unknown): OutputBlock[] {
     const type = String(b.type || b.kind || '').toLowerCase().replace(/-/g, '_');
 
     if (type === 'heading' || type === 'title' || type === 'section_title') {
-      const text = String(b.text || b.title || b.heading || '').trim();
+      const text = stripInlineMarkdown(String(b.text || b.title || b.heading || ''));
       if (text) out.push({ type: 'heading', text });
     } else if (type === 'paragraph' || type === 'text' || type === 'body') {
-      const text = String(b.text || b.content || b.body || '').trim();
+      const text = stripInlineMarkdown(String(b.text || b.content || b.body || ''));
       if (text) out.push({ type: 'paragraph', text });
+    } else if (type === 'bullet_list' || type === 'list') {
+      const itemsRaw = b.items as unknown;
+      if (Array.isArray(itemsRaw)) {
+        const items = itemsRaw
+          .map((item) =>
+            typeof item === 'string'
+              ? stripInlineMarkdown(item)
+              : stripInlineMarkdown(String((item as LooseBlock).text || (item as LooseBlock).body || '')),
+          )
+          .filter(Boolean);
+        if (items.length) out.push({ type: 'bullet_list', items });
+      }
     } else if (type === 'metric_section') {
       const itemsRaw = b.items as LooseBlock[] | undefined;
       const items = Array.isArray(itemsRaw)
@@ -330,18 +553,13 @@ function buildBlocksFromFacts(
     blocks.push({ type: 'callout', title: 'Key point', body: point, variant: 'insight' });
   }
 
+  const hasMetrics = blocks.some((b) => b.type === 'kpi_grid' || b.type === 'bar_chart');
   if (outputText) {
-    const paras = outputText.split(/\n\s*\n/).filter((p) => p.trim().length > 40);
-    if (paras.length && format === 'report') {
-      if (!blocks.some((b) => b.type === 'heading')) {
-        blocks.unshift({ type: 'heading', text: 'Executive summary' });
-      }
-      if (!blocks.some((b) => b.type === 'paragraph')) {
-        blocks.splice(1, 0, { type: 'paragraph', text: paras[0].trim().slice(0, 1200) });
-      }
-    } else if (paras.length && !blocks.some((b) => b.type === 'paragraph')) {
-      blocks.push({ type: 'paragraph', text: paras[0].trim().slice(0, 800) });
+    const paras = narrativeBlocksFromOutput(outputText, hasMetrics);
+    if (paras.length && format === 'report' && !paras.some((b) => b.type === 'heading')) {
+      blocks.unshift({ type: 'heading', text: 'Executive summary' });
     }
+    return [...paras, ...blocks];
   }
 
   return blocks;
@@ -383,7 +601,8 @@ export function hasMixedContent(blocks: OutputBlock[]): boolean {
       b.type === 'kpi_grid' ||
       b.type === 'bar_chart' ||
       b.type === 'callout' ||
-      b.type === 'heading',
+      b.type === 'heading' ||
+      b.type === 'bullet_list',
   );
 }
 
@@ -448,14 +667,11 @@ export function buildBlocksFromStructuredFacts(
     blocks.push({ type: 'callout', title: 'Key point', body: point, variant: 'insight' });
   }
 
+  const hasMetrics = blocks.some((b) => b.type === 'metric_section');
   if (outputText) {
-    const paras = outputText.split(/\n\s*\n/).filter((p) => p.trim().length > 40);
-    if (paras.length && !blocks.some((b) => b.type === 'paragraph')) {
-      if (format === 'report') blocks.unshift({ type: 'heading', text: 'Executive summary' });
-      blocks.splice(format === 'report' ? 1 : 0, 0, {
-        type: 'paragraph',
-        text: paras[0].trim().slice(0, 1200),
-      });
+    const narrative = narrativeBlocksFromOutput(outputText, hasMetrics);
+    if (narrative.length) {
+      return [...narrative, ...blocks];
     }
   }
 
@@ -470,30 +686,49 @@ export function resolveOutputBlocks(
   structuredFacts?: StructuredFacts,
 ): OutputBlock[] {
   const llmBlocks = normalizeBlocks(rawBlocks);
+  const normalizedFacts = normalizeStructuredFacts(structuredFacts) ?? structuredFacts;
 
   if (llmBlocks.some((b) => b.type === 'metric_section')) {
-    return llmBlocks;
+    const visuals = llmBlocks.filter(
+      (b) =>
+        b.type === 'metric_section' ||
+        b.type === 'kpi_grid' ||
+        b.type === 'bar_chart' ||
+        b.type === 'callout',
+    );
+    const narrative = narrativeBlocksFromOutput(outputText, true);
+    return narrative.length ? [...narrative, ...visuals] : llmBlocks;
   }
 
-  if (structuredFacts?.sections?.length) {
-    const rebuilt = buildBlocksFromStructuredFacts(structuredFacts, outputText, format);
+  if (normalizedFacts?.sections?.length) {
+    const rebuilt = buildBlocksFromStructuredFacts(normalizedFacts, outputText, format);
     if (reportHasVisuals(rebuilt)) return rebuilt;
   }
 
-  // Legacy saves often have heading/paragraph only — still try transcript (not output_text).
   if (llmBlocks.length && reportHasVisuals(llmBlocks)) {
     return llmBlocks;
   }
 
-  if (sourceTranscript?.trim()) {
-    const factual = buildBlocksFromFacts(
-      extractFactsFromTranscript(sourceTranscript),
+  const legacy = extractLegacyMetrics(sourceTranscript, outputText);
+  if (legacy.facts.length) {
+    const rebuilt = buildBlocksFromStructuredFacts(
+      factsToStructuredFacts(legacy),
       outputText,
       format,
     );
+    if (reportHasVisuals(rebuilt)) {
+      return llmBlocks.length
+        ? mergeWithStructuredRebuild(llmBlocks, rebuilt, outputText)
+        : rebuilt;
+    }
+    const factual = buildBlocksFromFacts(legacy, outputText, format);
     if (reportHasVisuals(factual)) {
       return llmBlocks.length ? mergeBlocks(llmBlocks, factual) : factual;
     }
+  }
+
+  if (outputText.trim()) {
+    return parseMarkdownOutput(outputText);
   }
 
   return llmBlocks;

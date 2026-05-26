@@ -7,7 +7,11 @@ import { cn } from '@/lib/cn';
 import { PLATFORM_LABELS, type DeliveryDestination, type PlatformConnection } from '@/lib/delivery';
 import type { SessionResult } from '@/lib/types';
 import { FORMATS, formatMeta, type OutputFormat } from '@/lib/constants';
-import { hasMixedContent, resolveOutputBlocks } from '@/lib/reportBlocks';
+import {
+  normalizeStructuredFacts,
+  reportHasVisuals,
+  resolveOutputBlocks,
+} from '@/lib/reportBlocks';
 import { DestinationPicker, destinationSummary } from './DestinationPicker';
 import { OutputBlocks } from './OutputBlocks';
 
@@ -64,8 +68,8 @@ export function ResultPanel({
   const explanations = gen.explanations ?? [];
   const displayText = outputText ?? gen.output_text;
   const structuredFacts =
-    gen.output_meta?.structured_facts ??
-    data.intent?.numerical_facts;
+    normalizeStructuredFacts(gen.output_meta?.structured_facts) ??
+    normalizeStructuredFacts(data.intent?.numerical_facts);
   const effectiveBlocks = resolveOutputBlocks(
     gen.output_meta?.blocks,
     displayText,
@@ -73,13 +77,13 @@ export function ResultPanel({
     data.clean_transcript || data.raw_transcript,
     structuredFacts,
   );
-  const hasRichBlocks = hasMixedContent(effectiveBlocks);
-  const showRichView = hasRichBlocks && !plainEdit;
+  const hasVisuals = reportHasVisuals(effectiveBlocks);
+  const showRichView = effectiveBlocks.length > 0 && !plainEdit;
   const editable = !!onOutputChange && !historyMode;
 
   useEffect(() => {
     setPlainEdit(false);
-  }, [gen.output_text, gen.format, hasRichBlocks]);
+  }, [gen.output_text, gen.format, hasVisuals]);
 
   const canSend = !!onDeliver && !!deliveryDestination;
   const gmailMissingRecipient =
@@ -180,7 +184,7 @@ export function ResultPanel({
           </>
         )}
 
-        {plainEdit && hasRichBlocks && editable && (
+        {plainEdit && hasVisuals && editable && (
           <button
             type="button"
             onClick={() => setPlainEdit(false)}

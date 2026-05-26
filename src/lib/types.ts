@@ -17,6 +17,7 @@ export type BarChartData = {
 export type OutputBlock =
   | { type: 'heading'; text: string }
   | { type: 'paragraph'; text: string }
+  | { type: 'bullet_list'; items: string[] }
   | {
       type: 'metric_section';
       title: string;
