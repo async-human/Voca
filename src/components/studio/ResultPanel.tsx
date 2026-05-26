@@ -2,12 +2,13 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { cn } from '@/lib/cn';
 import { PLATFORM_LABELS, type DeliveryDestination, type PlatformConnection } from '@/lib/delivery';
 import type { SessionResult } from '@/lib/types';
 import { FORMATS, formatMeta, type OutputFormat } from '@/lib/constants';
 import { DestinationPicker, destinationSummary } from './DestinationPicker';
+import { OutputBlocks } from './OutputBlocks';
 
 interface ResultPanelProps {
   data: SessionResult;
@@ -51,6 +52,7 @@ export function ResultPanel({
   historyMode,
 }: ResultPanelProps) {
   const [showWhy, setShowWhy] = useState(true);
+  const [plainEdit, setPlainEdit] = useState(false);
   const gen = data.generation;
   if (!gen) return null;
 
@@ -60,7 +62,15 @@ export function ResultPanel({
   const others = FORMATS.filter((f) => f.id !== gen.format);
   const explanations = gen.explanations ?? [];
   const displayText = outputText ?? gen.output_text;
+  const blocks = gen.output_meta?.blocks;
+  const hasRichBlocks = Array.isArray(blocks) && blocks.length > 0;
+  const showRichView = hasRichBlocks && !plainEdit;
   const editable = !!onOutputChange && !historyMode;
+
+  useEffect(() => {
+    setPlainEdit(false);
+  }, [gen.output_text, gen.format, hasRichBlocks]);
+
   const canSend = !!onDeliver && !!deliveryDestination;
   const gmailMissingRecipient =
     deliveryDestination?.platform === 'gmail' && !(deliveryDestination.to || recipientEmail)?.trim();
@@ -144,17 +154,49 @@ export function ResultPanel({
             Subject · {gen.output_meta.subject}
           </p>
         )}
-        {editable ? (
+
+        {showRichView && blocks && (
+          <>
+            <OutputBlocks blocks={blocks} />
+            {editable && (
+              <button
+                type="button"
+                onClick={() => setPlainEdit(true)}
+                className="mt-5 cursor-pointer font-mono text-[10px] uppercase tracking-[0.1em] text-muted underline-offset-4 transition-colors hover:text-ink hover:underline"
+              >
+                Edit as plain text →
+              </button>
+            )}
+          </>
+        )}
+
+        {plainEdit && hasRichBlocks && editable && (
+          <button
+            type="button"
+            onClick={() => setPlainEdit(false)}
+            className="mb-4 cursor-pointer font-mono text-[10px] uppercase tracking-[0.1em] text-muted underline-offset-4 transition-colors hover:text-ink hover:underline"
+          >
+            ← Back to charts & cards
+          </button>
+        )}
+
+        {!showRichView && editable ? (
           <textarea
             value={displayText}
             onChange={(e) => onOutputChange?.(e.target.value)}
             rows={Math.min(16, Math.max(6, displayText.split('\n').length + 1))}
             className="w-full resize-y rounded-[14px] border border-faint-2 bg-white/70 px-4 py-3 font-serif text-[15px] leading-[1.82] text-ink-2 outline-none focus:border-ink/25"
           />
-        ) : (
+        ) : !showRichView ? (
           <div className="font-serif text-[15px] leading-[1.82] whitespace-pre-wrap text-ink-2">
             {displayText}
           </div>
+        ) : null}
+
+        {showRichView && !editable && (
+          <p className="mt-5 rounded-xl border border-dashed border-faint-2 bg-paper-2/60 px-4 py-3 font-mono text-[10px] leading-relaxed text-muted">
+            Charts and KPI cards are generated from numbers in your voice note. Copy still uses the plain-text version below the visuals.
+          </p>
         )}
       </div>
 

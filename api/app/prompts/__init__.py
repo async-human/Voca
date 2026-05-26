@@ -37,7 +37,16 @@ Transcript:
 FORMAT_GUIDES = {
     "email": "Professional email with subject in output_meta.subject. Greeting, context, CTA, sign-off.",
     "slack": "Concise Slack message. Conversational, short paragraphs or bullets.",
-    "report": "Executive report: Executive Summary, Key Points, Recommendation/Next Steps.",
+    "report": (
+        "Executive report with sections: Executive Summary, Key Points, Risks/Recommendations. "
+        "When the transcript includes numerical data (revenue, margins, %, counts, timelines), "
+        "populate output_meta.blocks with visual blocks AND keep output_text as a full plain-text "
+        "version for copy/paste (same facts, no markdown). "
+        "Block types: heading {text}, paragraph {text}, kpi_grid {items:[{label,value,hint?}]}, "
+        "bar_chart {title?, unit?, items:[{label, value:number}]}, "
+        "callout {title, body, variant?: default|insight|risk}. "
+        "Use 2-4 KPI cards and 1 bar_chart when numbers support it. Never invent figures."
+    ),
     "linkedin": "LinkedIn post with strong hook, 2-4 short paragraphs, readable line breaks.",
     "journal": "Reflective first-person journal entry. Organize raw thoughts, surface themes.",
 }
@@ -60,8 +69,8 @@ Rules:
 
 Return JSON:
 {{
-  "output_text": "polished content",
-  "output_meta": {{}}
+  "output_text": "polished content (always required, plain text)",
+  "output_meta": {{ "subject": "only for email", "blocks": [] }}
 }}
 
 Clean transcript:
@@ -74,6 +83,7 @@ CRITIQUE_PROMPT = """You are a strict editor for Vokal. Review this draft agains
 
 Fix: AI slop, tone drift, generic phrasing, structure issues.
 Keep: facts, intent, user's natural voice.
+If draft_meta contains output_meta.blocks, preserve and refine blocks so numbers match output_text. Do not drop visual blocks for report format.
 
 Return JSON:
 {{
@@ -84,6 +94,9 @@ Return JSON:
 
 Voice profile:
 {voice_profile}
+
+Draft meta (JSON):
+{draft_meta}
 
 Draft:
 \"\"\"

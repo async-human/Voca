@@ -6,10 +6,33 @@ export interface Explanation {
   text?: string;
 }
 
+export type OutputBlock =
+  | { type: 'heading'; text: string }
+  | { type: 'paragraph'; text: string }
+  | {
+      type: 'kpi_grid';
+      items: { label: string; value: string; hint?: string }[];
+    }
+  | {
+      type: 'bar_chart';
+      title?: string;
+      unit?: string;
+      items: { label: string; value: number }[];
+    }
+  | {
+      type: 'callout';
+      title: string;
+      body: string;
+      variant?: 'default' | 'insight' | 'risk';
+    };
+
 export interface Generation {
   format: OutputFormat;
   output_text: string;
-  output_meta?: { subject?: string };
+  output_meta?: {
+    subject?: string;
+    blocks?: OutputBlock[];
+  };
   explanations?: Explanation[];
 }
 

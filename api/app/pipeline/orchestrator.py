@@ -118,6 +118,7 @@ def run_pipeline(supabase: Client, recording_id: str) -> None:
         _set_step(supabase, recording_id, "critiquing")
         revised = steps.critique_draft(
             draft=draft_result["output_text"],
+            draft_meta=draft_result.get("output_meta"),
             voice_profile=voice_profile,
             output_format=output_format,
         )
@@ -218,6 +219,7 @@ def run_regenerate(
     )
     revised = steps.critique_draft(
         draft=draft["output_text"],
+        draft_meta=draft.get("output_meta"),
         voice_profile=voice_profile,
         output_format=format,
     )

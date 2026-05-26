@@ -13,6 +13,7 @@ import { DestinationPicker, destinationSummary } from './DestinationPicker';
 import { FormatPicker, FORMAT_TIPS } from './FormatPicker';
 import { PipelineProgress } from './PipelineProgress';
 import { RecordButton } from './RecordButton';
+import { RecordingPlayback } from './RecordingPlayback';
 import { ResultPanel } from './ResultPanel';
 import { StudioSteps, getStudioPhase } from './StudioSteps';
 import { Waveform } from './Waveform';
@@ -40,9 +41,19 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
   const [deliveryDestination, setDeliveryDestination] = useState<DeliveryDestination | null>(null);
   const [recipientEmail, setRecipientEmail] = useState('');
   const [editedOutput, setEditedOutput] = useState('');
+  const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
   const sessionIdRef = useRef<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const recordingUrlRef = useRef<string | null>(null);
   const setPhaseRef = useRef<(phase: 'idle' | 'recording' | 'processing') => void>(() => {});
+
+  const revokeRecordingUrl = useCallback(() => {
+    if (recordingUrlRef.current) {
+      URL.revokeObjectURL(recordingUrlRef.current);
+      recordingUrlRef.current = null;
+    }
+    setRecordingUrl(null);
+  }, []);
 
   const { connections } = useConnections(accessToken);
 
@@ -94,8 +105,13 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
       setCopied(false);
       setDelivered(false);
       setEditedOutput('');
+      revokeRecordingUrl();
+      const url = URL.createObjectURL(blob);
+      recordingUrlRef.current = url;
+      setRecordingUrl(url);
       setPipelineStep('transcribing');
       if (blob.size < 1000) {
+        revokeRecordingUrl();
         setError('Recording was empty. Hold the mic button, speak for a few seconds, then tap again to finish.');
         finishProcessing();
         return;
@@ -109,7 +125,7 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
         finishProcessing();
       }
     },
-    [accessToken, format, pollSession, finishProcessing],
+    [accessToken, format, pollSession, finishProcessing, revokeRecordingUrl],
   );
 
   const recorder = useRecorder({ onComplete: onRecordingComplete });
@@ -120,7 +136,8 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
 
   useEffect(() => () => {
     if (pollRef.current) clearTimeout(pollRef.current);
-  }, []);
+    revokeRecordingUrl();
+  }, [revokeRecordingUrl]);
 
   const modeLabel = formatMeta(format);
   const isRecording = recorder.phase === 'recording';
@@ -152,6 +169,7 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
     setCopied(false);
     setDelivered(false);
     setEditedOutput('');
+    revokeRecordingUrl();
     recorder.reset();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -253,7 +271,8 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
         className={cn(
           'studio-card-glow relative overflow-hidden rounded-[26px] border border-white/[0.055] transition-all duration-500',
           phase === 'result' ? 'px-5 py-5 md:px-6 md:py-6' : 'px-6 py-8 md:px-8 md:py-9',
-          phase === 'result' && 'opacity-60',
+          phase === 'result' && !recordingUrl && 'opacity-60',
+          phase === 'result' && recordingUrl && 'opacity-90',
         )}
         style={{ background: 'linear-gradient(160deg, #231D17 0%, #181210 100%)' }}
       >
@@ -315,7 +334,14 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
             </>
           )}
 
-          {phase === 'result' && (
+          {phase === 'result' && recordingUrl && (
+            <RecordingPlayback
+              src={recordingUrl}
+              durationSeconds={recorder.seconds || 0}
+              className="mt-1"
+            />
+          )}
+          {phase === 'result' && !recordingUrl && (
             <p className="text-center font-mono text-[10px] uppercase tracking-[0.1em] text-white/30">
               Recording complete · {formatTime(recorder.seconds || 0)}
             </p>

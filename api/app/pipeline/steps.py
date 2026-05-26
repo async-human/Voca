@@ -81,13 +81,22 @@ def generate_draft(
     return result
 
 
-def critique_draft(*, draft: str, voice_profile: dict, output_format: str) -> dict:
+def critique_draft(
+    *,
+    draft: str,
+    voice_profile: dict,
+    output_format: str,
+    draft_meta: dict | None = None,
+) -> dict:
+    import json
+
     profile_text = format_voice_profile_for_prompt(voice_profile)
     result = chat_json(
         system="Return only valid JSON.",
         user=CRITIQUE_PROMPT.format(
             output_format=output_format,
             voice_profile=profile_text,
+            draft_meta=json.dumps(draft_meta or {}, indent=2),
             draft=draft,
         ),
         model=settings.openai_fast_model,
