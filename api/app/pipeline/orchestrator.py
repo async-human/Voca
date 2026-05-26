@@ -101,6 +101,8 @@ def run_pipeline(supabase: Client, recording_id: str) -> None:
 
         _set_step(supabase, recording_id, "understanding")
         intent = steps.extract_intent(transcript=clean, output_format=output_format)
+        numerical_facts = steps.extract_numerical_facts(transcript=clean)
+        intent["numerical_facts"] = numerical_facts
         _update_recording(supabase, recording_id, intent=intent)
 
         voice_profile = load_voice_profile(supabase, user_id)
@@ -113,6 +115,7 @@ def run_pipeline(supabase: Client, recording_id: str) -> None:
             voice_profile=voice_profile,
             output_format=output_format,
             memory_context=memory_context,
+            numerical_facts=numerical_facts,
         )
 
         _set_step(supabase, recording_id, "critiquing")
@@ -134,12 +137,14 @@ def run_pipeline(supabase: Client, recording_id: str) -> None:
 
         from app.config import settings
 
-        from app.services.output_blocks import ensure_report_blocks
+        from app.services.output_blocks import ensure_output_blocks
 
-        output_meta = ensure_report_blocks(
+        output_meta = ensure_output_blocks(
             revised["output_text"],
             revised.get("output_meta") or draft_result.get("output_meta") or {},
             output_format,
+            source_transcript=clean,
+            numerical_facts=numerical_facts,
         )
 
         save_generation(
@@ -215,6 +220,9 @@ def run_regenerate(
         raise RuntimeError("Transcript not available yet")
 
     intent = recording.get("intent") or steps.extract_intent(transcript=clean, output_format=format)
+    numerical_facts = (intent.get("numerical_facts") if isinstance(intent, dict) else None) or steps.extract_numerical_facts(transcript=clean)
+    if isinstance(intent, dict):
+        intent["numerical_facts"] = numerical_facts
     voice_profile = load_voice_profile(supabase, user_id)
     memory_context = query_similar_sessions(user_id=user_id, text=clean, top_k=3)
 
@@ -224,6 +232,7 @@ def run_regenerate(
         voice_profile=voice_profile,
         output_format=format,
         memory_context=memory_context,
+        numerical_facts=numerical_facts,
     )
     revised = steps.critique_draft(
         draft=draft["output_text"],
@@ -239,12 +248,14 @@ def run_regenerate(
 
     from app.config import settings
 
-    from app.services.output_blocks import ensure_report_blocks
+    from app.services.output_blocks import ensure_output_blocks
 
-    output_meta = ensure_report_blocks(
+    output_meta = ensure_output_blocks(
         revised["output_text"],
         revised.get("output_meta") or draft.get("output_meta") or {},
         format,
+        source_transcript=clean,
+        numerical_facts=numerical_facts,
     )
 
     generation = save_generation(

@@ -6,6 +6,7 @@ from app.prompts import (
     FORMAT_GUIDES,
     GENERATE_PROMPT,
     INTENT_PROMPT,
+    NUMERICAL_FACTS_PROMPT,
 )
 from app.services.openai_client import chat_json
 from app.services.voice_profile import format_voice_profile_for_prompt
@@ -47,6 +48,16 @@ def extract_intent(*, transcript: str, output_format: str) -> dict:
     return result
 
 
+def extract_numerical_facts(*, transcript: str) -> dict:
+    result = chat_json(
+        system="Return only valid JSON. Extract every number; never invent.",
+        user=NUMERICAL_FACTS_PROMPT.format(transcript=transcript),
+        model=settings.openai_fast_model,
+        temperature=0.1,
+    )
+    return result if isinstance(result, dict) else {"facts": [], "critical_non_numeric": []}
+
+
 def generate_draft(
     *,
     clean_transcript: str,
@@ -54,6 +65,7 @@ def generate_draft(
     voice_profile: dict,
     output_format: str,
     memory_context: list[dict] | None = None,
+    numerical_facts: dict | None = None,
 ) -> dict:
     import json
 
@@ -63,15 +75,18 @@ def generate_draft(
         profile_text = profile_text + "\n\n" + memory_text
 
     format_guide = FORMAT_GUIDES.get(output_format, FORMAT_GUIDES["email"])
+    must_include = intent.get("must_include_facts") or intent.get("key_points") or []
 
     result = chat_json(
-        system="Return only valid JSON. Never invent facts.",
+        system="Return only valid JSON. Never invent facts. Include every extracted fact in blocks.",
         user=GENERATE_PROMPT.format(
             output_format=output_format,
             format_guide=format_guide,
             intent_json=json.dumps(intent, indent=2),
             voice_profile=profile_text,
             clean_transcript=clean_transcript,
+            numerical_facts_json=json.dumps(numerical_facts or {}, indent=2),
+            must_include_json=json.dumps(must_include, indent=2),
         ),
         model=settings.openai_generation_model,
         temperature=0.4,

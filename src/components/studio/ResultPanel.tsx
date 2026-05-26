@@ -7,7 +7,7 @@ import { cn } from '@/lib/cn';
 import { PLATFORM_LABELS, type DeliveryDestination, type PlatformConnection } from '@/lib/delivery';
 import type { SessionResult } from '@/lib/types';
 import { FORMATS, formatMeta, type OutputFormat } from '@/lib/constants';
-import { reportHasVisuals, resolveReportBlocks } from '@/lib/reportBlocks';
+import { hasMixedContent, resolveOutputBlocks } from '@/lib/reportBlocks';
 import { DestinationPicker, destinationSummary } from './DestinationPicker';
 import { OutputBlocks } from './OutputBlocks';
 
@@ -63,13 +63,13 @@ export function ResultPanel({
   const others = FORMATS.filter((f) => f.id !== gen.format);
   const explanations = gen.explanations ?? [];
   const displayText = outputText ?? gen.output_text;
-  const effectiveBlocks = resolveReportBlocks(
+  const effectiveBlocks = resolveOutputBlocks(
     gen.output_meta?.blocks,
     displayText,
     resolvedFormat,
+    data.clean_transcript || data.raw_transcript,
   );
-  const hasRichBlocks =
-    resolvedFormat === 'report' && reportHasVisuals(effectiveBlocks);
+  const hasRichBlocks = hasMixedContent(effectiveBlocks);
   const showRichView = hasRichBlocks && !plainEdit;
   const editable = !!onOutputChange && !historyMode;
 

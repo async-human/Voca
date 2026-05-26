@@ -1,6 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/cn';
+import { formatChartValue, round2 } from '@/lib/reportBlocks';
 import type { OutputBlock } from '@/lib/types';
 
 interface OutputBlocksProps {
@@ -78,8 +79,7 @@ export function OutputBlocks({ blocks, className }: OutputBlocksProps) {
                   {block.items.map((item, j) => (
                     <div key={j} className="flex min-w-0 flex-1 flex-col items-center gap-2">
                       <span className="font-mono text-[10px] tabular-nums text-ink-3">
-                        {item.value}
-                        {block.unit ? block.unit : ''}
+                        {formatChartValue(round2(item.value), block.unit)}
                       </span>
                       <div className="flex h-24 w-full items-end justify-center">
                         <div

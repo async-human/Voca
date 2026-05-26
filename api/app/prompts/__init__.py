@@ -12,6 +12,29 @@ Transcript:
 \"\"\""""
 
 
+NUMERICAL_FACTS_PROMPT = """List EVERY factual data point in this transcript. Do not skip any number, fiscal year, percentage, dollar amount, date, or count.
+
+Return JSON:
+{{
+  "facts": [
+    {{
+      "category": "revenue|profit|cost|rate|headcount|timeline|other",
+      "fiscal_year": "2024 or null",
+      "label": "short label e.g. FY24 Revenue",
+      "value": "display e.g. $15M",
+      "numeric_value": 15,
+      "unit": "million|percent|count"
+    }}
+  ],
+  "critical_non_numeric": ["decision, risk, or action without a number"]
+}}
+
+Transcript:
+\"\"\"
+{transcript}
+\"\"\""""
+
+
 INTENT_PROMPT = """You are an expert communication analyst for Vokal.
 
 Extract structured intent from this voice note. Focus on what the speaker wants to ACHIEVE, not just what they said.
@@ -25,7 +48,8 @@ Return JSON:
   "tone_needed": "appropriate tone",
   "key_points": ["point 1", "point 2"],
   "what_to_omit": ["venting or irrelevant items to exclude"],
-  "summary": "one line summary for UI"
+  "summary": "one line summary for UI",
+  "must_include_facts": ["every number and fiscal year that must appear in the final output"]
 }}
 
 Transcript:
@@ -34,20 +58,44 @@ Transcript:
 \"\"\""""
 
 
+RICH_OUTPUT_RULES = """
+Rich output (not plain transcription): output_meta.blocks MUST capture EVERY fact from the transcript — especially all numbers, fiscal years, dates, percentages, and dollar amounts. Nothing critical may be omitted.
+
+Block types (exact strings): heading, paragraph, kpi_grid, bar_chart, callout.
+- kpi_grid items: {\"label\": \"FY24 Revenue\", \"value\": \"$15M\", \"hint\": \"2024\"} — label MUST include fiscal year when spoken.
+- bar_chart items: {\"label\": \"FY24\", \"value\": 15} — value is a number in millions (max 2 decimals), label is FYxx.
+- Use callout for risks, decisions, deadlines without numbers.
+- output_text: full plain-text version for copy (same facts, no markdown).
+
+Never invent figures. Round monetary values to 2 decimal places max.
+"""
+
 FORMAT_GUIDES = {
-    "email": "Professional email with subject in output_meta.subject. Greeting, context, CTA, sign-off.",
-    "slack": "Concise Slack message. Conversational, short paragraphs or bullets.",
-    "report": (
-        "Executive report with sections: Executive Summary, Key Points, Risks/Recommendations. "
-        "REQUIRED when transcript has ANY numbers: output_meta.blocks MUST be a non-empty array with "
-        "at least one kpi_grid (2-4 items) AND one bar_chart (3+ points) using exact figures from speech. "
-        "Also keep output_text as full plain text for copy (same facts, no markdown). "
-        "Block types (use these exact type strings): heading, paragraph, kpi_grid, bar_chart, callout. "
-        "Example kpi_grid item: {\"label\":\"FY25 Revenue\",\"value\":\"$35M\"}. "
-        "Example bar_chart item: {\"label\":\"FY24\",\"value\":20}. Never invent figures."
+    "email": (
+        "Professional email with subject in output_meta.subject. Greeting, context, CTA, sign-off. "
+        + RICH_OUTPUT_RULES
+        + " Use blocks for key metrics or dates when present; otherwise paragraph blocks."
     ),
-    "linkedin": "LinkedIn post with strong hook, 2-4 short paragraphs, readable line breaks.",
-    "journal": "Reflective first-person journal entry. Organize raw thoughts, surface themes.",
+    "slack": (
+        "Concise Slack message. Conversational tone. "
+        + RICH_OUTPUT_RULES
+        + " Prefer paragraph + optional kpi_grid for numbers."
+    ),
+    "report": (
+        "Executive report: Executive Summary, Key Points, Risks/Recommendations. "
+        + RICH_OUTPUT_RULES
+        + " REQUIRED when numbers exist: kpi_grid (one card per year+metric pair) AND bar_chart series per metric."
+    ),
+    "linkedin": (
+        "LinkedIn post with strong hook, short paragraphs. "
+        + RICH_OUTPUT_RULES
+        + " Use kpi_grid for standout stats; paragraph for narrative."
+    ),
+    "journal": (
+        "Reflective journal. Surface themes and patterns. "
+        + RICH_OUTPUT_RULES
+        + " Use callout for insights; paragraph for reflection."
+    ),
 }
 
 
@@ -61,8 +109,15 @@ Intent:
 Voice profile (match this style):
 {voice_profile}
 
+Numerical facts (include ALL in output — do not drop any):
+{numerical_facts_json}
+
+Must-include from intent:
+{must_include_json}
+
 Rules:
-- Preserve facts and intent — never invent information
+- Preserve EVERY fact from the transcript — never invent or omit numerical data
+- Pair fiscal years with metrics in blocks (e.g. FY24 Revenue, not a sentence fragment)
 - Apply appropriate structure for the format
 - Sound like the speaker, not generic AI
 
@@ -82,7 +137,7 @@ CRITIQUE_PROMPT = """You are a strict editor for Vokal. Review this draft agains
 
 Fix: AI slop, tone drift, generic phrasing, structure issues.
 Keep: facts, intent, user's natural voice.
-If draft_meta contains output_meta.blocks, preserve and refine blocks so numbers match output_text. Do not drop visual blocks for report format.
+If draft_meta contains output_meta.blocks, preserve and refine ALL blocks. Every fact in draft must appear in blocks. Pair fiscal years with KPI labels. Round chart values to 2 decimals max.
 
 Return JSON:
 {{
