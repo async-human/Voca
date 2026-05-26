@@ -1,11 +1,13 @@
 {
   "buildCommand": "npm run build",
   "installCommand": "npm install",
+  "redirects": [
+    { "source": "/app.html", "destination": "/app/", "permanent": true }
+  ],
   "rewrites": [
     { "source": "/", "destination": "/index.html" },
     { "source": "/app", "destination": "/app/index.html" },
     { "source": "/app/", "destination": "/app/index.html" },
-    { "source": "/app.html", "destination": "/app/index.html" },
     { "source": "/app/connections", "destination": "/app/connections/index.html" },
     { "source": "/app/connections/", "destination": "/app/connections/index.html" },
     { "source": "/app/history", "destination": "/app/history/index.html" },

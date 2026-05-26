@@ -54,7 +54,7 @@ export default function AuthCallbackClient() {
               const { data: { session: existing } } = await supabase.auth.getSession();
               if (!existing) {
                 throw new Error(
-                  'Sign-in could not be completed. Try again from https://vokal.work/app in the same browser.',
+                  'Sign-in could not be completed. Try again from https://www.vokal.work/app/ in the same browser.',
                 );
               }
             } else {
