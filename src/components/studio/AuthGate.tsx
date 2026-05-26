@@ -10,14 +10,12 @@ interface AuthGateProps {
   loading: boolean;
 }
 
-const WAVE_HEIGHTS = [12, 20, 28, 16, 24, 14, 22, 30, 10, 26, 18, 32, 14, 24, 20];
-
 function GoogleIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden>
       <path
         fill="#4285F4"
-        d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c3.42-3.15 5.384-7.785 5.384-13.315z"
+        d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"
       />
       <path
         fill="#34A853"
@@ -50,94 +48,100 @@ export function AuthGate({ onSignInWithGoogle, message, loading }: AuthGateProps
     }
   }
 
-  const infoMsg = !errorMsg ? message : '';
+  const busy = loading || submitting;
+  const infoMsg = !errorMsg && message && message !== 'Loading…' ? message : '';
 
   return (
-    <div className="studio-bg relative z-[1] px-5 pb-16 pt-[108px] md:px-8">
-      <div className="relative z-10 mx-auto grid max-w-[980px] items-center gap-12 lg:grid-cols-[1fr_1.05fr] lg:gap-16">
-        <motion.div
-          initial={{ opacity: 0, y: 28 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
-          className="text-center lg:text-left"
-        >
-          <div className="eyebrow-line mx-auto mb-8 max-w-[280px] lg:mx-0">
-            Studio · Early access
-          </div>
-          <h1 className="font-serif text-[clamp(32px,6vw,48px)] font-bold leading-[1.08] tracking-[-0.03em] text-ink">
-            Your voice.
-            <br />
-            <span className="font-normal italic text-accent">Perfectly expressed.</span>
-          </h1>
-          <p className="mx-auto mt-5 max-w-[380px] text-[15px] leading-[1.75] text-muted lg:mx-0">
-            Speak for 60 seconds. Get polished writing in your voice — with every change explained.
-          </p>
-        </motion.div>
+    <div className="studio-bg relative flex min-h-screen flex-col items-center justify-center px-4 py-12">
+      {/* Warm ambient glow */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-x-0 top-0 z-0 h-[65vh]"
+        style={{
+          background:
+            'radial-gradient(ellipse 85% 55% at 50% -8%, rgba(191,59,42,0.08) 0%, transparent 70%)',
+        }}
+      />
 
-        <motion.div
-          initial={{ opacity: 0, y: 32 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.75, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-          className="mx-auto w-full max-w-[420px] lg:max-w-none"
-        >
-          <div className="studio-card-glow relative mb-5 overflow-hidden rounded-[20px] bg-ink px-6 py-5">
-            <div
-              className="pointer-events-none absolute inset-0 opacity-50"
-              style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E")`,
-              }}
-            />
-            <div className="relative z-10">
-              <div className="mb-4 flex items-center justify-between">
-                <span className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.12em] text-white/45">
-                  <span className="mode-pip-glow h-1 w-1 rounded-full bg-accent-2" />
-                  Ready · Sign in
-                </span>
-                <span className="font-serif text-lg text-white/80">0:00</span>
-              </div>
-              <div className="mb-3 flex h-10 items-center justify-center gap-[3px]">
-                {WAVE_HEIGHTS.map((h, i) => (
-                  <span
-                    key={i}
-                    className="auth-wb"
-                    style={{ ['--mh' as string]: `${h}px`, ['--d' as string]: `${0.55 + (i % 5) * 0.1}s`, ['--dl' as string]: `${i * 0.06}s` }}
-                  />
-                ))}
-              </div>
-              <p className="text-center font-mono text-[9px] uppercase tracking-[0.1em] text-white/30">
-                Tap to record when signed in
-              </p>
-            </div>
-          </div>
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+        className="relative z-10 w-full max-w-[400px]"
+      >
+        {/* Logo above card */}
+        <div className="mb-7 flex justify-center">
+          <a href="/" className="flex items-baseline gap-1 no-underline">
+            <span className="font-serif text-[22px] font-bold tracking-tight text-ink">Vokal</span>
+            <span className="mb-0.5 inline-block h-[5px] w-[5px] rounded-full bg-accent" />
+          </a>
+        </div>
 
-          <div className="rounded-[22px] border border-faint-2/80 bg-[#faf7f2]/90 p-7 shadow-[0_20px_60px_rgba(28,24,20,.06)] backdrop-blur-md md:p-8">
-            <p className="mb-5 text-center text-sm leading-relaxed text-muted">
-              One click — you&apos;ll return here signed in. No email link to open.
+        {/* Card */}
+        <div className="rounded-[26px] border border-faint-2/60 bg-white/82 px-8 py-9 shadow-[0_8px_48px_rgba(28,24,20,.09),0_2px_10px_rgba(28,24,20,.05)] backdrop-blur-xl">
+          {/* Headline */}
+          <div className="mb-8 text-center">
+            <h1 className="font-serif text-[27px] font-bold leading-[1.15] tracking-[-0.02em] text-ink">
+              Your voice.
+              <br />
+              <span className="italic text-accent" style={{ fontStyle: 'italic' }}>
+                Perfectly expressed.
+              </span>
+            </h1>
+            <p className="mt-3 text-[14px] leading-relaxed text-muted">
+              Speak for 60 seconds. Get polished writing in your voice — with every change explained.
             </p>
-            <button
-              type="button"
-              onClick={handleGoogleSignIn}
-              disabled={loading || submitting}
-              className={cn(
-                'flex w-full cursor-pointer items-center justify-center gap-3 rounded-full border border-faint-2 bg-paper py-3.5',
-                'text-[14px] font-semibold text-ink transition-all duration-300 ease-out',
-                'hover:-translate-y-px hover:border-ink/15 hover:shadow-[0_10px_32px_rgba(28,24,20,.08)]',
-                'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-none',
-              )}
-            >
-              <GoogleIcon />
-              {submitting ? 'Redirecting to Google…' : 'Continue with Google'}
-            </button>
-
-            {errorMsg && (
-              <p className="mt-4 text-center text-[13px] leading-relaxed text-accent">{errorMsg}</p>
-            )}
-            {infoMsg && !errorMsg && (
-              <p className="mt-4 text-center text-[13px] leading-relaxed text-muted">{infoMsg}</p>
-            )}
           </div>
-        </motion.div>
-      </div>
+
+          {/* Divider */}
+          <div className="eyebrow-line mb-6">sign in to continue</div>
+
+          {/* Google sign-in button */}
+          <button
+            type="button"
+            onClick={handleGoogleSignIn}
+            disabled={busy}
+            className={cn(
+              'group flex w-full cursor-pointer items-center justify-center gap-3 rounded-full border border-faint-2/80 bg-paper px-6 py-3.5',
+              'text-[14px] font-semibold text-ink transition-all duration-300 ease-out',
+              'hover:-translate-y-0.5 hover:border-ink/12 hover:bg-white hover:shadow-[0_8px_28px_rgba(28,24,20,.1)]',
+              'active:translate-y-0 active:shadow-none',
+              'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-none',
+            )}
+          >
+            {!submitting && <GoogleIcon />}
+            {submitting ? (
+              <span className="flex items-center gap-2">
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-faint border-t-ink/40" />
+                Redirecting to Google…
+              </span>
+            ) : (
+              'Continue with Google'
+            )}
+          </button>
+
+          {/* Error message */}
+          {errorMsg && (
+            <motion.p
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 text-center text-[13px] leading-relaxed text-accent"
+            >
+              {errorMsg}
+            </motion.p>
+          )}
+
+          {/* Info message */}
+          {infoMsg && (
+            <p className="mt-4 text-center text-[12px] leading-relaxed text-faint">{infoMsg}</p>
+          )}
+        </div>
+
+        {/* Footer note */}
+        <p className="mt-5 text-center text-[11px] text-faint">
+          No password needed · Secure Google sign-in
+        </p>
+      </motion.div>
     </div>
   );
 }
