@@ -102,6 +102,44 @@ export async function deliverSession(
   return data;
 }
 
+export interface WorkflowActionResult {
+  action_id: string;
+  type?: string;
+  status: string;
+  platform?: string;
+  external_id?: string;
+  message?: string;
+  attempt_id?: string;
+}
+
+export async function deliverWorkflow(
+  token: string,
+  sessionId: string,
+  options?: {
+    outputText?: string;
+    gmailConnectionId?: string;
+    zapierConnectionId?: string;
+    gmailMode?: 'draft' | 'send';
+  },
+): Promise<{ results: WorkflowActionResult[] }> {
+  const res = await fetch(`${API}/api/v1/sessions/${sessionId}/deliver-workflow`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      output_text: options?.outputText,
+      gmail_connection_id: options?.gmailConnectionId,
+      zapier_connection_id: options?.zapierConnectionId,
+      gmail_mode: options?.gmailMode ?? 'draft',
+    }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(parseApiError(data, 'Workflow delivery failed'));
+  return data;
+}
+
 export async function listConnections(token: string): Promise<PlatformConnection[]> {
   let res: Response;
   try {

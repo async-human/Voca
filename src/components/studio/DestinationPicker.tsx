@@ -8,6 +8,7 @@ import {
   PLATFORM_LABELS,
   type DeliveryDestination,
   type DeliveryPlatform,
+  type GmailSendMode,
   type PlatformConnection,
 } from '@/lib/delivery';
 import { PlatformIcon } from './PlatformIcon';
@@ -19,6 +20,8 @@ interface DestinationPickerProps {
   onChange: (value: DeliveryDestination | null) => void;
   recipientEmail: string;
   onRecipientEmailChange: (email: string) => void;
+  gmailSendMode?: GmailSendMode;
+  onGmailSendModeChange?: (mode: GmailSendMode) => void;
   disabled?: boolean;
   variant?: 'studio' | 'result';
 }
@@ -44,6 +47,8 @@ export function DestinationPicker({
   onChange,
   recipientEmail,
   onRecipientEmailChange,
+  gmailSendMode = 'draft',
+  onGmailSendModeChange,
   disabled,
   variant = 'studio',
 }: DestinationPickerProps) {
@@ -128,6 +133,7 @@ export function DestinationPicker({
                   platform: conn.platform,
                   to: conn.platform === 'gmail' ? recipientEmail : undefined,
                   database_id: conn.metadata.database_id,
+                  mode: conn.platform === 'gmail' ? gmailSendMode : undefined,
                 })
               }
               className={cn(
@@ -160,21 +166,46 @@ export function DestinationPicker({
       </div>
 
       {value?.platform === 'gmail' && (
-        <div className="rounded-[14px] border border-faint-2 bg-white/70 px-4 py-3">
-          <label className="mb-1.5 block font-mono text-[9px] uppercase tracking-[0.1em] text-muted">
-            Recipient
-          </label>
-          <input
-            type="email"
-            value={recipientEmail}
-            onChange={(e) => {
-              onRecipientEmailChange(e.target.value);
-              onChange({ ...value, to: e.target.value });
-            }}
-            placeholder="colleague@company.com"
-            disabled={disabled}
-            className="w-full bg-transparent text-[14px] text-ink outline-none placeholder:text-faint"
-          />
+        <div className="space-y-3 rounded-[14px] border border-faint-2 bg-white/70 px-4 py-3">
+          <div>
+            <label className="mb-1.5 block font-mono text-[9px] uppercase tracking-[0.1em] text-muted">
+              Recipient
+            </label>
+            <input
+              type="email"
+              value={recipientEmail}
+              onChange={(e) => {
+                onRecipientEmailChange(e.target.value);
+                onChange({ ...value, to: e.target.value, mode: gmailSendMode });
+              }}
+              placeholder="colleague@company.com"
+              disabled={disabled}
+              className="w-full bg-transparent text-[14px] text-ink outline-none placeholder:text-faint"
+            />
+          </div>
+          {onGmailSendModeChange && (
+            <div className="flex gap-2">
+              {(['draft', 'send'] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => {
+                    onGmailSendModeChange(mode);
+                    onChange({ ...value, mode });
+                  }}
+                  className={cn(
+                    'cursor-pointer rounded-full px-3 py-1.5 font-mono text-[9px] uppercase tracking-wide transition-colors',
+                    gmailSendMode === mode
+                      ? 'bg-ink text-paper'
+                      : 'border border-faint-2 text-muted hover:text-ink',
+                  )}
+                >
+                  {mode === 'draft' ? 'Save draft' : 'Send now'}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -192,7 +223,8 @@ export function destinationSummary(dest: DeliveryDestination | null, recipientEm
   if (!dest) return null;
   if (dest.platform === 'gmail') {
     const to = dest.to || recipientEmail;
-    return to ? `Gmail → ${to}` : 'Gmail → add recipient';
+    const mode = dest.mode === 'send' ? 'send' : 'draft';
+    return to ? `Gmail ${mode} → ${to}` : 'Gmail → add recipient';
   }
   return `${PLATFORM_LABELS[dest.platform]} · ready to send`;
 }

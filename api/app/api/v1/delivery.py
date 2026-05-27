@@ -9,8 +9,17 @@ from fastapi.responses import RedirectResponse
 from supabase import Client
 
 from app.config import settings
-from app.models.delivery import DeliverRequest, DeliverResponse, NotionConnectMetadataRequest, ZapierConnectRequest
+from app.models.delivery import (
+    DeliverRequest,
+    DeliverResponse,
+    DeliverWorkflowRequest,
+    DeliverWorkflowResponse,
+    NotionConnectMetadataRequest,
+    WorkflowActionResult,
+    ZapierConnectRequest,
+)
 from app.services.delivery.agent import deliver_session, list_connections, serialize_connection
+from app.services.delivery.workflow_executor import deliver_workflow_bundle
 from app.services.delivery.credentials import encrypt_credentials
 from app.services.delivery.oauth import (
     exchange_gmail_code,
@@ -262,4 +271,52 @@ def send_session(
         platform=platform,
         external_id=result.external_id,
         message=result.message,
+    )
+
+
+@router.post("/sessions/{session_id}/deliver-workflow")
+def deliver_workflow(
+    session_id: str,
+    payload: DeliverWorkflowRequest,
+    user=Depends(get_current_user),
+    supabase: Client = Depends(get_supabase_client),
+):
+    record = get_session_with_generation(supabase, session_id, user.id)
+    if not record:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if record.get("status") != "complete":
+        raise HTTPException(status_code=400, detail="Session is not complete yet")
+
+    generation = record.get("generation")
+    if not generation:
+        raise HTTPException(status_code=400, detail="No generation to deliver")
+
+    output_meta = generation.get("output_meta") or {}
+    if not output_meta.get("approval_bundle", {}).get("actions"):
+        raise HTTPException(status_code=400, detail="No workflow approval plan on this session")
+
+    output_text = payload.output_text or generation.get("output_text") or ""
+    subject = output_meta.get("subject")
+    gmail_mode = payload.gmail_mode if payload.gmail_mode in {"draft", "send"} else "draft"
+
+    try:
+        raw_results = deliver_workflow_bundle(
+            supabase,
+            recording_id=session_id,
+            user_id=user.id,
+            output_meta=output_meta,
+            output_text=output_text,
+            subject=subject,
+            gmail_connection_id=payload.gmail_connection_id,
+            zapier_connection_id=payload.zapier_connection_id,
+            gmail_mode=gmail_mode,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        logger.exception("Workflow delivery error")
+        raise HTTPException(status_code=500, detail="Workflow delivery failed") from exc
+
+    return DeliverWorkflowResponse(
+        results=[WorkflowActionResult(**row) for row in raw_results],
     )

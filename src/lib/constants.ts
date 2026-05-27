@@ -58,8 +58,23 @@ export const FORMATS: FormatMeta[] = [
   { id: 'report', name: 'Report', desc: 'Executive', label: 'Executive report' },
   { id: 'linkedin', name: 'LinkedIn', desc: 'Social post', label: 'LinkedIn post' },
   { id: 'journal', name: 'Journal', desc: 'Reflection', label: 'Journal entry' },
-  { id: 'sales', name: 'Sales', desc: 'Follow-up', label: 'Sales workflow' },
 ];
+
+/** Sales / SDR formats (Phase 2–3 workflow stitching). */
+export const SALES_FORMATS: FormatMeta[] = [
+  { id: 'sales', name: 'Sales', desc: 'Auto workflow', label: 'Sales workflow' },
+  { id: 'post_call_followup', name: 'Follow-up', desc: 'Sales email', label: 'Post-call follow-up' },
+  { id: 'crm_note', name: 'CRM Note', desc: 'Call log', label: 'CRM note' },
+  { id: 'voicemail_script', name: 'Voicemail', desc: 'Call script', label: 'Voicemail script' },
+  { id: 'pipeline_update', name: 'Pipeline', desc: 'Team update', label: 'Pipeline update' },
+];
+
+export const FORMAT_GROUPS: { label?: string; formats: FormatMeta[] }[] = [
+  { formats: FORMATS },
+  { label: 'Sales', formats: SALES_FORMATS },
+];
+
+export const ALL_FORMATS: FormatMeta[] = [...FORMATS, ...SALES_FORMATS];
 
 export function formatMeta(id: OutputFormat) {
   return FORMAT_META[id] ?? FORMAT_META.email;

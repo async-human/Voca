@@ -118,6 +118,10 @@ export interface SessionResult {
   /** Pipeline intent; may include numerical_facts for sessions before output_meta.structured_facts. */
   intent?: {
     numerical_facts?: StructuredFacts;
+    context_hints?: {
+      contact?: { name?: string; company?: string; email?: string };
+      workflow_type?: string;
+    };
     [key: string]: unknown;
   };
   created_at?: string;

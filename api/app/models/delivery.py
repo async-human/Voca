@@ -28,3 +28,24 @@ class DeliverResponse(BaseModel):
     platform: str
     external_id: str | None = None
     message: str | None = None
+
+
+class DeliverWorkflowRequest(BaseModel):
+    gmail_connection_id: str | None = None
+    zapier_connection_id: str | None = None
+    gmail_mode: str = Field(default="draft", description="draft | send")
+    output_text: str | None = None
+
+
+class WorkflowActionResult(BaseModel):
+    action_id: str
+    type: str | None = None
+    status: str
+    platform: str | None = None
+    external_id: str | None = None
+    message: str | None = None
+    attempt_id: str | None = None
+
+
+class DeliverWorkflowResponse(BaseModel):
+    results: list[WorkflowActionResult]

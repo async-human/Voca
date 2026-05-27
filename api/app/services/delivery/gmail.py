@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 GMAIL_SEND_URL = "https://gmail.googleapis.com/gmail/v1/users/me/messages/send"
+GMAIL_DRAFTS_URL = "https://gmail.googleapis.com/gmail/v1/users/me/drafts"
 
 
 class GmailDelivery:
@@ -45,6 +46,21 @@ class GmailDelivery:
             credentials["refresh_token"] = data["refresh_token"]
         return credentials
 
+    def _build_raw_message(
+        self,
+        *,
+        to_addr: str,
+        subject: str,
+        content: str,
+        from_addr: str,
+    ) -> str:
+        message = EmailMessage()
+        message["From"] = from_addr
+        message["To"] = to_addr
+        message["Subject"] = subject
+        message.set_content(content or "")
+        return base64.urlsafe_b64encode(message.as_bytes()).decode().rstrip("=")
+
     def send(
         self,
         *,
@@ -60,6 +76,7 @@ class GmailDelivery:
 
         subj = subject or destination.get("subject") or "Message from Vokal"
         from_addr = connection_metadata.get("email") or credentials.get("email") or "me"
+        mode = (destination.get("mode") or "draft").lower()
 
         try:
             creds = self.refresh_access_token(credentials)
@@ -68,28 +85,45 @@ class GmailDelivery:
         except Exception as exc:
             return DeliveryResult(status="failed", message=str(exc))
 
-        message = EmailMessage()
-        message["From"] = from_addr
-        message["To"] = to_addr
-        message["Subject"] = subj
-        message.set_content(content or "")
-        encoded = base64.urlsafe_b64encode(message.as_bytes()).decode().rstrip("=")
+        encoded = self._build_raw_message(
+            to_addr=to_addr,
+            subject=subj,
+            content=content,
+            from_addr=from_addr,
+        )
 
         try:
             with httpx.Client(timeout=30.0) as client:
+                headers = {"Authorization": f"Bearer {creds['access_token']}"}
+                if mode == "send":
+                    resp = client.post(
+                        GMAIL_SEND_URL,
+                        headers=headers,
+                        json={"raw": encoded},
+                    )
+                    resp.raise_for_status()
+                    body = resp.json()
+                    return DeliveryResult(
+                        status="sent",
+                        external_id=body.get("id"),
+                        message=f"Email sent to {to_addr}",
+                        metadata={"thread_id": body.get("threadId"), "mode": "send"},
+                    )
+
                 resp = client.post(
-                    GMAIL_SEND_URL,
-                    headers={"Authorization": f"Bearer {creds['access_token']}"},
-                    json={"raw": encoded},
+                    GMAIL_DRAFTS_URL,
+                    headers=headers,
+                    json={"message": {"raw": encoded}},
                 )
                 resp.raise_for_status()
                 body = resp.json()
-            return DeliveryResult(
-                status="sent",
-                external_id=body.get("id"),
-                message=f"Email sent to {to_addr}",
-                metadata={"thread_id": body.get("threadId")},
-            )
+                draft_id = body.get("id")
+                return DeliveryResult(
+                    status="sent",
+                    external_id=draft_id,
+                    message=f"Draft saved in Gmail for {to_addr}",
+                    metadata={"draft_id": draft_id, "mode": "draft"},
+                )
         except Exception as exc:
             logger.exception("Gmail delivery failed")
             return DeliveryResult(status="failed", message=str(exc))

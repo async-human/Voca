@@ -3,9 +3,9 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/cn';
-import { getSession, processVoice, regenerateSession, deliverSession } from '@/lib/api';
+import { getSession, processVoice, regenerateSession, deliverSession, deliverWorkflow } from '@/lib/api';
 import { formatMeta, type OutputFormat, type PipelineStep } from '@/lib/constants';
-import type { DeliveryDestination } from '@/lib/delivery';
+import type { DeliveryDestination, GmailSendMode } from '@/lib/delivery';
 import type { SessionResult } from '@/lib/types';
 import { useConnections } from '@/hooks/useConnections';
 import { useRecorder } from '@/hooks/useRecorder';
@@ -38,6 +38,9 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
   const [regenerating, setRegenerating] = useState(false);
   const [delivering, setDelivering] = useState(false);
   const [delivered, setDelivered] = useState(false);
+  const [workflowDelivering, setWorkflowDelivering] = useState(false);
+  const [workflowDelivered, setWorkflowDelivered] = useState(false);
+  const [gmailSendMode, setGmailSendMode] = useState<GmailSendMode>('draft');
   const [deliveryDestination, setDeliveryDestination] = useState<DeliveryDestination | null>(null);
   const [recipientEmail, setRecipientEmail] = useState('');
   const [editedOutput, setEditedOutput] = useState('');
@@ -56,6 +59,28 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
   }, []);
 
   const { connections } = useConnections(accessToken);
+
+  function suggestedRecipientEmail(data: SessionResult | null): string {
+    const actions = data?.generation?.output_meta?.approval_bundle?.actions ?? [];
+    for (const action of actions) {
+      if (action.type === 'draft_email' && typeof action.payload?.to === 'string') {
+        return action.payload.to;
+      }
+    }
+    const hint = data?.intent?.context_hints as { contact?: { email?: string } } | undefined;
+    return hint?.contact?.email?.trim() || '';
+  }
+
+  useEffect(() => {
+    if (!result) return;
+    const suggested = suggestedRecipientEmail(result);
+    if (suggested && !recipientEmail) {
+      setRecipientEmail(suggested);
+      if (deliveryDestination?.platform === 'gmail') {
+        setDeliveryDestination({ ...deliveryDestination, to: suggested });
+      }
+    }
+  }, [result, recipientEmail, deliveryDestination]);
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -187,6 +212,37 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
     }
   }
 
+  async function handleDeliverWorkflow() {
+    const id = sessionIdRef.current;
+    if (!id || !result?.generation?.output_meta?.approval_bundle?.actions?.length) return;
+
+    setWorkflowDelivering(true);
+    setError('');
+    try {
+      const gmailConn = connections.find((c) => c.platform === 'gmail');
+      const zapierConn = connections.find((c) => c.platform === 'zapier');
+      const res = await deliverWorkflow(accessToken, id, {
+        outputText: editedOutput || result.generation?.output_text,
+        gmailConnectionId: gmailConn?.id,
+        zapierConnectionId: zapierConn?.id,
+        gmailMode: gmailSendMode,
+      });
+      const sent = res.results.filter((r) => r.status === 'sent').length;
+      const skipped = res.results.filter((r) => r.status === 'skipped').length;
+      const failed = res.results.filter((r) => r.status === 'failed').length;
+      setWorkflowDelivered(failed === 0);
+      showToast(
+        failed
+          ? `${failed} action(s) failed — check Connections`
+          : `Workflow: ${sent} delivered${skipped ? `, ${skipped} skipped` : ''}`,
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Workflow failed');
+    } finally {
+      setWorkflowDelivering(false);
+    }
+  }
+
   async function handleRegenerate(nextFormat: OutputFormat) {
     const id = sessionIdRef.current;
     if (!id) return;
@@ -221,7 +277,7 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
         accessToken,
         id,
         connection_id,
-        destFields,
+        { ...destFields, mode: destFields.mode ?? gmailSendMode },
         editedOutput || result?.generation?.output_text,
       );
       setDelivered(true);
@@ -384,6 +440,15 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
               onNew={handleNew}
               onRegenerate={handleRegenerate}
               onDeliver={deliveryDestination ? handleDeliver : undefined}
+              onDeliverWorkflow={
+                result.generation?.output_meta?.approval_bundle?.actions?.length
+                  ? handleDeliverWorkflow
+                  : undefined
+              }
+              workflowDelivering={workflowDelivering}
+              workflowDelivered={workflowDelivered}
+              gmailSendMode={gmailSendMode}
+              onGmailSendModeChange={setGmailSendMode}
               regenerating={regenerating}
               delivering={delivering}
               delivered={delivered}

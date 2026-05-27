@@ -37,6 +37,8 @@ export interface PlatformConnection {
   connected_at?: string;
 }
 
+export type GmailSendMode = 'draft' | 'send';
+
 export interface DeliveryDestination {
   connection_id: string;
   platform: DeliveryPlatform;
@@ -44,6 +46,8 @@ export interface DeliveryDestination {
   subject?: string;
   database_id?: string;
   target_platform?: string;
+  /** Gmail only: create draft (default) or send immediately. */
+  mode?: GmailSendMode;
 }
 
 export interface DeliverResult {

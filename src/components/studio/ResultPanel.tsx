@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { cn } from '@/lib/cn';
 import { PLATFORM_LABELS, type DeliveryDestination, type PlatformConnection } from '@/lib/delivery';
 import type { SessionResult } from '@/lib/types';
-import { FORMATS, formatMeta, type OutputFormat } from '@/lib/constants';
+import { ALL_FORMATS, formatMeta, type OutputFormat } from '@/lib/constants';
 import {
   normalizeStructuredFacts,
   reportHasVisuals,
@@ -29,6 +29,11 @@ interface ResultPanelProps {
   onNew: () => void;
   onRegenerate: (format: OutputFormat) => void;
   onDeliver?: () => void;
+  onDeliverWorkflow?: () => void;
+  workflowDelivering?: boolean;
+  workflowDelivered?: boolean;
+  gmailSendMode?: 'draft' | 'send';
+  onGmailSendModeChange?: (mode: 'draft' | 'send') => void;
   regenerating?: boolean;
   delivering?: boolean;
   delivered?: boolean;
@@ -50,6 +55,11 @@ export function ResultPanel({
   onNew,
   onRegenerate,
   onDeliver,
+  onDeliverWorkflow,
+  workflowDelivering,
+  workflowDelivered,
+  gmailSendMode = 'draft',
+  onGmailSendModeChange,
   regenerating,
   delivering,
   delivered,
@@ -64,7 +74,8 @@ export function ResultPanel({
   const resolvedFormat = format ?? gen.format;
 
   const meta = formatMeta(gen.format);
-  const others = FORMATS.filter((f) => f.id !== gen.format);
+  const others = ALL_FORMATS.filter((f) => f.id !== gen.format);
+  const hasWorkflowPlan = (gen.output_meta?.approval_bundle?.actions?.length ?? 0) > 0;
   const explanations = gen.explanations ?? [];
   const displayText = outputText ?? gen.output_text;
   const structuredFacts =
@@ -96,8 +107,18 @@ export function ResultPanel({
         ? 'Sending…'
         : gmailMissingRecipient
           ? 'Add recipient'
-          : `Send via ${PLATFORM_LABELS[deliveryDestination.platform]}`
+          : deliveryDestination.platform === 'gmail' && gmailSendMode === 'draft'
+            ? 'Save Gmail draft'
+            : `Send via ${PLATFORM_LABELS[deliveryDestination.platform]}`
     : null;
+
+  const workflowLabel = workflowDelivered
+    ? 'Workflow done ✓'
+    : workflowDelivering
+      ? 'Running workflow…'
+      : gmailSendMode === 'draft'
+        ? 'Run workflow (draft + CRM)'
+        : 'Run workflow (send + CRM)';
 
   return (
     <motion.div
@@ -129,6 +150,21 @@ export function ResultPanel({
             <span className="rounded-full bg-teal/10 px-2.5 py-1 font-mono text-[9px] text-teal">
               Clarity {Math.round(data.clarity_score)}
             </span>
+          )}
+          {!historyMode && hasWorkflowPlan && onDeliverWorkflow && (
+            <button
+              type="button"
+              onClick={onDeliverWorkflow}
+              disabled={workflowDelivering || workflowDelivered}
+              className={cn(
+                'cursor-pointer rounded-full border border-teal/30 px-5 py-2 text-[13px] font-semibold transition-all duration-200',
+                workflowDelivered
+                  ? 'bg-teal/10 text-teal'
+                  : 'bg-teal/90 text-paper hover:bg-teal disabled:opacity-60',
+              )}
+            >
+              {workflowLabel}
+            </button>
           )}
           {!historyMode && canSend && sendLabel && (
             <button
@@ -297,6 +333,8 @@ export function ResultPanel({
             onChange={onDestinationChange}
             recipientEmail={recipientEmail}
             onRecipientEmailChange={onRecipientEmailChange}
+            gmailSendMode={gmailSendMode}
+            onGmailSendModeChange={onGmailSendModeChange}
             disabled={delivering || delivered}
             variant="result"
           />

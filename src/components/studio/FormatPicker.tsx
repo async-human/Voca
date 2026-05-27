@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/cn';
 import type { OutputFormat } from '@/lib/constants';
-import { FORMATS } from '@/lib/constants';
+import { FORMAT_GROUPS } from '@/lib/constants';
 
 export const FORMAT_TIPS: Record<OutputFormat, string> = {
   email: "Say who it's for, what you need, and any deadline.",
@@ -109,97 +109,92 @@ interface FormatPickerProps {
 export function FormatPicker({ value, onChange, disabled, variant = 'dark' }: FormatPickerProps) {
   const isDark = variant === 'dark';
 
+  const renderFormatButton = (f: (typeof FORMAT_GROUPS)[0]['formats'][0], compact: boolean) => {
+    const active = value === f.id;
+    if (compact) {
+      return (
+        <button
+          key={f.id}
+          type="button"
+          disabled={disabled}
+          onClick={() => onChange(f.id)}
+          className={cn(
+            'flex shrink-0 cursor-pointer items-center gap-2 rounded-full border px-3.5 py-1.5 transition-all duration-200',
+            active
+              ? 'border-accent/40 bg-accent/12 shadow-[0_2px_12px_rgba(191,59,42,.1)]'
+              : 'border-white/8 bg-white/[0.05] hover:border-white/16 hover:bg-white/[0.08]',
+            disabled && 'cursor-not-allowed opacity-40',
+          )}
+        >
+          <span className={cn('transition-colors duration-200', active ? 'text-accent-2/75' : 'text-white/28')}>
+            {FORMAT_ICONS_SM[f.id]}
+          </span>
+          <span className={cn('text-[12px] font-medium transition-colors duration-200', active ? 'text-white/90' : 'text-white/45')}>
+            {f.name}
+          </span>
+        </button>
+      );
+    }
+    return (
+      <button
+        key={f.id}
+        type="button"
+        disabled={disabled}
+        onClick={() => onChange(f.id)}
+        className={cn(
+          'flex shrink-0 cursor-pointer flex-col items-start rounded-[14px] px-4 py-2.5 text-left transition-all duration-200',
+          active
+            ? 'bg-ink text-paper shadow-[0_2px_12px_rgba(28,24,20,.18),inset_0_1px_0_rgba(255,255,255,.06)]'
+            : 'text-ink-2 hover:bg-white/65 hover:shadow-[0_1px_6px_rgba(28,24,20,.06)]',
+          disabled && 'cursor-not-allowed opacity-40',
+        )}
+      >
+        <div className="flex items-center gap-2">
+          <span className={cn('transition-colors duration-200', active ? 'text-white/55' : 'text-muted')}>
+            {FORMAT_ICONS[f.id]}
+          </span>
+          <span className={cn('text-[13px] font-semibold transition-colors duration-200', active ? 'text-paper' : 'text-ink-2')}>
+            {f.name}
+          </span>
+        </div>
+        <span className={cn('mt-0.5 pl-[21px] font-mono text-[9px] uppercase tracking-wider transition-colors duration-200', active ? 'text-white/32' : 'text-faint')}>
+          {f.desc}
+        </span>
+      </button>
+    );
+  };
+
   if (!isDark) {
     return (
-      <div className="overflow-x-auto pb-0.5 scrollbar-none [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <div className="flex min-w-max gap-1 rounded-[20px] border border-faint-2/65 bg-paper-2/55 p-1">
-          {FORMATS.map((f) => {
-            const active = value === f.id;
-            return (
-              <button
-                key={f.id}
-                type="button"
-                disabled={disabled}
-                onClick={() => onChange(f.id)}
-                className={cn(
-                  'flex shrink-0 cursor-pointer flex-col items-start rounded-[14px] px-4 py-2.5 text-left transition-all duration-200',
-                  active
-                    ? 'bg-ink text-paper shadow-[0_2px_12px_rgba(28,24,20,.18),inset_0_1px_0_rgba(255,255,255,.06)]'
-                    : 'text-ink-2 hover:bg-white/65 hover:shadow-[0_1px_6px_rgba(28,24,20,.06)]',
-                  disabled && 'cursor-not-allowed opacity-40',
-                )}
-              >
-                <div className="flex items-center gap-2">
-                  <span
-                    className={cn(
-                      'transition-colors duration-200',
-                      active ? 'text-white/55' : 'text-muted',
-                    )}
-                  >
-                    {FORMAT_ICONS[f.id]}
-                  </span>
-                  <span
-                    className={cn(
-                      'text-[13px] font-semibold transition-colors duration-200',
-                      active ? 'text-paper' : 'text-ink-2',
-                    )}
-                  >
-                    {f.name}
-                  </span>
-                </div>
-                <span
-                  className={cn(
-                    'mt-0.5 pl-[21px] font-mono text-[9px] uppercase tracking-wider transition-colors duration-200',
-                    active ? 'text-white/32' : 'text-faint',
-                  )}
-                >
-                  {f.desc}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+      <div className="space-y-2">
+        {FORMAT_GROUPS.map((group, gi) => (
+          <div key={gi}>
+            {group.label && (
+              <p className="mb-1.5 px-1 font-mono text-[9px] uppercase tracking-[0.12em] text-muted">{group.label}</p>
+            )}
+            <div className="overflow-x-auto pb-0.5 scrollbar-none [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex min-w-max gap-1 rounded-[20px] border border-faint-2/65 bg-paper-2/55 p-1">
+                {group.formats.map((f) => renderFormatButton(f, false))}
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
 
   return (
-    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      {FORMATS.map((f) => {
-        const active = value === f.id;
-        return (
-          <button
-            key={f.id}
-            type="button"
-            disabled={disabled}
-            onClick={() => onChange(f.id)}
-            className={cn(
-              'flex shrink-0 cursor-pointer items-center gap-2 rounded-full border px-3.5 py-1.5 transition-all duration-200',
-              active
-                ? 'border-accent/40 bg-accent/12 shadow-[0_2px_12px_rgba(191,59,42,.1)]'
-                : 'border-white/8 bg-white/[0.05] hover:border-white/16 hover:bg-white/[0.08]',
-              disabled && 'cursor-not-allowed opacity-40',
-            )}
-          >
-            <span
-              className={cn(
-                'transition-colors duration-200',
-                active ? 'text-accent-2/75' : 'text-white/28',
-              )}
-            >
-              {FORMAT_ICONS_SM[f.id]}
-            </span>
-            <span
-              className={cn(
-                'text-[12px] font-medium transition-colors duration-200',
-                active ? 'text-white/90' : 'text-white/45',
-              )}
-            >
-              {f.name}
-            </span>
-          </button>
-        );
-      })}
+    <div className="space-y-2">
+      {FORMAT_GROUPS.map((group, gi) => (
+        <div key={gi}>
+          {group.label && (
+            <p className="mb-1 px-0.5 font-mono text-[8px] uppercase tracking-[0.12em] text-white/30">{group.label}</p>
+          )}
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {group.formats.map((f) => renderFormatButton(f, true))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
