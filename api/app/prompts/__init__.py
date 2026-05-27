@@ -41,6 +41,9 @@ Extract structured intent from this voice note. Focus on what the speaker wants 
 
 Output format requested: {output_format}
 
+Available context:
+{context}
+
 Return JSON:
 {{
   "core_intent": "one sentence goal",
@@ -149,6 +152,9 @@ Intent:
 
 Voice profile (match this style):
 {voice_profile}
+
+Available context (use it when relevant, never invent beyond it):
+{context}
 
 Numerical facts (include ALL in output — do not drop any):
 {numerical_facts_json}

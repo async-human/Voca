@@ -7,6 +7,7 @@ from app.prompts import (
     GENERATE_PROMPT,
     INTENT_PROMPT,
 )
+from app.brain.context_builder import format_context_for_prompt
 from app.prompts.structured_facts import format_structured_facts_prompt
 from app.skills import SKILL_VOKAL_RICH_OUTPUT, skill_applies
 from app.services.openai_client import chat_json
@@ -39,10 +40,14 @@ def clean_transcript(transcript: str) -> str:
     return clean.strip()
 
 
-def extract_intent(*, transcript: str, output_format: str) -> dict:
+def extract_intent(*, transcript: str, output_format: str, context: dict | None = None) -> dict:
     result = chat_json(
         system="Return only valid JSON.",
-        user=INTENT_PROMPT.format(transcript=transcript, output_format=output_format),
+        user=INTENT_PROMPT.format(
+            transcript=transcript,
+            output_format=output_format,
+            context=format_context_for_prompt(context),
+        ),
         model=settings.openai_generation_model,
         temperature=0.3,
     )
@@ -82,6 +87,7 @@ def generate_draft(
     output_format: str,
     memory_context: list[dict] | None = None,
     numerical_facts: dict | None = None,
+    context: dict | None = None,
 ) -> dict:
     import json
 
@@ -103,6 +109,7 @@ def generate_draft(
             clean_transcript=clean_transcript,
             numerical_facts_json=json.dumps(numerical_facts or {}, indent=2),
             must_include_json=json.dumps(must_include, indent=2),
+            context=format_context_for_prompt(context),
         ),
         model=settings.openai_generation_model,
         temperature=0.4,

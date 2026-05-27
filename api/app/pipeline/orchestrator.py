@@ -3,10 +3,11 @@ from datetime import datetime, timezone
 
 from supabase import Client
 
+from app.brain.context_builder import build_context
 from app.constants import STORAGE_BUCKET
 from app.pipeline import steps
 from app.services.deepgram import transcribe
-from app.services.pinecone_memory import query_similar_sessions, upsert_session_memory
+from app.services.pinecone_memory import upsert_session_memory
 from app.services.redis_cache import cache_delete
 from app.services.voice_profile import load_voice_profile, update_voice_profile
 
@@ -168,16 +169,27 @@ def run_pipeline(supabase: Client, recording_id: str) -> None:
         _update_recording(supabase, recording_id, clean_transcript=clean)
 
         _set_step(supabase, recording_id, "understanding")
-        intent = steps.extract_intent(transcript=clean, output_format=output_format)
+        context = build_context(
+            supabase,
+            user_id=user_id,
+            transcript=clean,
+            output_format=output_format,
+        )
+        intent = steps.extract_intent(
+            transcript=clean,
+            output_format=output_format,
+            context=context,
+        )
         numerical_facts = steps.extract_numerical_facts(
             transcript=clean,
             output_format=output_format,
         )
         intent["numerical_facts"] = numerical_facts
+        if context.get("contact_hint"):
+            intent["context_hints"] = context["contact_hint"]
         _update_recording(supabase, recording_id, intent=intent)
 
         voice_profile = load_voice_profile(supabase, user_id)
-        memory_context = query_similar_sessions(user_id=user_id, text=clean, top_k=3)
 
         _set_step(supabase, recording_id, "generating")
         draft_result = steps.generate_draft(
@@ -185,8 +197,9 @@ def run_pipeline(supabase: Client, recording_id: str) -> None:
             intent=intent,
             voice_profile=voice_profile,
             output_format=output_format,
-            memory_context=memory_context,
+            memory_context=context.get("similar_sessions"),
             numerical_facts=numerical_facts,
+            context=context,
         )
 
         _set_step(supabase, recording_id, "critiquing")
@@ -289,23 +302,35 @@ def run_regenerate(
     if not clean:
         raise RuntimeError("Transcript not available yet")
 
-    intent = recording.get("intent") or steps.extract_intent(transcript=clean, output_format=format)
+    context = build_context(
+        supabase,
+        user_id=user_id,
+        transcript=clean,
+        output_format=format,
+    )
+    intent = recording.get("intent") or steps.extract_intent(
+        transcript=clean,
+        output_format=format,
+        context=context,
+    )
     numerical_facts = (intent.get("numerical_facts") if isinstance(intent, dict) else None) or steps.extract_numerical_facts(
         transcript=clean,
         output_format=format,
     )
     if isinstance(intent, dict):
         intent["numerical_facts"] = numerical_facts
+        if context.get("contact_hint"):
+            intent["context_hints"] = context["contact_hint"]
     voice_profile = load_voice_profile(supabase, user_id)
-    memory_context = query_similar_sessions(user_id=user_id, text=clean, top_k=3)
 
     draft = steps.generate_draft(
         clean_transcript=clean,
         intent=intent,
         voice_profile=voice_profile,
         output_format=format,
-        memory_context=memory_context,
+        memory_context=context.get("similar_sessions"),
         numerical_facts=numerical_facts,
+        context=context,
     )
     revised = _critique_with_quality_gate(
         draft=draft,
