@@ -62,6 +62,7 @@ def deliver_workflow_bundle(
     gmail_connection_id: str | None = None,
     zapier_connection_id: str | None = None,
     gmail_mode: str = "draft",
+    recipient_email: str | None = None,
 ) -> list[dict[str, Any]]:
     """Run deliverable actions from output_meta.approval_bundle."""
     bundle = output_meta.get("approval_bundle") or {}
@@ -97,7 +98,7 @@ def deliver_workflow_bundle(
                         "message": "Connect Gmail in Connections",
                     })
                     continue
-                to_addr = payload.get("to")
+                to_addr = payload.get("to") or (recipient_email or "").strip() or None
                 if not to_addr:
                     results.append({
                         "action_id": action_id,

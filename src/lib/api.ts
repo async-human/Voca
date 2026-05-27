@@ -120,6 +120,7 @@ export async function deliverWorkflow(
     gmailConnectionId?: string;
     zapierConnectionId?: string;
     gmailMode?: 'draft' | 'send';
+    recipientEmail?: string;
   },
 ): Promise<{ results: WorkflowActionResult[] }> {
   const res = await fetch(`${API}/api/v1/sessions/${sessionId}/deliver-workflow`, {
@@ -133,6 +134,7 @@ export async function deliverWorkflow(
       gmail_connection_id: options?.gmailConnectionId,
       zapier_connection_id: options?.zapierConnectionId,
       gmail_mode: options?.gmailMode ?? 'draft',
+      recipient_email: options?.recipientEmail,
     }),
   });
   const data = await res.json();

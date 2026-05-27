@@ -321,6 +321,7 @@ def deliver_workflow(
             gmail_connection_id=payload.gmail_connection_id,
             zapier_connection_id=payload.zapier_connection_id,
             gmail_mode=gmail_mode,
+            recipient_email=(payload.recipient_email or "").strip() or None,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

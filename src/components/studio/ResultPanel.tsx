@@ -97,8 +97,13 @@ export function ResultPanel({
   }, [gen.output_text, gen.format, hasVisuals]);
 
   const canSend = !!onDeliver && !!deliveryDestination;
+  const resolvedRecipient = (deliveryDestination?.to || recipientEmail)?.trim() || '';
   const gmailMissingRecipient =
-    deliveryDestination?.platform === 'gmail' && !(deliveryDestination.to || recipientEmail)?.trim();
+    deliveryDestination?.platform === 'gmail' && !resolvedRecipient;
+
+  const unresolvedMissingFields = (gen.output_meta?.approval_bundle?.missing_fields ?? []).filter(
+    (field) => field !== 'contact_email' || !resolvedRecipient,
+  );
 
   const sendLabel = deliveryDestination
     ? delivered
@@ -231,9 +236,10 @@ export function ResultPanel({
                 </div>
               ))}
             </div>
-            {gen.output_meta.approval_bundle.missing_fields?.length ? (
+            {unresolvedMissingFields.length > 0 ? (
               <p className="mt-3 text-[12px] leading-relaxed text-accent">
-                Missing: {gen.output_meta.approval_bundle.missing_fields.join(', ')}
+                Missing from your recording: {unresolvedMissingFields.join(', ')}. Add a recipient below to
+                send anyway.
               </p>
             ) : null}
           </div>
@@ -335,6 +341,10 @@ export function ResultPanel({
             onRecipientEmailChange={onRecipientEmailChange}
             gmailSendMode={gmailSendMode}
             onGmailSendModeChange={onGmailSendModeChange}
+            onDeliver={onDeliver}
+            deliverLabel={sendLabel}
+            delivering={delivering}
+            delivered={delivered}
             disabled={delivering || delivered}
             variant="result"
           />

@@ -35,6 +35,10 @@ class DeliverWorkflowRequest(BaseModel):
     zapier_connection_id: str | None = None
     gmail_mode: str = Field(default="draft", description="draft | send")
     output_text: str | None = None
+    recipient_email: str | None = Field(
+        default=None,
+        description="Override when approval bundle lacks contact_email",
+    )
 
 
 class WorkflowActionResult(BaseModel):

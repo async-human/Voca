@@ -22,6 +22,10 @@ interface DestinationPickerProps {
   onRecipientEmailChange: (email: string) => void;
   gmailSendMode?: GmailSendMode;
   onGmailSendModeChange?: (mode: GmailSendMode) => void;
+  onDeliver?: () => void;
+  deliverLabel?: string | null;
+  delivering?: boolean;
+  delivered?: boolean;
   disabled?: boolean;
   variant?: 'studio' | 'result';
 }
@@ -49,6 +53,10 @@ export function DestinationPicker({
   onRecipientEmailChange,
   gmailSendMode = 'draft',
   onGmailSendModeChange,
+  onDeliver,
+  deliverLabel,
+  delivering,
+  delivered,
   disabled,
   variant = 'studio',
 }: DestinationPickerProps) {
@@ -184,27 +192,52 @@ export function DestinationPicker({
             />
           </div>
           {onGmailSendModeChange && (
-            <div className="flex gap-2">
-              {(['draft', 'send'] as const).map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => {
-                    onGmailSendModeChange(mode);
-                    onChange({ ...value, mode });
-                  }}
-                  className={cn(
-                    'cursor-pointer rounded-full px-3 py-1.5 font-mono text-[9px] uppercase tracking-wide transition-colors',
-                    gmailSendMode === mode
-                      ? 'bg-ink text-paper'
-                      : 'border border-faint-2 text-muted hover:text-ink',
-                  )}
-                >
-                  {mode === 'draft' ? 'Save draft' : 'Send now'}
-                </button>
-              ))}
+            <div>
+              <p className="mb-1.5 font-mono text-[9px] uppercase tracking-[0.1em] text-muted">
+                Gmail delivery mode
+              </p>
+              <div className="flex gap-2">
+                {(['draft', 'send'] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => {
+                      onGmailSendModeChange(mode);
+                      onChange({ ...value, mode });
+                    }}
+                    className={cn(
+                      'cursor-pointer rounded-full px-3 py-1.5 font-mono text-[9px] uppercase tracking-wide transition-colors',
+                      gmailSendMode === mode
+                        ? 'bg-ink text-paper'
+                        : 'border border-faint-2 text-muted hover:text-ink',
+                    )}
+                  >
+                    {mode === 'draft' ? 'Draft in Gmail' : 'Send immediately'}
+                  </button>
+                ))}
+              </div>
             </div>
+          )}
+          {onDeliver && deliverLabel && (
+            <button
+              type="button"
+              onClick={onDeliver}
+              disabled={disabled || delivering || delivered || !recipientEmail.trim()}
+              className={cn(
+                'w-full cursor-pointer rounded-full px-4 py-2.5 text-[13px] font-semibold transition-all duration-200',
+                delivered
+                  ? 'bg-teal/10 text-teal'
+                  : 'bg-accent text-paper hover:shadow-[0_6px_20px_rgba(191,59,42,.25)] disabled:cursor-not-allowed disabled:opacity-55',
+              )}
+            >
+              {delivered ? 'Delivered ✓' : delivering ? 'Working…' : deliverLabel}
+            </button>
+          )}
+          {isResult && onDeliver && !recipientEmail.trim() && (
+            <p className="text-[12px] leading-relaxed text-muted">
+              Add a recipient above, then use the button to create the Gmail draft or send.
+            </p>
           )}
         </div>
       )}

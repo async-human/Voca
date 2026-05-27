@@ -221,11 +221,16 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
     try {
       const gmailConn = connections.find((c) => c.platform === 'gmail');
       const zapierConn = connections.find((c) => c.platform === 'zapier');
+      const to =
+        deliveryDestination?.to?.trim() ||
+        recipientEmail.trim() ||
+        suggestedRecipientEmail(result);
       const res = await deliverWorkflow(accessToken, id, {
         outputText: editedOutput || result.generation?.output_text,
         gmailConnectionId: gmailConn?.id,
         zapierConnectionId: zapierConn?.id,
         gmailMode: gmailSendMode,
+        recipientEmail: to || undefined,
       });
       const sent = res.results.filter((r) => r.status === 'sent').length;
       const skipped = res.results.filter((r) => r.status === 'skipped').length;
@@ -264,7 +269,11 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
   async function handleDeliver() {
     const id = sessionIdRef.current;
     if (!id || !deliveryDestination) return;
-    if (deliveryDestination.platform === 'gmail' && !deliveryDestination.to?.trim()) {
+    const to =
+      deliveryDestination.platform === 'gmail'
+        ? deliveryDestination.to?.trim() || recipientEmail.trim()
+        : undefined;
+    if (deliveryDestination.platform === 'gmail' && !to) {
       setError('Enter a recipient email for Gmail');
       return;
     }
@@ -273,15 +282,28 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
     setError('');
     try {
       const { connection_id, platform: _p, ...destFields } = deliveryDestination;
+      const destination =
+        deliveryDestination.platform === 'gmail'
+          ? { ...destFields, to, mode: destFields.mode ?? gmailSendMode }
+          : { ...destFields, mode: destFields.mode ?? gmailSendMode };
       const res = await deliverSession(
         accessToken,
         id,
         connection_id,
-        { ...destFields, mode: destFields.mode ?? gmailSendMode },
+        destination,
         editedOutput || result?.generation?.output_text,
       );
+      if (res.status === 'failed') {
+        setError(res.message || 'Gmail delivery failed — try reconnecting in Connections');
+        return;
+      }
       setDelivered(true);
-      showToast(res.message || 'Sent!');
+      const hint =
+        res.message ||
+        (gmailSendMode === 'draft'
+          ? 'Draft saved — open Gmail → Drafts'
+          : 'Email sent');
+      showToast(hint);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Send failed');
     } finally {
@@ -435,7 +457,12 @@ export function StudioCanvas({ accessToken }: StudioCanvasProps) {
                 setDelivered(false);
               }}
               recipientEmail={recipientEmail}
-              onRecipientEmailChange={setRecipientEmail}
+              onRecipientEmailChange={(email) => {
+                setRecipientEmail(email);
+                if (deliveryDestination?.platform === 'gmail') {
+                  setDeliveryDestination({ ...deliveryDestination, to: email });
+                }
+              }}
               onCopy={handleCopy}
               onNew={handleNew}
               onRegenerate={handleRegenerate}
