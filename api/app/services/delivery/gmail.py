@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import base64
 import logging
-from email.mime.text import MIMEText
+from email.message import EmailMessage
 from typing import Any
 
 import httpx
@@ -68,14 +68,12 @@ class GmailDelivery:
         except Exception as exc:
             return DeliveryResult(status="failed", message=str(exc))
 
-        raw = (
-            f"From: {from_addr}\r\n"
-            f"To: {to_addr}\r\n"
-            f"Subject: {subj}\r\n"
-            f"Content-Type: text/plain; charset=utf-8\r\n\r\n"
-            f"{content}"
-        )
-        encoded = base64.urlsafe_b64encode(raw.encode()).decode().rstrip("=")
+        message = EmailMessage()
+        message["From"] = from_addr
+        message["To"] = to_addr
+        message["Subject"] = subj
+        message.set_content(content or "")
+        encoded = base64.urlsafe_b64encode(message.as_bytes()).decode().rstrip("=")
 
         try:
             with httpx.Client(timeout=30.0) as client:

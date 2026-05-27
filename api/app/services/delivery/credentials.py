@@ -30,6 +30,8 @@ def encrypt_credentials(data: dict[str, Any]) -> str:
     f = _fernet()
     if f:
         return f.encrypt(raw).decode()
+    if not settings.allow_unencrypted_credentials and settings.app_env.lower() not in {"local", "development", "dev", "test"}:
+        raise RuntimeError("CREDENTIALS_ENCRYPTION_KEY is required outside local development")
     logger.warning("CREDENTIALS_ENCRYPTION_KEY not set — storing credentials base64-only (dev only)")
     return base64.urlsafe_b64encode(raw).decode()
 

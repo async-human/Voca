@@ -18,6 +18,8 @@ class DeliverRequest(BaseModel):
     connection_id: str
     destination: dict = Field(default_factory=dict)
     output_text: str | None = Field(default=None, description="Optional edited text; defaults to saved generation")
+    action_id: str | None = Field(default=None, description="Approval-bundle action id being executed")
+    idempotency_key: str | None = Field(default=None, description="Client-provided idempotency key")
 
 
 class DeliverResponse(BaseModel):

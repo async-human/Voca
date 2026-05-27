@@ -238,6 +238,8 @@ def send_session(
             destination=payload.destination,
             output_text=output_text,
             subject=subject,
+            action_id=payload.action_id,
+            idempotency_key=payload.idempotency_key,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

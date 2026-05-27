@@ -84,6 +84,24 @@ export interface Generation {
       red_flags?: string[];
     };
     deal_stage_signal?: string | null;
+    workflow_state?: Record<string, unknown>;
+    approval_bundle?: {
+      workflow_type?: string | null;
+      domain?: string | null;
+      risk_level?: 'low' | 'medium' | 'high';
+      approval_required?: boolean;
+      approval_reason?: string | null;
+      missing_fields?: string[];
+      actions?: {
+        id: string;
+        type: string;
+        title: string;
+        payload: Record<string, unknown>;
+        requires_approval: boolean;
+        approval_reason?: string | null;
+        status: string;
+      }[];
+    };
   };
   explanations?: Explanation[];
 }

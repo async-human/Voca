@@ -33,9 +33,11 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:3000,http://127.0.0.1:5500,https://vokal.work,https://www.vokal.work"
     cors_origin_regex: str = r"https://([a-z0-9-]+\.)*vokal\.work"
     port: int = 3001
+    app_env: str = "development"
 
     app_frontend_url: str = "https://vokal.work"
     credentials_encryption_key: str | None = None
+    allow_unencrypted_credentials: bool = False
 
     jwt_secret: str | None = None
 

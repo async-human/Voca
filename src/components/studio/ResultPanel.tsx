@@ -175,6 +175,34 @@ export function ResultPanel({
           </p>
         )}
 
+        {gen.output_meta?.approval_bundle?.actions?.length ? (
+          <div className="mb-4 rounded-[14px] border border-faint-2 bg-white/65 px-4 py-3">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <p className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted">Approval plan</p>
+              {gen.output_meta.approval_bundle.risk_level && (
+                <span className="rounded-full bg-accent/10 px-2.5 py-1 font-mono text-[9px] text-accent">
+                  {gen.output_meta.approval_bundle.risk_level} risk
+                </span>
+              )}
+            </div>
+            <div className="space-y-2">
+              {gen.output_meta.approval_bundle.actions.map((action) => (
+                <div key={action.id} className="rounded-xl border border-faint-2/80 bg-paper px-3 py-2">
+                  <p className="text-[13px] font-semibold text-ink-2">{action.title}</p>
+                  {action.approval_reason && (
+                    <p className="mt-0.5 text-[12px] leading-relaxed text-muted">{action.approval_reason}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+            {gen.output_meta.approval_bundle.missing_fields?.length ? (
+              <p className="mt-3 text-[12px] leading-relaxed text-accent">
+                Missing: {gen.output_meta.approval_bundle.missing_fields.join(', ')}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+
         {gen.output_meta?.crm_note && (
           <div className="mb-4 rounded-[14px] border border-faint-2 bg-white/65 px-4 py-3">
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">

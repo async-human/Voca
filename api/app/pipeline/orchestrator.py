@@ -10,6 +10,7 @@ from app.services.deepgram import transcribe
 from app.services.pinecone_memory import upsert_session_memory
 from app.services.redis_cache import cache_delete
 from app.services.voice_profile import load_voice_profile, update_voice_profile
+from app.workflows.planner import plan_workflow
 
 logger = logging.getLogger(__name__)
 
@@ -140,6 +141,33 @@ def _critique_with_quality_gate(
     }
 
 
+def _attach_workflow_plan(
+    *,
+    user_id: str,
+    recording_id: str,
+    transcript: str,
+    output_format: str,
+    output_text: str,
+    output_meta: dict,
+    context: dict | None,
+) -> dict:
+    workflow_state = plan_workflow(
+        user_id=user_id,
+        session_id=recording_id,
+        transcript=transcript,
+        requested_format=output_format,
+        output_text=output_text,
+        output_meta=output_meta,
+        context=context,
+    )
+    return {
+        **output_meta,
+        "workflow_type": workflow_state.workflow_type or output_meta.get("workflow_type"),
+        "workflow_state": workflow_state.model_dump(),
+        "approval_bundle": workflow_state.approval_bundle(),
+    }
+
+
 def run_pipeline(supabase: Client, recording_id: str) -> None:
     result = supabase.table("recordings").select("*").eq("id", recording_id).single().execute()
     recording = result.data
@@ -228,6 +256,15 @@ def run_pipeline(supabase: Client, recording_id: str) -> None:
             output_format,
             source_transcript=clean,
             numerical_facts=numerical_facts,
+        )
+        output_meta = _attach_workflow_plan(
+            user_id=user_id,
+            recording_id=recording_id,
+            transcript=clean,
+            output_format=output_format,
+            output_text=revised["output_text"],
+            output_meta=output_meta,
+            context=context,
         )
 
         save_generation(
@@ -353,6 +390,15 @@ def run_regenerate(
         format,
         source_transcript=clean,
         numerical_facts=numerical_facts,
+    )
+    output_meta = _attach_workflow_plan(
+        user_id=user_id,
+        recording_id=recording_id,
+        transcript=clean,
+        output_format=format,
+        output_text=revised["output_text"],
+        output_meta=output_meta,
+        context=context,
     )
 
     generation = save_generation(

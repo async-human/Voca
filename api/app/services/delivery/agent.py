@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import logging
+import hashlib
+import json
 from typing import Any
 
 from supabase import Client
@@ -63,6 +65,7 @@ def save_delivery_attempt(
     platform: str,
     result: DeliveryResult,
     metadata: dict[str, Any] | None = None,
+    idempotency_key: str | None = None,
 ) -> dict:
     payload = {
         "recording_id": recording_id,
@@ -74,9 +77,48 @@ def save_delivery_attempt(
         "error_message": result.message if result.status == "failed" else None,
         "metadata": {**(metadata or {}), **(result.metadata or {})},
     }
+    if idempotency_key:
+        payload["idempotency_key"] = idempotency_key
     insert = supabase.table("delivery_attempts").insert(payload).select("*").execute()
     rows = insert.data or []
     return rows[0] if rows else payload
+
+
+def _make_idempotency_key(
+    *,
+    recording_id: str,
+    connection_id: str,
+    platform: str,
+    action_id: str | None,
+    destination: dict[str, Any],
+) -> str:
+    action = action_id or destination.get("action_id") or destination.get("type") or "deliver"
+    payload = {
+        "recording_id": recording_id,
+        "connection_id": connection_id,
+        "platform": platform,
+        "action": action,
+    }
+    raw = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(raw.encode()).hexdigest()
+
+
+def _existing_success(supabase: Client, *, user_id: str, idempotency_key: str) -> dict | None:
+    try:
+        result = (
+            supabase.table("delivery_attempts")
+            .select("*")
+            .eq("user_id", user_id)
+            .eq("idempotency_key", idempotency_key)
+            .eq("status", "sent")
+            .order("created_at", desc=True)
+            .limit(1)
+            .execute()
+        )
+    except Exception:
+        return None
+    rows = result.data or []
+    return rows[0] if rows else None
 
 
 def deliver_session(
@@ -88,6 +130,8 @@ def deliver_session(
     destination: dict[str, Any],
     output_text: str,
     subject: str | None = None,
+    action_id: str | None = None,
+    idempotency_key: str | None = None,
 ) -> tuple[DeliveryResult, dict]:
     connection = get_connection(supabase, user_id, connection_id)
     if not connection:
@@ -97,6 +141,25 @@ def deliver_session(
     handler = HANDLERS.get(platform)
     if not handler:
         raise ValueError(f"Delivery not implemented for platform: {platform}")
+
+    idem_key = idempotency_key or _make_idempotency_key(
+        recording_id=recording_id,
+        connection_id=connection_id,
+        platform=platform,
+        action_id=action_id,
+        destination=destination,
+    )
+    existing = _existing_success(supabase, user_id=user_id, idempotency_key=idem_key)
+    if existing:
+        return (
+            DeliveryResult(
+                status="sent",
+                external_id=existing.get("external_id"),
+                message="Already delivered",
+                metadata=existing.get("metadata") or {},
+            ),
+            existing,
+        )
 
     credentials = decrypt_credentials(connection.get("credentials_encrypted") or "")
     connection_metadata = connection.get("metadata") or {}
@@ -121,7 +184,8 @@ def deliver_session(
         connection_id=connection_id,
         platform=platform,
         result=result,
-        metadata={"destination": destination},
+        metadata={"destination": destination, "action_id": action_id},
+        idempotency_key=idem_key,
     )
 
     if result.status == "failed":

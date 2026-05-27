@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import base64
+import hashlib
+import hmac
+import json
 import logging
 import secrets
 from typing import Any
@@ -25,16 +29,36 @@ GMAIL_SCOPES = "https://www.googleapis.com/auth/gmail.send email profile"
 NOTION_SCOPES = ""  # Notion uses integration capabilities at authorize time
 
 
+def _state_secret() -> bytes:
+    secret = settings.jwt_secret or settings.google_client_secret or settings.notion_client_secret or "vokal-dev"
+    return secret.encode()
+
+
 def _oauth_state(user_id: str) -> str:
-    nonce = secrets.token_urlsafe(16)
-    return f"{user_id}:{nonce}"
+    payload = json.dumps(
+        {"user_id": user_id, "n": secrets.token_urlsafe(16)},
+        separators=(",", ":"),
+    )
+    sig = hmac.new(_state_secret(), payload.encode(), hashlib.sha256).hexdigest()
+    raw = f"{payload}|{sig}"
+    return base64.urlsafe_b64encode(raw.encode()).decode().rstrip("=")
 
 
 def parse_oauth_state(state: str) -> str:
-    user_id, _, _rest = state.partition(":")
-    if not user_id:
-        raise ValueError("Invalid OAuth state")
-    return user_id
+    try:
+        padded = state + "=" * (-len(state) % 4)
+        raw = base64.urlsafe_b64decode(padded.encode()).decode()
+        payload, sig = raw.rsplit("|", 1)
+        expected = hmac.new(_state_secret(), payload.encode(), hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(expected, sig):
+            raise ValueError("Invalid OAuth state signature")
+        data = json.loads(payload)
+        user_id = data.get("user_id")
+        if not user_id:
+            raise ValueError("Invalid OAuth state payload")
+        return str(user_id)
+    except Exception as exc:
+        raise ValueError("Invalid OAuth state") from exc
 
 
 def gmail_authorize_url(user_id: str) -> str:
