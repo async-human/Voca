@@ -565,6 +565,7 @@ def build_blocks_from_sections(
 
 
 _DEAL_STAGE_SIGNALS = {"interested", "lukewarm", "not_interested", "no_answer", "voicemail"}
+_SALES_WORKFLOWS = {"post_call_followup", "crm_note", "voicemail_script", "pipeline_update"}
 
 
 def _normalize_list(value: Any, *, limit: int = 5) -> list[str]:
@@ -609,6 +610,9 @@ def _normalize_sales_meta(meta: dict[str, Any]) -> dict[str, Any]:
 
     signal = str(normalized.get("deal_stage_signal") or "").strip()
     normalized["deal_stage_signal"] = signal if signal in _DEAL_STAGE_SIGNALS else None
+
+    workflow = str(normalized.get("workflow_type") or "").strip()
+    normalized["workflow_type"] = workflow if workflow in _SALES_WORKFLOWS else None
     return normalized
 
 

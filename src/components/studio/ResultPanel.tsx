@@ -169,6 +169,12 @@ export function ResultPanel({
           </p>
         )}
 
+        {gen.output_meta?.workflow_type && (
+          <p className="mb-4 rounded-xl border border-faint-2 bg-paper px-4 py-3 font-mono text-[11px] text-muted">
+            Workflow · {formatMeta(gen.output_meta.workflow_type as OutputFormat).label}
+          </p>
+        )}
+
         {gen.output_meta?.crm_note && (
           <div className="mb-4 rounded-[14px] border border-faint-2 bg-white/65 px-4 py-3">
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">

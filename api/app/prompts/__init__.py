@@ -97,6 +97,17 @@ FORMAT_GUIDES = {
         + RICH_OUTPUT_RULES
         + " Use callout for insights; paragraph for reflection."
     ),
+    "sales": (
+        "Sales workflow mode. First infer output_meta.workflow_type as one of: post_call_followup, crm_note, "
+        "voicemail_script, pipeline_update. Choose post_call_followup when the speaker mentions a prospect, call, "
+        "follow-up, next step, objection, or callback. Choose crm_note when they only want a CRM log. Choose "
+        "voicemail_script for call-attempt scripts. Choose pipeline_update for multi-deal manager updates. "
+        "Generate the best primary output for that workflow and include output_meta.crm_note whenever the transcript "
+        "contains a prospect interaction. For post-call follow-up, output_meta.subject is required. "
+        "output_meta.deal_stage_signal is required when a prospect outcome is inferable: interested, lukewarm, "
+        "not_interested, no_answer, or voicemail. Keep the result action-oriented and ready for approval. "
+        + RICH_OUTPUT_RULES
+    ),
     "post_call_followup": (
         "Sales post-call follow-up email. Lead with the prospect's specific pain or priority, never a generic opener. "
         "Write in the rep's voice, keep it short, include one relevant proof point if the transcript provides one, "
@@ -154,7 +165,8 @@ Rules:
 Return JSON:
 {{
   "output_text": "polished content (always required, plain text)",
-  "output_meta": {{
+    "output_meta": {{
+    "workflow_type": "post_call_followup|crm_note|voicemail_script|pipeline_update|null",
     "subject": "required for email and post_call_followup",
     "blocks": [],
     "crm_note": {{

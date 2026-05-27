@@ -4,6 +4,7 @@ FORMATS = frozenset({
     "report",
     "linkedin",
     "journal",
+    "sales",
     "post_call_followup",
     "crm_note",
     "voicemail_script",

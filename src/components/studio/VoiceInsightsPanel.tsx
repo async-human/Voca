@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { cn } from '@/lib/cn';
 import type { VoiceProfile } from '@/lib/types';
-import { FORMATS } from '@/lib/constants';
+import { formatMeta, type OutputFormat } from '@/lib/constants';
 
 const TRAIT_LABELS: { key: keyof NonNullable<VoiceProfile['traits']>; label: string }[] = [
   { key: 'directness', label: 'Directness' },
@@ -128,7 +128,7 @@ export function VoiceInsightsPanel({ voiceProfile, loading, variant = 'card' }: 
               <p className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-muted">Formats you use</p>
               <div className="flex flex-wrap gap-2">
                 {formatUsage.map(([fmt, count]) => {
-                  const label = FORMATS.find((f) => f.id === fmt)?.name ?? fmt;
+                  const label = formatMeta(fmt as OutputFormat).name;
                   return (
                     <span key={fmt} className="rounded-full bg-ink px-3 py-1 text-[10px] font-medium text-paper">
                       {label} · {count}

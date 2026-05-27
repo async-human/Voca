@@ -69,6 +69,7 @@ export interface Generation {
     blocks?: OutputBlock[];
     structured_facts?: StructuredFacts;
     facts_captured?: number;
+    workflow_type?: 'post_call_followup' | 'crm_note' | 'voicemail_script' | 'pipeline_update' | string | null;
     crm_note?: {
       contact?: string | null;
       company?: string | null;
