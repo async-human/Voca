@@ -25,7 +25,12 @@ GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo"
 NOTION_AUTH_URL = "https://api.notion.com/v1/oauth/authorize"
 NOTION_TOKEN_URL = "https://api.notion.com/v1/oauth/token"
 
-GMAIL_SCOPES = "https://www.googleapis.com/auth/gmail.send email profile"
+# compose: create drafts; send: send messages (both required for draft + send-now flows)
+GMAIL_SCOPES = (
+    "https://www.googleapis.com/auth/gmail.compose "
+    "https://www.googleapis.com/auth/gmail.send "
+    "email profile"
+)
 NOTION_SCOPES = ""  # Notion uses integration capabilities at authorize time
 
 

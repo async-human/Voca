@@ -124,6 +124,17 @@ class GmailDelivery:
                     message=f"Draft saved in Gmail for {to_addr}",
                     metadata={"draft_id": draft_id, "mode": "draft"},
                 )
+        except httpx.HTTPStatusError as exc:
+            logger.exception("Gmail delivery failed: %s", exc.response.status_code)
+            if exc.response.status_code == 403:
+                return DeliveryResult(
+                    status="failed",
+                    message=(
+                        "Gmail denied access (missing draft permission). "
+                        "Open Connections, disconnect Gmail, then connect again to approve updated permissions."
+                    ),
+                )
+            return DeliveryResult(status="failed", message=str(exc))
         except Exception as exc:
             logger.exception("Gmail delivery failed")
             return DeliveryResult(status="failed", message=str(exc))

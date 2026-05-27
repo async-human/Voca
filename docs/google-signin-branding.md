@@ -58,4 +58,14 @@ Supabase anon keys are **not** required for Studio login anymore (API still uses
 
 `GET https://YOUR-API.up.railway.app/api/v1/connections/oauth/gmail/redirect-uri` (Gmail Connect — copy into Google Console)
 
-Should return `https://www.vokal.work/auth/callback`.
+## Gmail API scopes (Connect)
+
+Vokal requests **`gmail.compose`** (create drafts) and **`gmail.send`** (send immediately). Enable the **Gmail API** in Google Cloud for the same project as your OAuth client. On the OAuth consent screen, add both scopes under **Edit app → Scopes** if they are not listed yet.
+
+If **Save Gmail draft** returns **403 Forbidden** on `…/users/me/drafts`, your account was connected before compose was added. Fix:
+
+1. Redeploy the API (so the new scopes are used in the OAuth URL).
+2. In Vokal → **Connections**, **disconnect** Gmail.
+3. **Connect Gmail** again and approve the updated permissions on Google’s consent screen.
+
+Drafts appear in the connected account under **Gmail → Drafts**, not Inbox.
