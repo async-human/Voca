@@ -11,6 +11,10 @@ export const FORMAT_TIPS: Record<OutputFormat, string> = {
   report: 'Lead with the headline finding, then supporting details.',
   linkedin: 'Start with the hook — why should someone stop scrolling?',
   journal: "No structure needed. Just talk through what's on your mind.",
+  post_call_followup: 'Mention the prospect, pain, outcome, and exact next step.',
+  crm_note: 'Summarize the call outcome, pain, objections, and next action.',
+  voicemail_script: 'Say who you called and the hook they should hear.',
+  pipeline_update: 'Group deals by hot, warm, and cold with next actions.',
 };
 
 function EmailIcon({ size = 13 }: { size?: number }) {
@@ -74,6 +78,10 @@ const FORMAT_ICONS: Record<OutputFormat, ReactNode> = {
   report: <ReportIcon />,
   linkedin: <LinkedInIcon />,
   journal: <JournalIcon />,
+  post_call_followup: <EmailIcon />,
+  crm_note: <ReportIcon />,
+  voicemail_script: <SlackIcon />,
+  pipeline_update: <ReportIcon />,
 };
 
 const FORMAT_ICONS_SM: Record<OutputFormat, ReactNode> = {
@@ -82,6 +90,10 @@ const FORMAT_ICONS_SM: Record<OutputFormat, ReactNode> = {
   report: <ReportIcon size={11} />,
   linkedin: <LinkedInIcon size={11} />,
   journal: <JournalIcon size={11} />,
+  post_call_followup: <EmailIcon size={11} />,
+  crm_note: <ReportIcon size={11} />,
+  voicemail_script: <SlackIcon size={11} />,
+  pipeline_update: <ReportIcon size={11} />,
 };
 
 interface FormatPickerProps {

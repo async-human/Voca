@@ -6,7 +6,16 @@ from datetime import datetime, timezone
 
 from supabase import Client
 
-TRAIT_KEYS = ("directness", "conciseness", "warmth", "formality")
+TRAIT_KEYS = (
+    "directness",
+    "conciseness",
+    "warmth",
+    "formality",
+    "urgency_calibration",
+    "objection_handling",
+    "specificity",
+    "follow_through_clarity",
+)
 PATTERN_ALERT_THRESHOLD = 3
 CLARITY_HISTORY_LEN = 20
 

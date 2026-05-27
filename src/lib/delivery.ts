@@ -17,6 +17,10 @@ export const FORMAT_PLATFORMS: Record<OutputFormat, DeliveryPlatform[]> = {
   report: ['gmail', 'notion', 'zapier'],
   linkedin: ['linkedin', 'zapier'],
   journal: ['notion', 'zapier'],
+  post_call_followup: ['gmail', 'zapier'],
+  crm_note: ['zapier', 'notion'],
+  voicemail_script: ['zapier'],
+  pipeline_update: ['gmail', 'notion', 'zapier'],
 };
 
 export interface PlatformConnection {

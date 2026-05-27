@@ -205,7 +205,8 @@ async def process_voice(
 
     normalized_format = format.lower()
     if normalized_format not in FORMATS:
-        raise HTTPException(status_code=400, detail="Invalid format. Use: email, slack, report, linkedin, journal.")
+        allowed = ", ".join(sorted(FORMATS))
+        raise HTTPException(status_code=400, detail=f"Invalid format. Use: {allowed}.")
 
     audio_bytes = await audio.read()
     if len(audio_bytes) > MAX_AUDIO_BYTES:
@@ -329,7 +330,8 @@ def regenerate_session(
 
     normalized = payload.format.lower()
     if normalized not in FORMATS:
-        raise HTTPException(status_code=400, detail="Invalid format. Use: email, slack, report, linkedin, journal.")
+        allowed = ", ".join(sorted(FORMATS))
+        raise HTTPException(status_code=400, detail=f"Invalid format. Use: {allowed}.")
 
     try:
         recording, generation = run_regenerate(

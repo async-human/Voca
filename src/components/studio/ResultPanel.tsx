@@ -169,6 +169,41 @@ export function ResultPanel({
           </p>
         )}
 
+        {gen.output_meta?.crm_note && (
+          <div className="mb-4 rounded-[14px] border border-faint-2 bg-white/65 px-4 py-3">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <p className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted">CRM note</p>
+              {gen.output_meta.deal_stage_signal && (
+                <span className="rounded-full bg-teal/10 px-2.5 py-1 font-mono text-[9px] text-teal">
+                  {gen.output_meta.deal_stage_signal.replaceAll('_', ' ')}
+                </span>
+              )}
+            </div>
+            <dl className="grid gap-2 text-[13px] leading-relaxed text-ink-3 md:grid-cols-2">
+              {[
+                ['Contact', [gen.output_meta.crm_note.contact, gen.output_meta.crm_note.company].filter(Boolean).join(' at ')],
+                ['Outcome', gen.output_meta.crm_note.call_outcome?.replaceAll('_', ' ')],
+                ['Pain', gen.output_meta.crm_note.pain_identified],
+                ['Next action', gen.output_meta.crm_note.next_action],
+              ].map(([label, value]) =>
+                value ? (
+                  <div key={label}>
+                    <dt className="font-mono text-[9px] uppercase tracking-wide text-faint">{label}</dt>
+                    <dd>{value}</dd>
+                  </div>
+                ) : null,
+              )}
+            </dl>
+            {gen.output_meta.crm_note.key_points?.length ? (
+              <ul className="mt-3 list-disc space-y-1 pl-4 text-[13px] leading-relaxed text-ink-3">
+                {gen.output_meta.crm_note.key_points.map((point) => (
+                  <li key={point}>{point}</li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        )}
+
         {showRichView && (
           <>
             <OutputBlocks blocks={effectiveBlocks} />

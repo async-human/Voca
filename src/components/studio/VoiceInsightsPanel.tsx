@@ -11,6 +11,10 @@ const TRAIT_LABELS: { key: keyof NonNullable<VoiceProfile['traits']>; label: str
   { key: 'conciseness', label: 'Conciseness' },
   { key: 'warmth', label: 'Warmth' },
   { key: 'formality', label: 'Formality' },
+  { key: 'urgency_calibration', label: 'Urgency' },
+  { key: 'objection_handling', label: 'Objections' },
+  { key: 'specificity', label: 'Specificity' },
+  { key: 'follow_through_clarity', label: 'Follow-through' },
 ];
 
 interface VoiceInsightsPanelProps {

@@ -1,4 +1,14 @@
-FORMATS = frozenset({"email", "slack", "report", "linkedin", "journal"})
+FORMATS = frozenset({
+    "email",
+    "slack",
+    "report",
+    "linkedin",
+    "journal",
+    "post_call_followup",
+    "crm_note",
+    "voicemail_script",
+    "pipeline_update",
+})
 
 RECORDING_STATUSES = frozenset({"pending", "processing", "complete", "failed"})
 

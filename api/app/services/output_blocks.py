@@ -551,6 +551,54 @@ def build_blocks_from_sections(
     return blocks
 
 
+_DEAL_STAGE_SIGNALS = {"interested", "lukewarm", "not_interested", "no_answer", "voicemail"}
+
+
+def _normalize_list(value: Any, *, limit: int = 5) -> list[str]:
+    if isinstance(value, list):
+        return [str(item).strip()[:280] for item in value if str(item or "").strip()][:limit]
+    if isinstance(value, str) and value.strip():
+        return [value.strip()[:280]]
+    return []
+
+
+def _normalize_crm_note(raw: Any) -> dict[str, Any] | None:
+    if not isinstance(raw, dict):
+        return None
+
+    note = {
+        "contact": str(raw.get("contact") or raw.get("name") or "").strip() or None,
+        "company": str(raw.get("company") or "").strip() or None,
+        "role": str(raw.get("role") or "").strip() or None,
+        "call_outcome": str(raw.get("call_outcome") or "").strip() or None,
+        "key_points": _normalize_list(raw.get("key_points"), limit=3),
+        "pain_identified": str(raw.get("pain_identified") or "").strip() or None,
+        "objections_raised": _normalize_list(raw.get("objections_raised"), limit=4),
+        "next_action": str(raw.get("next_action") or "").strip() or None,
+        "next_action_date": str(raw.get("next_action_date") or "").strip() or None,
+        "deal_signals": _normalize_list(raw.get("deal_signals"), limit=5),
+        "red_flags": _normalize_list(raw.get("red_flags"), limit=5),
+    }
+
+    if note["call_outcome"] not in _DEAL_STAGE_SIGNALS:
+        note["call_outcome"] = None
+
+    return note if any(value for value in note.values()) else None
+
+
+def _normalize_sales_meta(meta: dict[str, Any]) -> dict[str, Any]:
+    normalized = dict(meta)
+    crm_note = _normalize_crm_note(normalized.get("crm_note"))
+    if crm_note:
+        normalized["crm_note"] = crm_note
+    elif "crm_note" in normalized:
+        normalized.pop("crm_note", None)
+
+    signal = str(normalized.get("deal_stage_signal") or "").strip()
+    normalized["deal_stage_signal"] = signal if signal in _DEAL_STAGE_SIGNALS else None
+    return normalized
+
+
 def ensure_output_blocks(
     output_text: str,
     output_meta: dict | None,
@@ -560,7 +608,7 @@ def ensure_output_blocks(
     numerical_facts: dict | None = None,
 ) -> dict:
     """Build blocks from transcript-verified structured facts only (not polished output_text)."""
-    meta = dict(output_meta or {})
+    meta = _normalize_sales_meta(dict(output_meta or {}))
     transcript = (source_transcript or "").strip()
 
     structured = _filter_structured_to_transcript(

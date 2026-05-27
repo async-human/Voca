@@ -12,6 +12,9 @@ from app.services.voice_profile import load_voice_profile, update_voice_profile
 
 logger = logging.getLogger(__name__)
 
+QUALITY_GATE_MIN_SCORE = 70
+QUALITY_GATE_MAX_PASSES = 2
+
 
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -71,6 +74,71 @@ def save_generation(
     return rows[0]
 
 
+def _merge_output_meta(primary: dict | None, fallback: dict | None) -> dict:
+    merged = dict(fallback or {})
+    merged.update(primary or {})
+    if not merged.get("crm_note") and fallback and fallback.get("crm_note"):
+        merged["crm_note"] = fallback["crm_note"]
+    if not merged.get("deal_stage_signal") and fallback and fallback.get("deal_stage_signal"):
+        merged["deal_stage_signal"] = fallback["deal_stage_signal"]
+    if not merged.get("subject") and fallback and fallback.get("subject"):
+        merged["subject"] = fallback["subject"]
+    return merged
+
+
+def _score(value) -> float | None:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _critique_with_quality_gate(
+    *,
+    draft: dict,
+    voice_profile: dict,
+    output_format: str,
+) -> dict:
+    current_text = draft["output_text"]
+    current_meta = draft.get("output_meta") or {}
+    last_result: dict | None = None
+
+    for attempt in range(1, QUALITY_GATE_MAX_PASSES + 1):
+        result = steps.critique_draft(
+            draft=current_text,
+            draft_meta=current_meta,
+            voice_profile=voice_profile,
+            output_format=output_format,
+        )
+        last_result = result
+        current_text = result["output_text"]
+        current_meta = _merge_output_meta(result.get("output_meta"), current_meta)
+
+        clarity_score = _score(result.get("clarity_score"))
+        if clarity_score is None or clarity_score >= QUALITY_GATE_MIN_SCORE:
+            break
+
+        logger.info(
+            "Quality gate retry for %s: pass %s scored %.1f",
+            output_format,
+            attempt,
+            clarity_score,
+        )
+
+    return {
+        **(last_result or {}),
+        "output_text": current_text,
+        "output_meta": {
+            **current_meta,
+            "quality_gate": {
+                "min_score": QUALITY_GATE_MIN_SCORE,
+                "passes": attempt,
+                "critic_score": _score((last_result or {}).get("clarity_score")),
+            },
+        },
+    }
+
+
 def run_pipeline(supabase: Client, recording_id: str) -> None:
     result = supabase.table("recordings").select("*").eq("id", recording_id).single().execute()
     recording = result.data
@@ -122,9 +190,8 @@ def run_pipeline(supabase: Client, recording_id: str) -> None:
         )
 
         _set_step(supabase, recording_id, "critiquing")
-        revised = steps.critique_draft(
-            draft=draft_result["output_text"],
-            draft_meta=draft_result.get("output_meta"),
+        revised = _critique_with_quality_gate(
+            draft=draft_result,
             voice_profile=voice_profile,
             output_format=output_format,
         )
@@ -144,7 +211,7 @@ def run_pipeline(supabase: Client, recording_id: str) -> None:
 
         output_meta = ensure_output_blocks(
             revised["output_text"],
-            revised.get("output_meta") or draft_result.get("output_meta") or {},
+            revised.get("output_meta") or {},
             output_format,
             source_transcript=clean,
             numerical_facts=numerical_facts,
@@ -240,9 +307,8 @@ def run_regenerate(
         memory_context=memory_context,
         numerical_facts=numerical_facts,
     )
-    revised = steps.critique_draft(
-        draft=draft["output_text"],
-        draft_meta=draft.get("output_meta"),
+    revised = _critique_with_quality_gate(
+        draft=draft,
         voice_profile=voice_profile,
         output_format=format,
     )
@@ -258,7 +324,7 @@ def run_regenerate(
 
     output_meta = ensure_output_blocks(
         revised["output_text"],
-        revised.get("output_meta") or draft.get("output_meta") or {},
+        revised.get("output_meta") or {},
         format,
         source_transcript=clean,
         numerical_facts=numerical_facts,

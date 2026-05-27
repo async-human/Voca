@@ -69,6 +69,20 @@ export interface Generation {
     blocks?: OutputBlock[];
     structured_facts?: StructuredFacts;
     facts_captured?: number;
+    crm_note?: {
+      contact?: string | null;
+      company?: string | null;
+      role?: string | null;
+      call_outcome?: string | null;
+      key_points?: string[];
+      pain_identified?: string | null;
+      objections_raised?: string[];
+      next_action?: string | null;
+      next_action_date?: string | null;
+      deal_signals?: string[];
+      red_flags?: string[];
+    };
+    deal_stage_signal?: string | null;
   };
   explanations?: Explanation[];
 }
@@ -109,6 +123,10 @@ export interface VoiceTraits {
   conciseness?: number;
   warmth?: number;
   formality?: number;
+  urgency_calibration?: number;
+  objection_handling?: number;
+  specificity?: number;
+  follow_through_clarity?: number;
 }
 
 export interface VoiceProfile {

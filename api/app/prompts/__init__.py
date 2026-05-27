@@ -97,6 +97,35 @@ FORMAT_GUIDES = {
         + RICH_OUTPUT_RULES
         + " Use callout for insights; paragraph for reflection."
     ),
+    "post_call_followup": (
+        "Sales post-call follow-up email. Lead with the prospect's specific pain or priority, never a generic opener. "
+        "Write in the rep's voice, keep it short, include one relevant proof point if the transcript provides one, "
+        "and end with one clear next step using a specific date or time when available. "
+        "output_meta.subject is required and must reference the call topic or prospect situation. "
+        "output_meta.crm_note is required as a JSON object with: contact, company, role, call_outcome, key_points, "
+        "pain_identified, objections_raised, next_action, next_action_date, deal_signals, red_flags. "
+        "output_meta.deal_stage_signal is required: interested, lukewarm, not_interested, no_answer, or voicemail. "
+        + RICH_OUTPUT_RULES
+    ),
+    "crm_note": (
+        "Structured CRM note for a sales call. Do not write an email. Capture only deal-relevant facts. "
+        "Use compact sections: Contact, Call outcome, Key points, Pain identified, Objections, Next action, Deal signals. "
+        "output_meta.crm_note is required as a JSON object with: contact, company, role, call_outcome, key_points, "
+        "pain_identified, objections_raised, next_action, next_action_date, deal_signals, red_flags. "
+        "output_meta.deal_stage_signal is required: interested, lukewarm, not_interested, no_answer, or voicemail. "
+        + RICH_OUTPUT_RULES
+    ),
+    "voicemail_script": (
+        "15-second sales voicemail script. Max 45 words. Reference the prospect's role, company, or stated pain when present. "
+        "Use one relevant hook and one crisp callback reason. No generic checking-in language. "
+        "output_meta.crm_note may summarize the attempt; output_meta.deal_stage_signal should be voicemail. "
+    ),
+    "pipeline_update": (
+        "Manager-ready sales pipeline update. Organize into Hot, Warm, and Cold sections. "
+        "For each account, include status, blocker, next action, owner, and date if spoken. "
+        "Keep it skimmable in under 90 seconds. output_meta.crm_note may include structured deal updates. "
+        + RICH_OUTPUT_RULES
+    ),
 }
 
 
@@ -125,7 +154,24 @@ Rules:
 Return JSON:
 {{
   "output_text": "polished content (always required, plain text)",
-  "output_meta": {{ "subject": "only for email", "blocks": [] }}
+  "output_meta": {{
+    "subject": "required for email and post_call_followup",
+    "blocks": [],
+    "crm_note": {{
+      "contact": "name or null",
+      "company": "company or null",
+      "role": "role or null",
+      "call_outcome": "interested|lukewarm|not_interested|no_answer|voicemail|null",
+      "key_points": ["3 bullets max"],
+      "pain_identified": "specific prospect pain or null",
+      "objections_raised": ["objection"],
+      "next_action": "specific next step with owner or null",
+      "next_action_date": "date if spoken or inferable, else null",
+      "deal_signals": ["buying intent signal"],
+      "red_flags": ["risk or blocker"]
+    }},
+    "deal_stage_signal": "interested|lukewarm|not_interested|no_answer|voicemail|null"
+  }}
 }}
 
 Clean transcript:
@@ -144,7 +190,8 @@ Return JSON:
 {{
   "output_text": "revised polished content",
   "output_meta": {{}},
-  "issues_fixed": ["brief list"]
+  "issues_fixed": ["brief list"],
+  "clarity_score": 85
 }}
 
 Voice profile:
@@ -162,6 +209,9 @@ Draft:
 EXPLAIN_PROMPT = """Explain 2-4 specific improvements made from raw speech to final output.
 
 Tags must be one of: Structure, Tone, Clarity, Voice, Hook
+For sales-related formats, include sales coaching patterns when present:
+no_clear_ask, feature_dumping, weak_subject_line, late_cta, no_urgency_signal,
+generic_opener, missing_social_proof, vague_next_step, unhandled_objection.
 
 Return JSON:
 {{
@@ -175,7 +225,11 @@ Return JSON:
     "directness": 0.72,
     "conciseness": 0.65,
     "warmth": 0.58,
-    "formality": 0.61
+    "formality": 0.61,
+    "urgency_calibration": 0.55,
+    "objection_handling": 0.48,
+    "specificity": 0.73,
+    "follow_through_clarity": 0.66
   }}
 }}
 
