@@ -324,6 +324,19 @@ def build_blocks_from_facts(
     return blocks
 
 
+def _strip_markdown(text: str) -> str:
+    cleaned = str(text or "")
+    cleaned = re.sub(r"```[\s\S]*?```", " ", cleaned)
+    cleaned = re.sub(r"`([^`]*)`", r"\1", cleaned)
+    cleaned = re.sub(r"^\s{0,3}#{1,6}\s*", "", cleaned, flags=re.M)
+    cleaned = re.sub(r"^\s{0,3}[-*+]\s+", "", cleaned, flags=re.M)
+    cleaned = re.sub(r"^\s{0,3}\d+[.)]\s+", "", cleaned, flags=re.M)
+    cleaned = re.sub(r"\*\*([^*]+)\*\*", r"\1", cleaned)
+    cleaned = re.sub(r"\*([^*]+)\*", r"\1", cleaned)
+    cleaned = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", cleaned)
+    return cleaned.strip()
+
+
 def merge_blocks(primary: list[dict], factual: list[dict]) -> list[dict]:
     """Prefer factual KPI/charts; keep LLM prose/callouts."""
     merged: list[dict] = []
