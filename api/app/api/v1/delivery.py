@@ -154,6 +154,17 @@ def disconnect(
     return None
 
 
+@router.get("/connections/oauth/gmail/redirect-uri")
+def gmail_redirect_uri_debug():
+    """Shows the exact redirect URI to add in Google Cloud (must match byte-for-byte)."""
+    from app.config import settings
+
+    return {
+        "redirect_uri": settings.google_redirect_uri,
+        "configured": bool(settings.google_client_id and settings.google_redirect_uri),
+    }
+
+
 @router.get("/connections/oauth/gmail/start")
 def gmail_oauth_start(user=Depends(get_current_user)):
     try:

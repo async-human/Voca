@@ -54,6 +54,8 @@ Supabase anon keys are **not** required for Studio login anymore (API still uses
 
 ## Verify redirect URI
 
-`GET https://YOUR-API.up.railway.app/api/v1/auth/google/redirect-uri`
+`GET https://YOUR-API.up.railway.app/api/v1/auth/google/redirect-uri` (login)
+
+`GET https://YOUR-API.up.railway.app/api/v1/connections/oauth/gmail/redirect-uri` (Gmail Connect — copy into Google Console)
 
 Should return `https://www.vokal.work/auth/callback`.
