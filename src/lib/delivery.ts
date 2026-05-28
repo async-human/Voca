@@ -33,6 +33,8 @@ export interface PlatformConnection {
     workspace_name?: string;
     database_id?: string;
     webhook_url?: string;
+    has_draft_permission?: boolean;
+    granted_scopes?: string;
   };
   connected_at?: string;
 }

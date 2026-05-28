@@ -43,9 +43,14 @@ function ConnectionsContent({ accessToken }: { accessToken: string }) {
 
   useEffect(() => {
     const connected = searchParams.get('connected');
+    const drafts = searchParams.get('drafts');
     const err = searchParams.get('error');
-    if (connected) setToast(`${PLATFORM_LABELS[connected as DeliveryPlatform] || connected} connected`);
-    if (err) setToast(decodeURIComponent(err));
+    if (connected === 'gmail' && drafts === '1') {
+      setToast('Gmail connected with draft permission');
+    } else if (connected) {
+      setToast(`${PLATFORM_LABELS[connected as DeliveryPlatform] || connected} connected`);
+    }
+    if (err) setToast(decodeURIComponent(err.replace(/\+/g, ' ')));
   }, [searchParams]);
 
   useEffect(() => {
@@ -67,6 +72,10 @@ function ConnectionsContent({ accessToken }: { accessToken: string }) {
   function isConnected(platform: DeliveryPlatform) {
     return connections.some((c) => c.platform === platform);
   }
+
+  const gmailConn = connections.find((c) => c.platform === 'gmail');
+  const gmailNeedsDraftScope =
+    gmailConn && gmailConn.metadata.has_draft_permission === false;
 
   async function handleOAuth(platform: 'gmail' | 'notion') {
     setBusy(platform);
@@ -157,6 +166,18 @@ function ConnectionsContent({ accessToken }: { accessToken: string }) {
       {error && (
         <div className="mb-4 rounded-[14px] border border-accent/15 bg-accent/8 px-4 py-3 text-sm text-accent-2">
           {error}
+        </div>
+      )}
+
+      {gmailNeedsDraftScope && (
+        <div className="mb-4 rounded-[14px] border border-accent/20 bg-accent/8 px-4 py-3.5 text-[13px] leading-relaxed text-accent-2">
+          <p className="font-semibold text-accent">Gmail is missing draft permission</p>
+          <p className="mt-1.5 text-accent-2">
+            In Google Cloud Console → APIs &amp; Services → OAuth consent screen → <strong>Scopes</strong>, add{' '}
+            <code className="text-[12px]">gmail.compose</code> (Manage drafts and send emails). Then click{' '}
+            <strong>Remove</strong> on your Gmail row below, and <strong>Connect with OAuth</strong> again. On
+            Google&apos;s screen you should see draft/manage permission — not only &quot;send email&quot;.
+          </p>
         </div>
       )}
 
@@ -365,6 +386,14 @@ function ConnectionRow({
           <p className="mt-0.5 truncate text-[11px] text-muted">
             {conn.metadata.email || conn.metadata.workspace_name || 'Connected'}
           </p>
+          {conn.platform === 'gmail' && conn.metadata.has_draft_permission === false && (
+            <p className="mt-2 text-[11px] leading-relaxed text-accent">
+              Drafts blocked — remove this connection, add gmail.compose in Google Cloud, then reconnect.
+            </p>
+          )}
+          {conn.platform === 'gmail' && conn.metadata.has_draft_permission === true && (
+            <p className="mt-2 text-[11px] text-teal">Drafts enabled</p>
+          )}
 
           {conn.platform === 'notion' && (
             <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">

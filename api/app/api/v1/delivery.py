@@ -20,13 +20,16 @@ from app.models.delivery import (
 )
 from app.services.delivery.agent import deliver_session, list_connections, serialize_connection
 from app.services.delivery.workflow_executor import deliver_workflow_bundle
-from app.services.delivery.credentials import encrypt_credentials
+from app.services.delivery.credentials import decrypt_credentials, encrypt_credentials
 from app.services.delivery.oauth import (
+    GMAIL_SCOPES,
     exchange_gmail_code,
     exchange_notion_code,
     gmail_authorize_url,
+    gmail_has_draft_permission,
     notion_authorize_url,
     parse_oauth_state,
+    revoke_google_token,
     upsert_connection,
 )
 from app.services.sessions import get_session_with_generation
@@ -150,6 +153,21 @@ def disconnect(
     user=Depends(get_current_user),
     supabase: Client = Depends(get_supabase_client),
 ):
+    result = (
+        supabase.table("platform_connections")
+        .select("platform, credentials_encrypted")
+        .eq("id", connection_id)
+        .eq("user_id", user.id)
+        .maybe_single()
+        .execute()
+    )
+    row = result.data
+    if row and row.get("platform") == "gmail":
+        try:
+            creds = decrypt_credentials(row["credentials_encrypted"])
+            revoke_google_token(creds)
+        except Exception:
+            logger.warning("Could not revoke Gmail token before disconnect", exc_info=True)
     supabase.table("platform_connections").delete().eq("id", connection_id).eq("user_id", user.id).execute()
     return None
 
@@ -192,6 +210,13 @@ def gmail_oauth_callback(
     try:
         user_id = parse_oauth_state(state)
         credentials, metadata = exchange_gmail_code(code)
+        if not gmail_has_draft_permission(metadata.get("granted_scopes")):
+            revoke_google_token(credentials)
+            return RedirectResponse(
+                _frontend_connections_url(
+                    "error=Gmail+connected+without+draft+permission.+In+Google+Cloud+OAuth+consent+screen+add+scope+gmail.compose+then+Remove+and+Connect+Gmail+again."
+                )
+            )
         upsert_connection(
             supabase,
             user_id=user_id,
@@ -200,7 +225,7 @@ def gmail_oauth_callback(
             metadata=metadata,
             label=metadata.get("email"),
         )
-        return RedirectResponse(_frontend_connections_url("connected=gmail"))
+        return RedirectResponse(_frontend_connections_url("connected=gmail&drafts=1"))
     except Exception as exc:
         logger.exception("Gmail OAuth callback failed")
         return RedirectResponse(_frontend_connections_url(f"error={str(exc)[:120]}"))

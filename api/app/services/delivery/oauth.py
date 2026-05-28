@@ -33,6 +33,34 @@ GMAIL_SCOPES = (
 )
 NOTION_SCOPES = ""  # Notion uses integration capabilities at authorize time
 
+GOOGLE_REVOKE_URL = "https://oauth2.googleapis.com/revoke"
+GMAIL_COMPOSE_SCOPE = "https://www.googleapis.com/auth/gmail.compose"
+GMAIL_SEND_SCOPE = "https://www.googleapis.com/auth/gmail.send"
+FULL_MAIL_SCOPE = "https://mail.google.com/"
+
+
+def gmail_has_draft_permission(scope: str | None) -> bool:
+    """True when the granted token can call users.drafts.create."""
+    if not scope:
+        return False
+    return (
+        GMAIL_COMPOSE_SCOPE in scope
+        or FULL_MAIL_SCOPE in scope
+        or "gmail.compose" in scope
+    )
+
+
+def revoke_google_token(credentials: dict[str, Any]) -> None:
+    """Invalidate refresh/access token so the next Connect gets fresh scopes."""
+    token = credentials.get("refresh_token") or credentials.get("access_token")
+    if not token:
+        return
+    try:
+        with httpx.Client(timeout=10.0) as client:
+            client.post(GOOGLE_REVOKE_URL, params={"token": token})
+    except Exception:
+        logger.warning("Google token revoke failed (continuing disconnect)", exc_info=True)
+
 
 def _state_secret() -> bytes:
     secret = settings.jwt_secret or settings.google_client_secret or settings.notion_client_secret or "vokal-dev"
@@ -116,13 +144,21 @@ def exchange_gmail_code(code: str) -> tuple[dict[str, Any], dict[str, Any]]:
         profile_resp.raise_for_status()
         profile = profile_resp.json()
 
+    granted_scope = tokens.get("scope") or ""
     credentials = {
         "access_token": tokens["access_token"],
         "refresh_token": tokens.get("refresh_token"),
         "expires_in": tokens.get("expires_in"),
         "email": profile.get("email"),
+        "scope": granted_scope,
     }
-    metadata = {"email": profile.get("email"), "name": profile.get("name")}
+    metadata = {
+        "email": profile.get("email"),
+        "name": profile.get("name"),
+        "granted_scopes": granted_scope,
+        "has_draft_permission": gmail_has_draft_permission(granted_scope),
+        "has_send_permission": GMAIL_SEND_SCOPE in granted_scope or FULL_MAIL_SCOPE in granted_scope,
+    }
     return credentials, metadata
 
 

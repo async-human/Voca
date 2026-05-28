@@ -46,11 +46,21 @@ def list_connections(supabase: Client, user_id: str) -> list[dict]:
 
 
 def serialize_connection(row: dict) -> dict:
+    metadata = row.get("metadata") or {}
+    platform = row["platform"]
+    if platform == "gmail" and "has_draft_permission" not in metadata:
+        granted = metadata.get("granted_scopes") or ""
+        from app.services.delivery.oauth import gmail_has_draft_permission
+
+        metadata = {
+            **metadata,
+            "has_draft_permission": gmail_has_draft_permission(granted),
+        }
     return {
         "id": row["id"],
-        "platform": row["platform"],
+        "platform": platform,
         "label": row.get("label") or row["platform"],
-        "metadata": row.get("metadata") or {},
+        "metadata": metadata,
         "connected_at": row.get("connected_at"),
         "updated_at": row.get("updated_at"),
     }
